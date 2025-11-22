@@ -1,145 +1,158 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'core/theme/app_colors.dart';
-import 'core/theme/app_text_styles.dart';
-import 'shared/widgets/dashboard_layout.dart';
-import 'shared/widgets/military_decorations.dart';
-import 'shared/widgets/app_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/models/log_model/log_model.dart';
+import '../../core/models/log_level/log_level.dart';
+import '../../core/providers/logs_provider.dart';
+import '../../core/providers/filtered_logs_provider.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text_styles.dart';
+import '../../shared/widgets/military_decorations.dart';
+import '../../shared/widgets/app_button.dart';
+import 'widgets/log_filter_bar.dart';
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+class LogsScreen extends ConsumerWidget {
+  const LogsScreen({super.key});
 
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  List<dynamic> _logs = [];
-  Timer? _refreshTimer;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchLogs();
-    // Poll every 2 seconds for real-time updates
-    _refreshTimer = Timer.periodic(const Duration(seconds: 2), (_) => _fetchLogs());
+  Color _getLevelColor(LogLevel level) {
+    return level.when(
+      debug: () => AppColors.slate,
+      info: () => AppColors.white,
+      warning: () => Colors.orange,
+      error: () => AppColors.error,
+      fatal: () => Colors.red.shade900,
+    );
   }
 
   @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    final logsAsync = ref.watch(filteredLogsProvider);
 
-  Future<void> _fetchLogs() async {
-    try {
-      final response = await http.get(Uri.parse('http://localhost:8080/api/v1/logs'));
-      if (response.statusCode == 200) {
-        if (mounted) {
-          setState(() {
-            _logs = jsonDecode(response.body);
-            _isLoading = false;
-          });
-        }
-      }
-    } catch (e) {
-      print('Error fetching logs: $e');
-    }
-  }
-
-  Color _getLevelColor(String? level) {
-    switch (level) {
-      case 'error':
-        return AppColors.error;
-      case 'warning':
-        return Colors.orange;
-      default:
-        return AppColors.white; // Info is white in this theme
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DashboardLayout(
-      header: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.radar, color: AppColors.primary, size: 32),
-                const SizedBox(width: 16),
-                GlitchText(
-                  text: 'TELLING // DASHBOARD',
-                  style: AppTextStyles.headlineSmall,
-                  glitchAmount: 2.0,
+    return Column(
+      children: [
+        // Header
+        Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.list_alt,
+                      color: AppColors.primary,
+                      size: 32,
+                    ),
+                    const SizedBox(width: 16),
+                    Flexible(
+                      child: GlitchText(
+                        text: 'LOGS EXPLORER',
+                        style: AppTextStyles.headlineSmall,
+                        glitchAmount: 2.0,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            AppButton(
-              text: 'REFRESH',
-              icon: Icons.refresh,
-              isOutlined: true,
-              onPressed: _fetchLogs,
-            ),
-          ],
+              ),
+              const SizedBox(width: 16),
+              AppButton(
+                text: isMobile ? '' : 'REFRESH',
+                icon: Icons.refresh,
+                isOutlined: true,
+                onPressed: () => ref.refresh(logsProvider),
+                width: isMobile ? 48 : null,
+                height: isMobile ? 48 : null,
+                padding: EdgeInsets.zero
+              ),
+            ],
+          ),
         ),
-      ),
-      child: _isLoading
-          ? const Center(
+
+        // Filter Bar
+        const LogFilterBar(),
+
+        // Content
+        Expanded(
+          child: logsAsync.when(
+            loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
-            )
-          : _logs.isEmpty
-          ? Center(
+            ),
+            error: (error, stack) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(
-                    Icons.signal_wifi_off,
+                    Icons.error_outline,
                     size: 48,
-                    color: AppColors.slate,
+                    color: AppColors.error,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'NO SIGNALS DETECTED',
+                    'ERROR LOADING LOGS',
                     style: AppTextStyles.titleMedium.copyWith(
+                      color: AppColors.error,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.slate,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  itemCount: _logs.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final log = _logs[index];
-                return _buildLogItem(log);
-              },
             ),
+            data: (logs) => logs.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.signal_wifi_off,
+                          size: 48,
+                          color: AppColors.slate,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'NO SIGNALS DETECTED',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            color: AppColors.slate,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    itemCount: logs.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final log = logs[index];
+                      return _buildLogItem(context, log);
+                    },
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildLogItem(Map<String, dynamic> log) {
-    final level = log['level'] as String?;
-    final type = log['type'] as String?;
-    final message = log['message'] as String? ?? '';
-    final timestamp =
-        DateTime.tryParse(log['timestamp'] ?? '') ?? DateTime.now();
-    final device = log['device'] as Map<String, dynamic>?;
-    
-    final color = _getLevelColor(level);
+  Widget _buildLogItem(BuildContext context, LogModel log) {
+    final color = _getLevelColor(log.level);
 
     return MilitaryHoverContainer(
-      onTap: () => _showLogDetails(log),
+      onTap: () => _showLogDetails(context, log),
       baseColor: AppColors.tertiary,
-      hoverColor: AppColors.darkSlate,
-      showGrid: true,
+      hoverColor: AppColors.white,
+      showGrid: false,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -147,11 +160,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: Row(
           children: [
-            // Status Indicator
             Container(width: 4, height: 40, color: color),
             const SizedBox(width: 16),
 
-            // Icon
             CornerBrackets(
               length: 6,
               thickness: 1,
@@ -159,7 +170,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Icon(
-                  type == 'error' ? Icons.warning_amber : Icons.info_outline,
+                  log.type.maybeWhen(
+                    errorr: () => Icons.warning_amber,
+                    orElse: () => Icons.info_outline,
+                  ),
                   color: color,
                   size: 20,
                 ),
@@ -167,13 +181,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(width: 16),
 
-            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message.toUpperCase(),
+                    log.message.toUpperCase(),
                     style: AppTextStyles.labelLarge.copyWith(
                       color: AppColors.white,
                     ),
@@ -184,12 +197,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     children: [
                       Text(
-                        '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}',
+                        '${log.timestamp.hour.toString().padLeft(2, '0')}:${log.timestamp.minute.toString().padLeft(2, '0')}:${log.timestamp.second.toString().padLeft(2, '0')}',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: AppColors.slate,
                         ),
                       ),
-                      if (device != null) ...[
+                      if (log.device != null) ...[
                         const SizedBox(width: 12),
                         Text(
                           '//',
@@ -199,7 +212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          '${device['platform']} :: ${device['deviceModel']}'
+                          '${log.device!.platform} :: ${log.device!.deviceModel}'
                               .toUpperCase(),
                           style: AppTextStyles.labelSmall.copyWith(
                             color: AppColors.slate,
@@ -212,7 +225,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            // Arrow
             const Icon(Icons.chevron_right, color: AppColors.slate),
           ],
         ),
@@ -220,7 +232,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _showLogDetails(Map<String, dynamic> log) {
+  void _showLogDetails(BuildContext context, LogModel log) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -230,6 +242,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           constraints: const BoxConstraints(maxHeight: 800),
           child: MilitaryHoverContainer(
             baseColor: AppColors.surfaceDark,
+            hoverColor: AppColors.white,
             showGrid: true,
             child: Container(
               decoration: BoxDecoration(
@@ -239,7 +252,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: const BoxDecoration(
@@ -251,7 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GlitchText(
-                          text: 'LOG DETAILS // ID: ${log['id']}',
+                          text: 'LOG DETAILS // ID: ${log.id}',
                           style: AppTextStyles.titleMedium,
                         ),
                         IconButton(
@@ -262,46 +274,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
 
-                  // Body
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildDetailSection('MESSAGE', log['message']),
+                          _buildDetailSection('MESSAGE', log.message),
                           _buildDetailSection(
                             'TYPE',
-                            log['type']?.toString().toUpperCase() ?? 'UNKNOWN',
+                            log.type.when(
+                              log: () => 'LOG',
+                              errorr: () => 'ERROR',
+                              analytics: () => 'ANALYTICS',
+                              event: () => 'EVENT',
+                              performance: () => 'PERFORMANCE',
+                              network: () => 'NETWORK',
+                              custom: (name) => name.toUpperCase(),
+                            ),
                           ),
                           _buildDetailSection(
                             'LEVEL',
-                            log['level']?.toString().toUpperCase() ?? 'UNKNOWN',
+                            log.level.toString().split('.').last.toUpperCase(),
                           ),
-                          _buildDetailSection('TIMESTAMP', log['timestamp']),
+                          _buildDetailSection('TIMESTAMP', log.timestamp.toIso8601String()),
 
-                          if (log['stackTrace'] != null)
+                          if (log.stackTrace != null)
                             _buildDetailSection(
                               'STACK TRACE',
-                              log['stackTrace'],
+                              log.stackTrace,
                               isCode: true,
                             ),
 
-                          if (log['metadata'] != null)
+                          if (log.metadata.isNotEmpty)
                             _buildDetailSection(
                               'METADATA',
                               const JsonEncoder.withIndent(
                                 '  ',
-                              ).convert(log['metadata']),
+                              ).convert(log.metadata),
                               isCode: true,
                             ),
 
-                          if (log['device'] != null)
+                          if (log.device != null)
                             _buildDetailSection(
                               'DEVICE INFO',
                               const JsonEncoder.withIndent(
                                 '  ',
-                              ).convert(log['device']),
+                              ).convert(log.device!.toJson()),
                               isCode: true,
                             ),
                         ],
@@ -357,4 +376,3 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
-

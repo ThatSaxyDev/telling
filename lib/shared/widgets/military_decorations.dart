@@ -748,16 +748,16 @@ class _MilitaryHoverContainerState extends State<MilitaryHoverContainer>
 
     _thicknessAnim = Tween<double>(
       begin: 1.0,
-      end: 3.0,
+      end: 2.5,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _lengthAnim = Tween<double>(
-      begin: 10.0,
-      end: 20.0,
+      begin: 8.0,
+      end: 16.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _colorAnim = ColorTween(
-      begin: widget.baseColor,
+      begin: widget.baseColor.withOpacity(0.5),
       end: widget.hoverColor,
     ).animate(_controller);
   }
@@ -807,15 +807,15 @@ class _MilitaryHoverContainerState extends State<MilitaryHoverContainer>
                   color: _colorAnim.value ?? widget.baseColor,
                   thickness: _thicknessAnim.value,
                   length: _lengthAnim.value,
-                  offset: 0, // Keep tight to container
+                  offset: 0,
                   child: Container(
                     decoration: BoxDecoration(
                       color: _isHovered
-                          ? widget.hoverColor.withOpacity(0.05)
+                          ? widget.hoverColor.withOpacity(0.08)
                           : Colors.transparent,
                       border: Border.all(
                         color: (_colorAnim.value ?? widget.baseColor)
-                            .withOpacity(0.3),
+                            .withOpacity(_isHovered ? 0.6 : 0.2),
                         width: 1,
                       ),
                     ),

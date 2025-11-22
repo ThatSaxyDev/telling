@@ -9,6 +9,9 @@ class AppButton extends StatefulWidget {
   final bool isOutlined;
   final bool isLoading;
   final IconData? icon;
+  final double? height;
+  final double? width;
+  final EdgeInsets? padding;
 
   const AppButton({
     super.key,
@@ -17,7 +20,17 @@ class AppButton extends StatefulWidget {
     this.isOutlined = false,
     this.isLoading = false,
     this.icon,
+    this.height,
+    this.width,
+    this.padding,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderColor,
   });
+
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final Color? borderColor;
 
   @override
   State<AppButton> createState() => _AppButtonState();
@@ -39,34 +52,46 @@ class _AppButtonState extends State<AppButton> {
         thickness: 1.5,
         offset: -4, // Brackets slightly outside
         child: SizedBox(
-          height: 56,
+          height: widget.height ?? 56,
+          width: widget.width,
           child: widget.isOutlined
               ? OutlinedButton(
                   onPressed: widget.isLoading ? null : widget.onPressed,
                   style: OutlinedButton.styleFrom(
-                    backgroundColor:
-                        _isHovered ? AppColors.white : Colors.transparent,
-                    foregroundColor:
-                        _isHovered ? AppColors.primary : AppColors.white,
-                    side: const BorderSide(color: AppColors.white, width: 1),
+                    backgroundColor: _isHovered
+                        ? (widget.foregroundColor ?? AppColors.white)
+                        : Colors.transparent,
+                    foregroundColor: _isHovered
+                        ? (widget.backgroundColor ?? AppColors.primary)
+                        : (widget.foregroundColor ?? AppColors.white),
+                    side: BorderSide(
+                      color: widget.borderColor ?? AppColors.white,
+                      width: 1,
+                    ),
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    padding:
+                        widget.padding ??
+                        const EdgeInsets.symmetric(horizontal: 32),
                   ),
                   child: _buildContent(),
                 )
               : ElevatedButton(
                   onPressed: widget.isLoading ? null : widget.onPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _isHovered ? AppColors.tertiary : AppColors.white,
-                    foregroundColor:
-                        _isHovered ? AppColors.white : AppColors.primary,
+                    backgroundColor: _isHovered
+                        ? AppColors.tertiary
+                        : (widget.backgroundColor ?? AppColors.white),
+                    foregroundColor: _isHovered
+                        ? AppColors.white
+                        : (widget.foregroundColor ?? AppColors.primary),
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    padding:
+                        widget.padding ??
+                        const EdgeInsets.symmetric(horizontal: 32),
                   ),
                   child: _buildContent(),
                 ),
@@ -94,17 +119,23 @@ class _AppButtonState extends State<AppButton> {
     if (widget.icon != null) {
       return Row(
         mainAxisSize: MainAxisSize.min,
+        spacing: 8,
         children: [
-          Text(
-            widget.text.toUpperCase(),
-            style: AppTextStyles.labelLarge.copyWith(
-              color: widget.isOutlined
-                  ? (_isHovered ? AppColors.primary : AppColors.white)
-                  : (_isHovered ? AppColors.white : AppColors.primary),
-              letterSpacing: 1.5,
+          if (widget.text.isNotEmpty)
+            Text(
+              widget.text.toUpperCase(),
+              style: AppTextStyles.labelLarge.copyWith(
+                color: widget.isOutlined
+                    ? (_isHovered
+                          ? (widget.backgroundColor ?? AppColors.primary)
+                          : (widget.foregroundColor ?? AppColors.white))
+                    : (_isHovered
+                          ? AppColors.white
+                          : (widget.foregroundColor ?? AppColors.primary)),
+                letterSpacing: 1.5,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
+
           Icon(widget.icon, size: 18),
         ],
       );
@@ -113,8 +144,12 @@ class _AppButtonState extends State<AppButton> {
       widget.text.toUpperCase(),
       style: AppTextStyles.labelLarge.copyWith(
         color: widget.isOutlined
-            ? (_isHovered ? AppColors.primary : AppColors.white)
-            : (_isHovered ? AppColors.white : AppColors.primary),
+            ? (_isHovered
+                  ? (widget.backgroundColor ?? AppColors.primary)
+                  : (widget.foregroundColor ?? AppColors.white))
+            : (_isHovered
+                  ? AppColors.white
+                  : (widget.foregroundColor ?? AppColors.primary)),
         letterSpacing: 1.5,
       ),
     );
