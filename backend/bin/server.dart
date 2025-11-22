@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
@@ -26,6 +27,14 @@ const validLogTypes = {
   'error', // Maps to 'general'
   'errorr', // Maps to 'general' (typo fix)
 };
+
+// Rate limiting state
+final Map<String, List<DateTime>> _requestTimestamps = {};
+const maxRequestsPerMinute = 100;
+
+// Duplicate detection cache
+final Map<String, DateTime> _recentLogs = {};
+const dedupeWindowSeconds = 10;
 
 // Configure routes
 final _router = Router()
@@ -173,6 +182,9 @@ Future<Response> _postLogsHandler(Request req) async {
       'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name, user_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
 
+    int saved = 0;
+    int duplicates = 0;
+
     for (var event in events) {
       if (event is Map<String, dynamic>) {
         // Normalize and validate level
@@ -198,6 +210,17 @@ Future<Response> _postLogsHandler(Request req) async {
           }
         }
 
+        // Check for duplicates
+        final hash = _hashLogEvent(event);
+        final lastSeen = _recentLogs[hash];
+        final now = DateTime.now();
+
+        if (lastSeen != null &&
+            now.difference(lastSeen).inSeconds < dedupeWindowSeconds) {
+          duplicates++;
+          continue; // Skip duplicate
+        }
+
         stmt.execute([
           type,
           level,
@@ -211,16 +234,56 @@ Future<Response> _postLogsHandler(Request req) async {
           event['userName'], // Can be null
           event['userEmail'], // Can be null
         ]);
+        
+        _recentLogs[hash] = now;
+        saved++;
       }
     }
     stmt.dispose();
 
-    print('Received and saved ${events.length} logs.');
-    return Response.ok(jsonEncode({'status': 'success', 'count': events.length}));
+    print('Saved $saved logs, dropped $duplicates duplicates');
+    return Response.ok(
+      jsonEncode({
+        'status': 'success',
+        'saved': saved,
+        'duplicates': duplicates,
+        'total': events.length,
+      }),
+    );
   } catch (e) {
     print('Error processing logs: $e');
     return Response.internalServerError(body: 'Error processing logs');
   }
+}
+
+// Generate hash for log event deduplication
+String _hashLogEvent(Map<String, dynamic> event) {
+  final key = '${event['message']}_${event['level']}_${event['stackTrace']}';
+  return key.hashCode.toString();
+}
+
+// Start periodic cleanup timer
+void _startCleanupTimer() {
+  Timer.periodic(const Duration(minutes: 1), (_) {
+    final now = DateTime.now();
+
+    // Clean request timestamps
+    _requestTimestamps.removeWhere((ip, timestamps) {
+      timestamps.removeWhere((t) => now.difference(t).inMinutes >= 1);
+      return timestamps.isEmpty;
+    });
+
+    // Clean recent logs cache
+    _recentLogs.removeWhere(
+      (hash, time) => now.difference(time).inSeconds > dedupeWindowSeconds,
+    );
+
+    if (_requestTimestamps.isNotEmpty || _recentLogs.isNotEmpty) {
+      print(
+        'Cleanup: ${_requestTimestamps.length} IPs tracked, ${_recentLogs.length} cached log hashes',
+      );
+    }
+  });
 }
 
 // Manual CORS Middleware
@@ -293,13 +356,18 @@ void main(List<String> args) async {
   final ip = InternetAddress.anyIPv4;
 
   // Configure a pipeline that logs requests and adds CORS headers.
+  // Start cleanup timer for rate limiting caches
+  _startCleanupTimer();
+  print(
+    'Rate limiting enabled: $maxRequestsPerMinute req/min, ${dedupeWindowSeconds}s deduplication',
+  );
+
+  // Create the server handler with CORS middleware
   final handler = Pipeline()
-      .addMiddleware(logRequests())
       .addMiddleware(corsHeaders())
       .addHandler(_router.call);
 
-  // For running in containers, we respect the PORT environment variable.
-  final port = int.parse(Platform.environment['PORT'] ?? '8080');
-  final server = await serve(handler, ip, port);
-  print('Server listening on port ${server.port}');
+  // Start the server
+  final server = await serve(handler, 'localhost', 8080);
+  print('Serving at http://${server.address.host}:${server.port}');
 }

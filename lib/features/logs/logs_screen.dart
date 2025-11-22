@@ -44,14 +44,16 @@ class LogsScreen extends ConsumerWidget {
                   children: [
                     const Icon(
                       Icons.list_alt,
-                      color: AppColors.primary,
+                      color: AppColors.slate,
                       size: 32,
                     ),
                     const SizedBox(width: 16),
                     Flexible(
                       child: GlitchText(
                         text: 'LOGS EXPLORER',
-                        style: AppTextStyles.headlineSmall,
+                        style: isMobile
+                            ? AppTextStyles.titleMedium
+                            : AppTextStyles.headlineSmall,
                         glitchAmount: 2.0,
                       ),
                     ),

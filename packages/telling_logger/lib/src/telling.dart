@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'models/log_event.dart';
 import 'models/device_metadata.dart';
 import 'device_info_collector.dart';
+import 'rate_limiter.dart';
 
 class Telling {
   static final Telling _instance = Telling._internal();
@@ -25,6 +26,10 @@ class Telling {
   // Simple buffer to avoid spamming network
   final List<LogEvent> _buffer = [];
   Timer? _flushTimer;
+  Timer? _cleanupTimer;
+
+  // Rate limiter
+  final LogRateLimiter _rateLimiter = LogRateLimiter();
 
   Telling._internal();
 
@@ -35,6 +40,10 @@ class Telling {
     String? userId,
     String? userName,
     String? userEmail,
+    // Rate limiting configuration
+    Duration? deduplicationWindow,
+    Duration? crashThrottleWindow,
+    int? maxLogsPerSecond,
   }) async {
     _apiKey = apiKey;
     if (baseUrl != null) {
@@ -43,6 +52,17 @@ class Telling {
     _userId = userId;
     _userName = userName;
     _userEmail = userEmail;
+    
+    // Configure rate limiter
+    if (deduplicationWindow != null) {
+      _rateLimiter.deduplicationWindow = deduplicationWindow;
+    }
+    if (crashThrottleWindow != null) {
+      _rateLimiter.crashThrottleWindow = crashThrottleWindow;
+    }
+    if (maxLogsPerSecond != null) {
+      _rateLimiter.maxLogsPerSecond = maxLogsPerSecond;
+    }
     _initialized = true;
     
     // Collect device metadata
@@ -65,32 +85,59 @@ class Telling {
     // Catch Flutter framework errors
     FlutterError.onError = (details) {
       print('Telling: CAUGHT FLUTTER ERROR: ${details.exception}');
+      
+      // Determine severity based on error type
+      final errorString = details.exception.toString().toLowerCase();
+      final isRenderIssue =
+          errorString.contains('overflow') ||
+          errorString.contains('renderflex') ||
+          errorString.contains('renderbox') ||
+          errorString.contains('disposed') ||
+          errorString.contains('trying to render');
+
+      final isLayoutIssue =
+          errorString.contains('constraints') ||
+          errorString.contains('size') ||
+          errorString.contains('layout');
+
+      // Framework/render issues are warnings, actual crashes are fatal
+      final level = (isRenderIssue || isLayoutIssue)
+          ? LogLevel.warning
+          : LogLevel.fatal;
+      final type = (isRenderIssue || isLayoutIssue)
+          ? LogType.general
+          : LogType.crash;
+      
       log(
-        'Crash: ${details.exception}',
-        level: LogLevel.fatal,
+        'Flutter Error: ${details.exception}',
+        level: level,
         error: details.exception,
         stackTrace: details.stack,
-        type: LogType.crash,
+        type: type,
       );
       
-      // Pass to original handler if it exists (e.g. to print to console)
-      FlutterError.presentError(details);
+      // Still print to console in debug mode
+      if (kDebugMode) {
+        FlutterError.dumpErrorToConsole(details);
+      }
     };
     
-    // Catch async platform errors
+    // Catch async errors
     PlatformDispatcher.instance.onError = (error, stack) {
-      print('Telling: CAUGHT ASYNC ERROR: $error');
+      print('Telling: CAUGHT PLATFORM ERROR: $error');
+
+      // Platform errors are usually fatal
       log(
-        'Async Crash: $error',
+        'Platform Error: $error',
         level: LogLevel.fatal,
         error: error,
         stackTrace: stack,
         type: LogType.crash,
       );
-      return true; // Prevent app crash
+      return true;
     };
     
-    print('Telling Crash Reporting Enabled');
+    print('Telling: Crash reporting enabled');
   }
 
   /// Track an analytics event
@@ -130,7 +177,16 @@ class Telling {
       userEmail: _userEmail,
     );
 
+    // Check rate limiter
+    if (!_rateLimiter.shouldSendLog(event)) {
+      if (kDebugMode) {
+        print('Telling: Rate limited log (${event.level}/${event.type})');
+      }
+      return; // Drop rate-limited log
+    }
+
     _buffer.add(event);
+    _rateLimiter.markLogSent(event);
     _persistLogs(); // Save to disk immediately
     
     // If error, flush immediately
@@ -142,13 +198,34 @@ class Telling {
   void _startFlushTimer() {
     _flushTimer?.cancel();
     _flushTimer = Timer.periodic(const Duration(seconds: 5), (_) => _flush());
+    
+    // Periodic cleanup for rate limiter
+    _cleanupTimer?.cancel();
+    _cleanupTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+      _rateLimiter.cleanup();
+    });
   }
 
   Future<void> _flush() async {
     if (_buffer.isEmpty) return;
 
-    final eventsToSend = List<LogEvent>.from(_buffer);
+    // Deduplicate buffer by hash before sending
+    final uniqueLogs = <String, LogEvent>{};
+    for (var log in _buffer) {
+      final hash = '${log.message}_${log.level}_${log.stackTrace ?? ""}'
+          .hashCode
+          .toString();
+      uniqueLogs[hash] = log; // Keeps last occurrence
+    }
+
+    final eventsToSend = uniqueLogs.values.toList();
     _buffer.clear();
+
+    if (kDebugMode && eventsToSend.length < _buffer.length) {
+      print(
+        'Telling: Deduplicated buffer: ${_buffer.length} → ${eventsToSend.length} unique logs',
+      );
+    }
 
     try {
       // Batch sending

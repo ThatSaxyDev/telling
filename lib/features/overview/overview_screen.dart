@@ -19,17 +19,22 @@ class OverviewScreen extends ConsumerWidget {
       builder: (context, constraints) {
         // Use width-based breakpoint for better reliability
         final isDesktop = constraints.maxWidth > 1024;
+        final style = constraints.maxWidth > 800
+            ? AppTextStyles.headlineSmall
+            : AppTextStyles.titleMedium;
 
         final content = [
           // Header
           Row(
             children: [
-              const Icon(Icons.radar, color: AppColors.primary, size: 32),
+              const Icon(Icons.radar, color: AppColors.slate, size: 32),
               const SizedBox(width: 16),
-              GlitchText(
-                text: 'COMMAND CENTER',
-                style: AppTextStyles.headlineSmall,
-                glitchAmount: 2.0,
+              Flexible(
+                child: GlitchText(
+                  text: 'COMMAND CENTER',
+                  style: style.copyWith(color: AppColors.white),
+                  glitchAmount: 2.0,
+                ),
               ),
             ],
           ),
@@ -57,7 +62,7 @@ class OverviewScreen extends ConsumerWidget {
           Text(
             'RECENT ACTIVITY',
             style: AppTextStyles.titleMedium.copyWith(
-              color: AppColors.primary,
+              color: AppColors.white,
               letterSpacing: 2,
             ),
           ),
@@ -78,15 +83,20 @@ class OverviewScreen extends ConsumerWidget {
           );
         } else {
           // Mobile/Tablet: Scrollable layout with fixed timeline height
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...content,
-                SizedBox(height: 500, child: const ActivityTimeline()),
-              ],
-            ),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final padding = constraints.maxWidth > 800 ? 24.0 : 16.0;
+              return SingleChildScrollView(
+                padding: EdgeInsets.all(padding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...content,
+                    SizedBox(height: 500, child: const ActivityTimeline()),
+                  ],
+                ),
+              );
+            },
           );
         }
       },
@@ -99,15 +109,17 @@ class OverviewScreen extends ConsumerWidget {
         final crossAxisCount = constraints.maxWidth > 1200
             ? 4
             : constraints.maxWidth > 800
-                ? 2
-                : 1;
-        
+            ? 2
+            : 2;
+
+        final padding = constraints.maxWidth > 800 ? 16.0 : 8.0;
+
         return GridView.count(
           crossAxisCount: crossAxisCount,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
+          mainAxisSpacing: padding,
+          crossAxisSpacing: padding,
           childAspectRatio: 2,
           children: [
             _buildStatCard(
@@ -148,64 +160,86 @@ class OverviewScreen extends ConsumerWidget {
     required String value,
     required Color color,
   }) {
-    return MilitaryHoverContainer(
-      baseColor: AppColors.surfaceDark,
-      hoverColor: AppColors.white.withOpacity(0.8),
-      showGrid: false,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.slate.withOpacity(0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive sizing based on card width
+        final isSmall = constraints.maxWidth < 200;
+        final padding = isSmall ? 5.0 : 20.0;
+        final iconSize = isSmall ? 20.0 : 28.0;
+        final valueFontSize = isSmall ? 20.0 : 32.0;
+        final labelFontSize = isSmall ? 10.0 : 12.0;
+
+        return MilitaryHoverContainer(
+          baseColor: AppColors.surfaceDark,
+          hoverColor: AppColors.white.withOpacity(0.8),
+          showGrid: false,
+          child: Container(
+            padding: EdgeInsets.all(padding),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, color: color, size: 28),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.5),
-                        blurRadius: 8,
-                        spreadRadius: 2,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(icon, color: color, size: iconSize),
+                    Container(
+                      width: isSmall ? 6 : 8,
+                      height: isSmall ? 6 : 8,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withOpacity(0.5),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          value,
+                          style: AppTextStyles.displaySmall.copyWith(
+                            fontSize: valueFontSize,
+                            color: color,
+                            fontFamily: 'Urbanist',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          label,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            fontSize: labelFontSize,
+                            color: AppColors.slate,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: AppTextStyles.displaySmall.copyWith(
-                    fontSize: 32,
-                    color: color,
-                    fontFamily: 'Urbanist',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.slate,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
-
 }

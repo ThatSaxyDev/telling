@@ -8,17 +8,20 @@ class AnalyticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(24.0),
           child: Row(
             children: [
-              const Icon(Icons.analytics, color: AppColors.primary, size: 32),
+              const Icon(Icons.analytics, color: AppColors.slate, size: 32),
               const SizedBox(width: 16),
               GlitchText(
                 text: 'ANALYTICS',
-                style: AppTextStyles.headlineSmall,
+                style: isMobile
+                    ? AppTextStyles.titleMedium
+                    : AppTextStyles.headlineSmall,
                 glitchAmount: 2.0,
               ),
             ],
@@ -65,4 +68,3 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 }
-

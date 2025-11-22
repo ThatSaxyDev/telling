@@ -10,6 +10,7 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -18,11 +19,13 @@ class SettingsScreen extends StatelessWidget {
           // Header
           Row(
             children: [
-              const Icon(Icons.settings, color: AppColors.primary, size: 32),
+              const Icon(Icons.settings, color: AppColors.slate, size: 32),
               const SizedBox(width: 16),
               GlitchText(
                 text: 'SETTINGS',
-                style: AppTextStyles.headlineSmall,
+                style: isMobile
+                    ? AppTextStyles.titleMedium
+                    : AppTextStyles.headlineSmall,
                 glitchAmount: 2.0,
               ),
             ],
@@ -54,7 +57,7 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  
+
                   Text(
                     'GENERATE TEST SIGNALS',
                     style: AppTextStyles.labelSmall.copyWith(
@@ -229,4 +232,3 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
-
