@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/military_decorations.dart';
 import '../../../shared/widgets/military_loader.dart';
+import '../../../shared/painters/corner_bracket_painter.dart';
 
 class ActivityTimeline extends ConsumerStatefulWidget {
   const ActivityTimeline({super.key});
@@ -42,10 +43,9 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
     return MilitaryHoverContainer(
       baseColor: AppColors.surfaceDark,
-      hoverColor: AppColors.white.withOpacity(0.8),
+      hoverColor: AppColors.slate.withOpacity(0.5),
       showGrid: false,
       child: Container(
-        height: 400,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.slate.withOpacity(0.3)),
@@ -244,110 +244,309 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
   Widget _buildTimelineItem(LogModel log, bool isLast) {
     final color = _getLevelColor(log.level);
+    final typeColor = _getTypeColor(log.type);
     final timeStr = _formatTime(log.timestamp);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Timeline dot and line
-        SizedBox(
-          width: 24,
-          child: Column(
-            children: [
-              // Dot
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withOpacity(0.5),
-                      blurRadius: 6,
-                      spreadRadius: 1,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Tactical dot with hex design
+          SizedBox(
+            width: 20,
+            child: Column(
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Hexagon-style outer
+                    Transform.rotate(
+                      angle: 0.785398, // 45 degrees
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: color.withOpacity(0.5),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Inner dot
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: color,
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withOpacity(0.7),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
+                ),
+                // Connecting line
+                if (!isLast)
+                  Container(
+                    width: 1,
+                    height: 52,
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          color.withOpacity(0.5),
+                          AppColors.slate.withOpacity(0.1),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Main content with tactical frame
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  stops: const [0.0, 0.5, 1.0],
+                  colors: [
+                    color.withOpacity(0.01),
+                    AppColors.backgroundDark.withOpacity(0.3),
+                    AppColors.backgroundDark.withOpacity(0.15),
+                  ],
+                ),
+                border: Border(
+                  left: BorderSide(color: color, width: 3),
+                  top: BorderSide(color: color.withOpacity(0.3), width: 1),
+                  right: BorderSide(
+                    color: AppColors.slate.withOpacity(0.2),
+                    width: 1,
+                  ),
+                  bottom: BorderSide(
+                    color: AppColors.slate.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
               ),
-              // Vertical line (if not last)
-              if (!isLast)
-                Container(
-                  width: 1,
-                  height: 40,
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  color: AppColors.white.withOpacity(0.1),
-                ),
-            ],
-          ),
-        ),
-
-        const SizedBox(width: 12),
-
-        // Content
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Timestamp and Level
-              Row(
+              child: Stack(
                 children: [
-                  Text(
-                    timeStr,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.slate,
-                      fontFamily: 'Urbanist',
+                  // Main content
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Compact header
+                        Row(
+                          children: [
+                            // Level indicator
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.15),
+                                border: Border.all(color: color, width: 1),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _getLevelIcon(log.level),
+                                    size: 11,
+                                    color: color,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    log.level
+                                        .toString()
+                                        .split('.')
+                                        .last
+                                        .toUpperCase(),
+                                    style: TextStyle(
+                                      color: color,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(width: 8),
+
+                            // Type badge (if not default)
+                            if (log.type != const LogType.log())
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: typeColor.withOpacity(0.1),
+                                  border: Border.all(
+                                    color: typeColor.withOpacity(0.5),
+                                  ),
+                                ),
+                                child: Text(
+                                  _getTypeLabel(log.type),
+                                  style: TextStyle(
+                                    color: typeColor,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+
+                            const Spacer(),
+
+                            // Timestamp
+                            Text(
+                              timeStr,
+                              style: const TextStyle(
+                                color: AppColors.slate,
+                                fontSize: 10,
+                                fontFamily: 'monospace',
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+
+                            // User indicator
+                            if (log.userName != null) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: AppColors.secondary.withOpacity(0.5),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.person,
+                                      size: 9,
+                                      color: AppColors.secondary,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      log.userName!,
+                                      style: const TextStyle(
+                                        color: AppColors.secondary,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        // Message
+                        Text(
+                          log.message,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 13,
+                            height: 1.3,
+                            letterSpacing: 0.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      border: Border.all(color: color.withOpacity(0.3)),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
-                      log.level.toString().split('.').last.toUpperCase(),
-                      style: AppTextStyles.labelSmall.copyWith(
+
+                  // Top-left corner bracket
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    child: CustomPaint(
+                      size: const Size(8, 8),
+                      painter: CornerBracketPainter(
                         color: color,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+                        isTopLeft: true,
                       ),
                     ),
                   ),
-                  if (log.userName != null) ...[
-                    const SizedBox(width: 8),
-                    Icon(Icons.person, size: 12, color: AppColors.slate),
-                    const SizedBox(width: 4),
-                    Text(
-                      log.userName!,
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.slate,
-                        fontSize: 10,
+
+                  // Bottom-right corner bracket
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: CustomPaint(
+                      size: const Size(8, 8),
+                      painter: CornerBracketPainter(
+                        color: color.withOpacity(0.3),
+                        isTopLeft: false,
                       ),
                     ),
-                  ],
+                  ),
                 ],
               ),
-              const SizedBox(height: 4),
-              // Message
-              Text(
-                log.message,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.white.withOpacity(0.9),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  IconData _getLevelIcon(LogLevel level) {
+    return level.when(
+      debug: () => Icons.bug_report,
+      info: () => Icons.info_outline,
+      warning: () => Icons.warning_amber,
+      error: () => Icons.error_outline,
+      fatal: () => Icons.dangerous,
+    );
+  }
+
+  Color _getTypeColor(LogType type) {
+    return type.when(
+      log: () => AppColors.slate,
+      errorr: () => AppColors.error,
+      analytics: () => Colors.purple,
+      event: () => Colors.green,
+      performance: () => Colors.amber,
+      network: () => Colors.blue,
+      custom: (name) => AppColors.primary,
+    );
+  }
+
+  String _getTypeLabel(LogType type) {
+    return type.when(
+      log: () => 'LOG',
+      errorr: () => 'ERR',
+      analytics: () => 'ANA',
+      event: () => 'EVT',
+      performance: () => 'PRF',
+      network: () => 'NET',
+      custom: (name) => name.substring(0, 3).toUpperCase(),
     );
   }
 

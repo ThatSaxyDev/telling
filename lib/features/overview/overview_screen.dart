@@ -15,11 +15,12 @@ class OverviewScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(logStatsProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use width-based breakpoint for better reliability
+        final isDesktop = constraints.maxWidth > 1024;
+
+        final content = [
           // Header
           Row(
             children: [
@@ -52,7 +53,7 @@ class OverviewScreen extends ConsumerWidget {
 
           const SizedBox(height: 32),
 
-          // Activity Timeline
+          // Activity Timeline Header
           Text(
             'RECENT ACTIVITY',
             style: AppTextStyles.titleMedium.copyWith(
@@ -61,9 +62,34 @@ class OverviewScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const ActivityTimeline(),
-        ],
-      ),
+        ];
+
+        if (isDesktop) {
+          // Desktop: Expandable layout that fills remaining height
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...content,
+                const Expanded(child: ActivityTimeline()),
+              ],
+            ),
+          );
+        } else {
+          // Mobile/Tablet: Scrollable layout with fixed timeline height
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...content,
+                SizedBox(height: 500, child: const ActivityTimeline()),
+              ],
+            ),
+          );
+        }
+      },
     );
   }
 
