@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:telling/core/theme/app_colors.dart';
+import 'package:telling/core/theme/app_text_styles.dart';
 import '../../core/providers/users_provider.dart';
 import '../../core/models/user.dart';
 import '../../shared/widgets/military_decorations.dart';
@@ -12,6 +14,7 @@ class UsersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final usersAsync = ref.watch(usersListProvider);
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -21,19 +24,14 @@ class UsersScreen extends ConsumerWidget {
           // Header
           Row(
             children: [
-              CornerBrackets(
-                color: Theme.of(context).colorScheme.primary,
-                length: 20,
-                child: const SizedBox(width: 24, height: 24),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'USER INTELLIGENCE',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              const Icon(Icons.people_alt, color: AppColors.slate, size: 32),
+              const SizedBox(width: 16),
+              GlitchText(
+                text: 'USERS',
+                style: isMobile
+                    ? AppTextStyles.titleMedium
+                    : AppTextStyles.headlineSmall,
+                glitchAmount: 2.0,
               ),
             ],
           ),
@@ -56,9 +54,10 @@ class UsersScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Text(
                           'NO USER DATA DETECTED',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                       ],
                     ),
@@ -131,9 +130,8 @@ class _UserCard extends StatelessWidget {
                     children: [
                       Text(
                         user.userName ?? 'Unknown User',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

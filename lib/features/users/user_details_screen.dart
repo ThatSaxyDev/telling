@@ -35,7 +35,10 @@ class UserDetailsScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => context.go('/users'),
-                    icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: AppColors.secondary,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Column(
