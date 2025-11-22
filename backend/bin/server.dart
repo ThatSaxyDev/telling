@@ -42,7 +42,10 @@ final _router = Router()
   ..get('/api/v1/logs', _getLogsHandler)
   ..post('/api/v1/logs', _postLogsHandler)
   ..get('/api/v1/stats', _getStatsHandler)
-  ..get('/api/v1/users', _getUsersHandler);
+  ..get('/api/v1/users', _getUsersHandler)
+  ..get('/api/v1/users/<userId>/logs', _getUserLogsHandler)
+  ..get('/api/v1/users/<userId>/stats', _getUserStatsHandler)
+  ..get('/api/v1/users/<userId>/sessions', _getUserSessionsHandler);
 
 Response _rootHandler(Request req) {
   return Response.ok('Telling Backend API v1.0.0 (SQLite)\n');
@@ -145,34 +148,7 @@ Response _getStatsHandler(Request req) {
   }
 }
 
-Response _getUsersHandler(Request req) {
-  try {
-    // Get unique users with log counts
-    final ResultSet results = _db.select('''
-      SELECT user_id, user_name, COUNT(*) as log_count
-      FROM logs
-      WHERE user_id IS NOT NULL
-      GROUP BY user_id, user_name
-      ORDER BY log_count DESC
-    ''');
 
-    final users = results.map((row) {
-      return {
-        'userId': row['user_id'],
-        'userName': row['user_name'],
-        'logCount': row['log_count'],
-      };
-    }).toList();
-
-    return Response.ok(
-      jsonEncode(users),
-      headers: {'content-type': 'application/json'},
-    );
-  } catch (e) {
-    print('Error fetching users: $e');
-    return Response.internalServerError(body: 'Error fetching users');
-  }
-}
 
 Future<Response> _postLogsHandler(Request req) async {
   try {
@@ -255,6 +231,156 @@ Future<Response> _postLogsHandler(Request req) async {
   } catch (e) {
     print('Error processing logs: $e');
     return Response.internalServerError(body: 'Error processing logs');
+  }
+}
+
+// ===== User Analytics Handlers =====
+
+// Get all unique users
+Response _getUsersHandler(Request req) {
+  try {
+    final results = _db.select('''
+      SELECT DISTINCT user_id, user_name, user_email, MAX(received_at) as last_seen
+      FROM logs
+      WHERE user_id IS NOT NULL
+      GROUP BY user_id
+      ORDER BY last_seen DESC
+    ''');
+
+    final users = results
+        .map(
+          (row) => {
+            'userId': row['user_id'],
+            'userName': row['user_name'],
+            'userEmail': row['user_email'],
+            'lastSeen': row['last_seen'],
+          },
+        )
+        .toList();
+
+    return Response.ok(jsonEncode(users));
+  } catch (e) {
+    print('Error fetching users: $e');
+    return Response.internalServerError(body: 'Error fetching users');
+  }
+}
+
+// Get logs for a specific user
+Response _getUserLogsHandler(Request req, String userId) {
+  try {
+    final limit =
+        int.tryParse(req.url.queryParameters['limit'] ?? '100') ?? 100;
+    final offset = int.tryParse(req.url.queryParameters['offset'] ?? '0') ?? 0;
+
+    final results = _db.select(
+      '''
+      SELECT * FROM logs
+      WHERE user_id = ?
+      ORDER BY id DESC
+      LIMIT ? OFFSET ?
+    ''',
+      [userId, limit, offset],
+    );
+
+    final logs = results
+        .map(
+          (row) => {
+            'id': row['id'],
+            'type': row['type'],
+            'level': row['level'],
+            'message': row['message'],
+            'timestamp': row['timestamp'],
+            'stackTrace': row['stack_trace'],
+            'metadata': row['metadata'] != null
+                ? jsonDecode(row['metadata'])
+                : null,
+            'device': row['device'] != null ? jsonDecode(row['device']) : null,
+            'userId': row['user_id'],
+            'userName': row['user_name'],
+            'userEmail': row['user_email'],
+            'sessionId': row['session_id'],
+          },
+        )
+        .toList();
+
+    return Response.ok(jsonEncode(logs));
+  } catch (e) {
+    print('Error fetching user logs: $e');
+    return Response.internalServerError(body: 'Error fetching user logs');
+  }
+}
+
+// Get statistics for a specific user
+Response _getUserStatsHandler(Request req, String userId) {
+  try {
+    final totalLogs = _db.select(
+      'SELECT COUNT(*) as count FROM logs WHERE user_id = ?',
+      [userId],
+    ).first['count'];
+
+    final errorCount = _db.select(
+      'SELECT COUNT(*) as count FROM logs WHERE user_id = ? AND (level = "error" OR level = "fatal")',
+      [userId],
+    ).first['count'];
+
+    final sessionCount = _db.select(
+      'SELECT COUNT(DISTINCT session_id) as count FROM logs WHERE user_id = ? AND session_id IS NOT NULL',
+      [userId],
+    ).first['count'];
+
+    final lastActive = _db.select(
+      'SELECT MAX(received_at) as last_seen FROM logs WHERE user_id = ?',
+      [userId],
+    ).first['last_seen'];
+
+    return Response.ok(
+      jsonEncode({
+        'totalLogs': totalLogs,
+        'errorCount': errorCount,
+        'sessionCount': sessionCount,
+        'lastActive': lastActive,
+      }),
+    );
+  } catch (e) {
+    print('Error fetching user stats: $e');
+    return Response.internalServerError(body: 'Error fetching user stats');
+  }
+}
+
+// Get sessions for a specific user
+Response _getUserSessionsHandler(Request req, String userId) {
+  try {
+    // Get all session start events for this user
+    final results = _db.select(
+      '''
+      SELECT session_id, MIN(timestamp) as start_time, MAX(timestamp) as end_time, COUNT(*) as event_count
+      FROM logs
+      WHERE user_id = ? AND session_id IS NOT NULL
+      GROUP BY session_id
+      ORDER BY start_time DESC
+      LIMIT 50
+    ''',
+      [userId],
+    );
+
+    final sessions = results.map((row) {
+      final start = DateTime.parse(row['start_time']);
+      final end = DateTime.parse(row['end_time']);
+      final duration = end.difference(start).inSeconds;
+
+      return {
+        'sessionId': row['session_id'],
+        'startTime': row['start_time'],
+        'endTime': row['end_time'],
+        'durationSeconds': duration,
+        'eventCount': row['event_count'],
+      };
+    }).toList();
+
+    return Response.ok(jsonEncode(sessions));
+  } catch (e) {
+    print('Error fetching user sessions: $e');
+    return Response.internalServerError(body: 'Error fetching user sessions');
   }
 }
 

@@ -34,9 +34,11 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
   void _removeOverlay() {
     _overlayEntry?.remove();
     _overlayEntry = null;
-    setState(() {
-      _isOpen = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isOpen = false;
+      });
+    }
   }
 
   void _toggleDropdown() {

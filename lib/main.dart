@@ -41,12 +41,13 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Telling',
+      title: 'Telling Dashboard',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
       routerConfig: AppRouter.router,
+
       builder: (context, child) => ResponsiveBreakpoints.builder(
         child: child!,
         breakpoints: [

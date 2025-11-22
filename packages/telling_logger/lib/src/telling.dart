@@ -9,6 +9,8 @@ import 'models/device_metadata.dart';
 import 'models/session.dart';
 import 'device_info_collector.dart';
 import 'rate_limiter.dart';
+import 'screen_tracker.dart';
+import 'go_router_screen_tracker.dart';
 
 class Telling {
   static final Telling _instance = Telling._internal();
@@ -35,6 +37,12 @@ class Telling {
   
   // Session tracking
   Session? _currentSession;
+  
+  // Screen tracking
+  ScreenTracker? _screenTracker;
+  GoRouterScreenTracker? _goRouterScreenTracker;
+  DateTime? _screenStartTime;
+  String? _currentScreen;
 
   Telling._internal();
 
@@ -161,6 +169,61 @@ class Telling {
       type: LogType.analytics,
     );
   }
+  
+  /// Get the screen tracker for use with Navigator
+  RouteObserver<PageRoute> get screenTracker {
+    _screenTracker ??= ScreenTracker(onScreenView: _handleScreenView);
+    return _screenTracker!;
+  }
+
+  /// Get the go_router compatible screen tracker
+  NavigatorObserver get goRouterScreenTracker {
+    _goRouterScreenTracker ??= GoRouterScreenTracker(
+      onScreenView: _handleScreenView,
+    );
+    return _goRouterScreenTracker!;
+  }
+
+  /// Handle screen view events
+  void _handleScreenView(String screenName, String? previousScreen) {
+    final now = DateTime.now();
+
+    // Track time spent on previous screen
+    if (_currentScreen != null && _screenStartTime != null) {
+      final timeSpent = now.difference(_screenStartTime!);
+      log(
+        'Screen view ended: $_currentScreen',
+        level: LogLevel.info,
+        type: LogType.analytics,
+        metadata: {
+          'screen': _currentScreen,
+          'timeSpent': timeSpent.inSeconds,
+          'nextScreen': screenName,
+        },
+      );
+    }
+
+    // Track new screen view
+    _currentScreen = screenName;
+    _screenStartTime = now;
+
+    if (kDebugMode) {
+      print(
+        'Telling: Screen view - $screenName${previousScreen != null ? " (from $previousScreen)" : ""}',
+      );
+    }
+
+    log(
+      'Screen view: $screenName',
+      level: LogLevel.info,
+      type: LogType.analytics,
+      metadata: {
+        'screen': screenName,
+        if (previousScreen != null) 'previousScreen': previousScreen,
+      },
+    );
+  }
+
 
   /// Log a message
   void log(

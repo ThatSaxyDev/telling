@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/log_model/log_model.dart';
@@ -293,6 +294,26 @@ class LogsScreen extends ConsumerWidget {
               ),
             ),
 
+            IconButton(
+              icon: const Icon(Icons.copy, size: 18, color: AppColors.slate),
+              tooltip: 'COPY MESSAGE',
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: log.message));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'MESSAGE COPIED TO CLIPBOARD',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                    backgroundColor: AppColors.darkSlate,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
             const Icon(Icons.chevron_right, color: AppColors.slate),
           ],
         ),
@@ -431,7 +452,7 @@ class LogsScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               color: Colors.black,
-              child: Text(
+              child: SelectableText(
                 content,
                 style: AppTextStyles.labelSmall.copyWith(
                   color: AppColors.slate,
@@ -440,7 +461,7 @@ class LogsScreen extends ConsumerWidget {
               ),
             )
           else
-            Text(
+            SelectableText(
               content,
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.white),
             ),

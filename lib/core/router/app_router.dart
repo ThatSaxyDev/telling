@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:telling_logger/telling_logger.dart';
 import '../../features/overview/overview_screen.dart';
 import '../../features/logs/logs_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
@@ -13,6 +14,7 @@ class AppRouter {
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
+    observers: [Telling.instance.goRouterScreenTracker],
     routes: [
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -25,21 +27,25 @@ class AppRouter {
         routes: [
           GoRoute(
             path: '/',
+            name: 'overview',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const OverviewScreen()),
           ),
           GoRoute(
             path: '/logs',
+            name: 'logs',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const LogsScreen()),
           ),
           GoRoute(
             path: '/analytics',
+            name: 'analytics',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const AnalyticsScreen()),
           ),
           GoRoute(
             path: '/settings',
+            name: 'settings',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const SettingsScreen()),
           ),
@@ -48,4 +54,3 @@ class AppRouter {
     ],
   );
 }
-

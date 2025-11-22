@@ -433,14 +433,18 @@ class _CrosshairCursorState extends State<CrosshairCursor> {
     return MouseRegion(
       cursor: SystemMouseCursors.none, // Hide default cursor
       onHover: (event) {
-        setState(() {
-          _mousePosition = event.localPosition;
-        });
+        if (mounted) {
+          setState(() {
+            _mousePosition = event.localPosition;
+          });
+        }
       },
       onExit: (_) {
-        setState(() {
-          _mousePosition = null;
-        });
+        if (mounted) {
+          setState(() {
+            _mousePosition = null;
+          });
+        }
       },
       child: Stack(
         children: [
@@ -772,12 +776,16 @@ class _MilitaryHoverContainerState extends State<MilitaryHoverContainer>
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) {
-        setState(() => _isHovered = true);
-        _controller.forward();
+        if (mounted) {
+          setState(() => _isHovered = true);
+          _controller.forward();
+        }
       },
       onExit: (_) {
-        setState(() => _isHovered = false);
-        _controller.reverse();
+        if (mounted) {
+          setState(() => _isHovered = false);
+          _controller.reverse();
+        }
       },
       cursor: widget.onTap != null
           ? SystemMouseCursors.click
