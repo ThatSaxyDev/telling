@@ -49,84 +49,118 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
 
   void _showOverlay() {
     final renderBox = context.findRenderObject() as RenderBox?;
-    final size = renderBox?.size ?? Size.zero;
+    if (renderBox == null) return;
+
+    final size = renderBox.size;
 
     _overlayEntry = OverlayEntry(
       builder: (context) => GestureDetector(
         onTap: _removeOverlay,
-        behavior: HitTestBehavior.opaque,
+        behavior: HitTestBehavior.translucent,
         child: Stack(
           children: [
-            Positioned(
-              left: renderBox!.localToGlobal(Offset.zero).dx,
-              top: renderBox.localToGlobal(Offset.zero).dy + size.height + 4,
-              width: 280,
-              child: Material(
-                elevation: 8,
-                color: Colors.transparent,
-                child: Container(
-                  constraints: const BoxConstraints(maxHeight: 320),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceDark,
-                    border: Border.all(color: AppColors.slate.withOpacity(0.3)),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Search field
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: TextField(
-                          controller: _searchController,
-                          autofocus: true,
-                          onChanged: (value) => setState(() {}),
-                          style: AppTextStyles.labelSmall.copyWith(color: AppColors.white),
-                          decoration: InputDecoration(
-                            hintText: 'Search by name or ID...',
-                            hintStyle: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.slate,
-                              fontSize: 10,
+            // Positioned overlay using CompositedTransformFollower for accurate alignment
+            CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: Offset(0, size.height + 4),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  elevation: 8,
+                  color: Colors.transparent,
+                  child: Container(
+                    width: 280,
+                    constraints: const BoxConstraints(maxHeight: 320),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceDark,
+                      border: Border.all(
+                        color: AppColors.slate.withOpacity(0.3),
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Search field
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: TextField(
+                            controller: _searchController,
+                            autofocus: true,
+                            onChanged: (value) {
+                              setState(() {
+                                // Rebuild to filter users
+                              });
+                              _overlayEntry?.markNeedsBuild();
+                            },
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: AppColors.white,
                             ),
-                            prefixIcon: const Icon(Icons.search, color: AppColors.slate, size: 16),
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                            filled: true,
-                            fillColor: AppColors.backgroundDark,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(4),
-                              borderSide: BorderSide(color: AppColors.slate.withOpacity(0.3)),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(4),
-                              borderSide: BorderSide(color: AppColors.slate.withOpacity(0.3)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(4),
-                              borderSide: const BorderSide(color: AppColors.primary),
+                            decoration: InputDecoration(
+                              hintText: 'Search by name or ID...',
+                              hintStyle: AppTextStyles.labelSmall.copyWith(
+                                color: AppColors.slate,
+                                fontSize: 10,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: AppColors.slate,
+                                size: 16,
+                              ),
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                              ),
+                              filled: true,
+                              fillColor: AppColors.backgroundDark,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4),
+                                borderSide: BorderSide(
+                                  color: AppColors.slate.withOpacity(0.3),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4),
+                                borderSide: BorderSide(
+                                  color: AppColors.slate.withOpacity(0.3),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      
-                      Divider(color: AppColors.slate.withOpacity(0.3), height: 1),
-                      
-                      // User list
-                      Flexible(
-                        child: ListView(
-                          shrinkWrap: true,
-                          padding: EdgeInsets.zero,
-                          children: [
-                            _buildUserOption(null, 'ALL USERS'),
-                            ..._getFilteredUsers().map((user) {
-                              final userId = user['userId'] as String?;
-                              final userName = user['userName'] as String? ?? userId ?? 'Unknown';
-                              return _buildUserOption(userId, userName);
-                            }),
-                          ],
+
+                        Divider(
+                          color: AppColors.slate.withOpacity(0.3),
+                          height: 1,
                         ),
-                      ),
-                    ],
+
+                        // User list
+                        Flexible(
+                          child: ListView(
+                            shrinkWrap: true,
+                            padding: EdgeInsets.zero,
+                            children: [
+                              _buildUserOption(null, 'ALL USERS'),
+                              ..._getFilteredUsers().map((user) {
+                                final userId = user['userId'] as String?;
+                                final userName =
+                                    user['userName'] as String? ??
+                                    userId ??
+                                    'Unknown';
+                                return _buildUserOption(userId, userName);
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
