@@ -1,6 +1,5 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/log_model/log_model.dart';
-import '../models/log_level/log_level.dart';
 import 'logs_provider.dart';
 
 class LogStats {
@@ -27,42 +26,60 @@ class LogStats {
       );
 }
 
-// Computed provider for log statistics
-final logStatsProvider = Provider<AsyncValue<LogStats>>((ref) {
-  final logsAsync = ref.watch(logsProvider);
+// Stats state notifier
+class LogStatsNotifier extends AsyncNotifier<LogStats> {
+  Timer? _pollingTimer;
 
-  return logsAsync.whenData((logs) {
-    int errorCount = 0;
-    int warningCount = 0;
-    int eventCount = 0;
-    int performanceCount = 0;
+  @override
+  Future<LogStats> build() async {
+    // Start auto-polling
+    _startPolling();
+    
+    // Clean up on dispose
+    ref.onDispose(() {
+      _pollingTimer?.cancel();
+    });
+    
+    // Initial fetch
+    return _fetchStats();
+  }
 
-    for (final log in logs) {
-      log.level.when(
-        debug: () {},
-        info: () {},
-        warning: () => warningCount++,
-        error: () => errorCount++,
-        fatal: () => errorCount++,
-      );
+  void _startPolling() {
+    _pollingTimer?.cancel();
 
-      log.type.when(
-        log: () {},
-        errorr: () {},
-        analytics: () {},
-        event: () => eventCount++,
-        performance: () => performanceCount++,
-        network: () {},
-        custom: (_) {},
-      );
-    }
+    final interval = ref.watch(pollingIntervalProvider);
+    _pollingTimer = Timer.periodic(interval, (_) {
+      refresh();
+    });
+  }
 
+  Future<LogStats> _fetchStats() async {
+    final repository = ref.read(logsRepositoryProvider);
+    final statsMap = await repository.fetchStats();
+    
     return LogStats(
-      totalLogs: logs.length,
-      errorCount: errorCount,
-      warningCount: warningCount,
-      eventCount: eventCount,
-      performanceCount: performanceCount,
+      totalLogs: statsMap['totalLogs'] ?? 0,
+      errorCount: statsMap['errorCount'] ?? 0,
+      warningCount: statsMap['warningCount'] ?? 0,
+      eventCount: statsMap['eventCount'] ?? 0,
+      performanceCount: statsMap['performanceCount'] ?? 0,
     );
-  });
+  }
+
+  /// Manually refresh stats
+  Future<void> refresh() async {
+    // Silent refresh
+    final newStats = await AsyncValue.guard(() => _fetchStats());
+
+    if (newStats.hasValue) {
+      state = newStats;
+    } else if (newStats.hasError) {
+      state = newStats;
+    }
+  }
+}
+
+// Provider for log statistics
+final logStatsProvider = AsyncNotifierProvider<LogStatsNotifier, LogStats>(() {
+  return LogStatsNotifier();
 });

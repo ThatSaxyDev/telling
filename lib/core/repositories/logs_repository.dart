@@ -11,11 +11,11 @@ class LogsRepository {
     http.Client? client,
   }) : _client = client ?? http.Client();
 
-  /// Fetch all logs from the API
-  Future<List<LogModel>> fetchLogs() async {
+  /// Fetch logs from the API with pagination
+  Future<List<LogModel>> fetchLogs({int page = 1, int limit = 50}) async {
     try {
       final response = await _client.get(
-        Uri.parse('$baseUrl/logs'),
+        Uri.parse('$baseUrl/logs?page=$page&limit=$limit'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -27,6 +27,31 @@ class LogsRepository {
       } else {
         throw LogsRepositoryException(
           'Failed to fetch logs: ${response.statusCode}',
+          response.statusCode,
+        );
+      }
+    } on http.ClientException catch (e) {
+      throw LogsRepositoryException('Network error: ${e.message}');
+    } catch (e) {
+      throw LogsRepositoryException('Unexpected error: $e');
+    }
+  }
+
+  /// Fetch log statistics
+  Future<Map<String, int>> fetchStats() async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/stats'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json =
+            jsonDecode(response.body) as Map<String, dynamic>;
+        return Map<String, int>.from(json);
+      } else {
+        throw LogsRepositoryException(
+          'Failed to fetch stats: ${response.statusCode}',
           response.statusCode,
         );
       }

@@ -13,6 +13,14 @@ final logsRepositoryProvider = Provider<LogsRepository>((ref) {
 
 // Logs state notifier
 class LogsNotifier extends AsyncNotifier<List<LogModel>> {
+  int _page = 1;
+  final int _limit = 50;
+  bool _hasMore = true;
+
+  int get page => _page;
+  int get limit => _limit;
+  bool get hasMore => _hasMore;
+
   Timer? _pollingTimer;
   
   @override
@@ -34,19 +42,54 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
     
     final interval = ref.watch(pollingIntervalProvider);
     _pollingTimer = Timer.periodic(interval, (_) {
-      refresh();
+      // Only poll if we are on the first page
+      if (_page == 1) {
+        refresh();
+      }
     });
   }
 
   Future<List<LogModel>> _fetchLogs() async {
     final repository = ref.read(logsRepositoryProvider);
-    return repository.fetchLogs();
+    final logs = await repository.fetchLogs(page: _page, limit: _limit);
+
+    // Update hasMore flag
+    _hasMore = logs.length == _limit;
+
+    return logs;
   }
 
   /// Manually refresh logs
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchLogs());
+    // Silent refresh - don't set loading state
+    final newLogs = await AsyncValue.guard(() => _fetchLogs());
+
+    // Only update state if successful to avoid error flickering too
+    if (newLogs.hasValue) {
+      state = newLogs;
+    } else if (newLogs.hasError) {
+      // Optionally handle error silently or update state
+      // For now, we'll update state so errors are visible
+      state = newLogs;
+    }
+  }
+
+  /// Go to next page
+  Future<void> nextPage() async {
+    if (_hasMore) {
+      _page++;
+      state = const AsyncValue.loading();
+      state = await AsyncValue.guard(() => _fetchLogs());
+    }
+  }
+
+  /// Go to previous page
+  Future<void> previousPage() async {
+    if (_page > 1) {
+      _page--;
+      state = const AsyncValue.loading();
+      state = await AsyncValue.guard(() => _fetchLogs());
+    }
   }
 
   /// Delete a log

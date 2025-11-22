@@ -17,6 +17,11 @@ class Telling {
   DeviceMetadata? _deviceMetadata;
   static const String _storageKey = 'telling_logs_buffer';
   
+  // User context
+  String? _userId;
+  String? _userName;
+  String? _userEmail;
+  
   // Simple buffer to avoid spamming network
   final List<LogEvent> _buffer = [];
   Timer? _flushTimer;
@@ -24,11 +29,20 @@ class Telling {
   Telling._internal();
 
   /// Initialize the Telling SDK
-  Future<void> init(String apiKey, {String? baseUrl}) async {
+  Future<void> init(
+    String apiKey, {
+    String? baseUrl,
+    String? userId,
+    String? userName,
+    String? userEmail,
+  }) async {
     _apiKey = apiKey;
     if (baseUrl != null) {
       _baseUrl = baseUrl;
     }
+    _userId = userId;
+    _userName = userName;
+    _userEmail = userEmail;
     _initialized = true;
     
     // Collect device metadata
@@ -111,6 +125,8 @@ class Telling {
       stackTrace: stackTrace?.toString() ?? (error is Error ? error.stackTrace?.toString() : null),
       metadata: metadata,
       deviceMetadata: _deviceMetadata,
+      userId: _userId,
+      userName: _userName,
     );
 
     _buffer.add(event);

@@ -13,7 +13,8 @@ late final Database _db;
 final _router = Router()
   ..get('/', _rootHandler)
   ..get('/api/v1/logs', _getLogsHandler)
-  ..post('/api/v1/logs', _postLogsHandler);
+  ..post('/api/v1/logs', _postLogsHandler)
+  ..get('/api/v1/stats', _getStatsHandler);
 
 Response _rootHandler(Request req) {
   return Response.ok('Telling Backend API v1.0.0 (SQLite)\n');
@@ -21,9 +22,16 @@ Response _rootHandler(Request req) {
 
 Response _getLogsHandler(Request req) {
   try {
+    // Pagination parameters
+    final params = req.url.queryParameters;
+    final page = int.tryParse(params['page'] ?? '1') ?? 1;
+    final limit = int.tryParse(params['limit'] ?? '50') ?? 50;
+    final offset = (page - 1) * limit;
+
     // Return logs in reverse chronological order (newest first)
     final ResultSet results = _db.select(
-      'SELECT * FROM logs ORDER BY id DESC LIMIT 100',
+      'SELECT * FROM logs ORDER BY id DESC LIMIT ? OFFSET ?',
+      [limit, offset],
     );
 
     final logs = results.map((row) {
@@ -51,13 +59,57 @@ Response _getLogsHandler(Request req) {
   }
 }
 
+Response _getStatsHandler(Request req) {
+  try {
+    // Calculate stats efficiently using SQL
+    final totalResult = _db.select('SELECT COUNT(*) as count FROM logs');
+    final total = totalResult.first['count'] as int;
+
+    final errorResult = _db.select(
+      "SELECT COUNT(*) as count FROM logs WHERE level IN ('error', 'fatal')",
+    );
+    final errorCount = errorResult.first['count'] as int;
+
+    final warningResult = _db.select(
+      "SELECT COUNT(*) as count FROM logs WHERE level = 'warning'",
+    );
+    final warningCount = warningResult.first['count'] as int;
+
+    final eventResult = _db.select(
+      "SELECT COUNT(*) as count FROM logs WHERE type = 'event'",
+    );
+    final eventCount = eventResult.first['count'] as int;
+
+    final performanceResult = _db.select(
+      "SELECT COUNT(*) as count FROM logs WHERE type = 'performance'",
+    );
+    final performanceCount = performanceResult.first['count'] as int;
+
+    final stats = {
+      'totalLogs': total,
+      'errorCount': errorCount,
+      'warningCount': warningCount,
+      'eventCount': eventCount,
+      'performanceCount': performanceCount,
+    };
+
+    return Response.ok(
+      jsonEncode(stats),
+      headers: {'content-type': 'application/json'},
+    );
+  } catch (e) {
+    print('Error fetching stats: $e');
+    return Response.internalServerError(body: 'Error fetching stats');
+  }
+}
+
 Future<Response> _postLogsHandler(Request req) async {
   try {
     final payload = await req.readAsString();
     final List<dynamic> events = jsonDecode(payload);
     
     final stmt = _db.prepare(
-      'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
 
     for (var event in events) {
@@ -71,6 +123,8 @@ Future<Response> _postLogsHandler(Request req) async {
           event['metadata'] != null ? jsonEncode(event['metadata']) : null,
           event['device'] != null ? jsonEncode(event['device']) : null,
           DateTime.now().toIso8601String(),
+          event['userId'], // Can be null
+          event['userName'], // Can be null
         ]);
       }
     }
@@ -120,9 +174,27 @@ void main(List<String> args) async {
       stack_trace TEXT,
       metadata TEXT,
       device TEXT,
-      received_at TEXT
+      received_at TEXT,
+      user_id TEXT,
+      user_name TEXT
     );
   ''');
+  
+  // Migrate existing table if columns don't exist
+  try {
+    _db.execute('ALTER TABLE logs ADD COLUMN user_id TEXT');
+    print('Added user_id column');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
+  try {
+    _db.execute('ALTER TABLE logs ADD COLUMN user_name TEXT');
+    print('Added user_name column');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  
   print('Database initialized: telling.db');
 
   // Use any available host or container IP (usually `0.0.0.0`).

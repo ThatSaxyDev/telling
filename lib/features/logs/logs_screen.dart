@@ -8,6 +8,7 @@ import '../../core/providers/filtered_logs_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
+import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
 import 'widgets/log_filter_bar.dart';
 
@@ -64,7 +65,7 @@ class LogsScreen extends ConsumerWidget {
                 onPressed: () => ref.refresh(logsProvider),
                 width: isMobile ? 48 : null,
                 height: isMobile ? 48 : null,
-                padding: EdgeInsets.zero
+                padding: isMobile ? EdgeInsets.zero : null,
               ),
             ],
           ),
@@ -76,9 +77,8 @@ class LogsScreen extends ConsumerWidget {
         // Content
         Expanded(
           child: logsAsync.when(
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+            loading: () =>
+                const Center(child: MilitaryLoader(label: 'SCANNING LOGS...')),
             error: (error, stack) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -126,22 +126,90 @@ class LogsScreen extends ConsumerWidget {
                       ],
                     ),
                   )
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    itemCount: logs.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final log = logs[index];
-                      return _buildLogItem(context, log);
-                    },
+                : Column(
+                    children: [
+                      // Logs List
+                      Expanded(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          itemCount: logs.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final log = logs[index];
+                            return _buildLogItem(context, log);
+                          },
+                        ),
+                      ),
+
+                      // Pagination Controls
+                      _buildPaginationControls(ref),
+                    ],
                   ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPaginationControls(WidgetRef ref) {
+    final notifier = ref.read(logsProvider.notifier);
+    final page = notifier.page;
+    final hasMore = notifier.hasMore;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: AppColors.white.withOpacity(0.1), width: 1),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Previous Button
+          AppButton(
+            text: 'PREVIOUS',
+            onPressed: page > 1 ? () => notifier.previousPage() : null,
+            backgroundColor: page > 1 ? AppColors.white : AppColors.darkSlate,
+            foregroundColor: page > 1 ? AppColors.primary : AppColors.slate,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+
+          const SizedBox(width: 16),
+
+          // Page Indicator
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.white.withOpacity(0.2)),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              'PAGE $page',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.white,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
+          // Next Button
+          AppButton(
+            text: 'NEXT',
+            onPressed: hasMore ? () => notifier.nextPage() : null,
+            backgroundColor: hasMore ? AppColors.white : AppColors.darkSlate,
+            foregroundColor: hasMore ? AppColors.primary : AppColors.slate,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+        ],
+      ),
     );
   }
 
@@ -297,7 +365,10 @@ class LogsScreen extends ConsumerWidget {
                             'LEVEL',
                             log.level.toString().split('.').last.toUpperCase(),
                           ),
-                          _buildDetailSection('TIMESTAMP', log.timestamp.toIso8601String()),
+                          _buildDetailSection(
+                            'TIMESTAMP',
+                            log.timestamp.toIso8601String(),
+                          ),
 
                           if (log.stackTrace != null)
                             _buildDetailSection(

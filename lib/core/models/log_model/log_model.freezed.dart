@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LogModel {
 
- String get id; String get message; LogLevel get level; LogType get type; DateTime get timestamp; String? get stackTrace; Map<String, dynamic> get metadata; DeviceInfo? get device;
+ String get id; String get message; LogLevel get level; LogType get type; DateTime get timestamp; String? get stackTrace; Map<String, dynamic> get metadata; DeviceInfo? get device; String? get userId; String? get userName;
 /// Create a copy of LogModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $LogModelCopyWith<LogModel> get copyWith => _$LogModelCopyWithImpl<LogModel>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LogModel&&(identical(other.id, id) || other.id == id)&&(identical(other.message, message) || other.message == message)&&(identical(other.level, level) || other.level == level)&&(identical(other.type, type) || other.type == type)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.stackTrace, stackTrace) || other.stackTrace == stackTrace)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.device, device) || other.device == device));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LogModel&&(identical(other.id, id) || other.id == id)&&(identical(other.message, message) || other.message == message)&&(identical(other.level, level) || other.level == level)&&(identical(other.type, type) || other.type == type)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.stackTrace, stackTrace) || other.stackTrace == stackTrace)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.device, device) || other.device == device)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.userName, userName) || other.userName == userName));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,message,level,type,timestamp,stackTrace,const DeepCollectionEquality().hash(metadata),device);
+int get hashCode => Object.hash(runtimeType,id,message,level,type,timestamp,stackTrace,const DeepCollectionEquality().hash(metadata),device,userId,userName);
 
 @override
 String toString() {
-  return 'LogModel(id: $id, message: $message, level: $level, type: $type, timestamp: $timestamp, stackTrace: $stackTrace, metadata: $metadata, device: $device)';
+  return 'LogModel(id: $id, message: $message, level: $level, type: $type, timestamp: $timestamp, stackTrace: $stackTrace, metadata: $metadata, device: $device, userId: $userId, userName: $userName)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $LogModelCopyWith<$Res>  {
   factory $LogModelCopyWith(LogModel value, $Res Function(LogModel) _then) = _$LogModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String message, LogLevel level, LogType type, DateTime timestamp, String? stackTrace, Map<String, dynamic> metadata, DeviceInfo? device
+ String id, String message, LogLevel level, LogType type, DateTime timestamp, String? stackTrace, Map<String, dynamic> metadata, DeviceInfo? device, String? userId, String? userName
 });
 
 
@@ -62,7 +62,7 @@ class _$LogModelCopyWithImpl<$Res>
 
 /// Create a copy of LogModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? message = null,Object? level = null,Object? type = null,Object? timestamp = null,Object? stackTrace = freezed,Object? metadata = null,Object? device = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? message = null,Object? level = null,Object? type = null,Object? timestamp = null,Object? stackTrace = freezed,Object? metadata = null,Object? device = freezed,Object? userId = freezed,Object? userName = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
@@ -72,7 +72,9 @@ as LogType,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore:
 as DateTime,stackTrace: freezed == stackTrace ? _self.stackTrace : stackTrace // ignore: cast_nullable_to_non_nullable
 as String?,metadata: null == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,device: freezed == device ? _self.device : device // ignore: cast_nullable_to_non_nullable
-as DeviceInfo?,
+as DeviceInfo?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,userName: freezed == userName ? _self.userName : userName // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of LogModel
@@ -187,10 +189,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String message,  LogLevel level,  LogType type,  DateTime timestamp,  String? stackTrace,  Map<String, dynamic> metadata,  DeviceInfo? device)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String message,  LogLevel level,  LogType type,  DateTime timestamp,  String? stackTrace,  Map<String, dynamic> metadata,  DeviceInfo? device,  String? userId,  String? userName)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LogModel() when $default != null:
-return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_that.stackTrace,_that.metadata,_that.device);case _:
+return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_that.stackTrace,_that.metadata,_that.device,_that.userId,_that.userName);case _:
   return orElse();
 
 }
@@ -208,10 +210,10 @@ return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String message,  LogLevel level,  LogType type,  DateTime timestamp,  String? stackTrace,  Map<String, dynamic> metadata,  DeviceInfo? device)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String message,  LogLevel level,  LogType type,  DateTime timestamp,  String? stackTrace,  Map<String, dynamic> metadata,  DeviceInfo? device,  String? userId,  String? userName)  $default,) {final _that = this;
 switch (_that) {
 case _LogModel():
-return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_that.stackTrace,_that.metadata,_that.device);case _:
+return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_that.stackTrace,_that.metadata,_that.device,_that.userId,_that.userName);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -228,10 +230,10 @@ return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String message,  LogLevel level,  LogType type,  DateTime timestamp,  String? stackTrace,  Map<String, dynamic> metadata,  DeviceInfo? device)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String message,  LogLevel level,  LogType type,  DateTime timestamp,  String? stackTrace,  Map<String, dynamic> metadata,  DeviceInfo? device,  String? userId,  String? userName)?  $default,) {final _that = this;
 switch (_that) {
 case _LogModel() when $default != null:
-return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_that.stackTrace,_that.metadata,_that.device);case _:
+return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_that.stackTrace,_that.metadata,_that.device,_that.userId,_that.userName);case _:
   return null;
 
 }
@@ -243,7 +245,7 @@ return $default(_that.id,_that.message,_that.level,_that.type,_that.timestamp,_t
 
 
 class _LogModel implements LogModel {
-  const _LogModel({required this.id, required this.message, required this.level, required this.type, required this.timestamp, this.stackTrace, final  Map<String, dynamic> metadata = const {}, this.device}): _metadata = metadata;
+  const _LogModel({required this.id, required this.message, required this.level, required this.type, required this.timestamp, this.stackTrace, final  Map<String, dynamic> metadata = const {}, this.device, this.userId, this.userName}): _metadata = metadata;
   
 
 @override final  String id;
@@ -260,6 +262,8 @@ class _LogModel implements LogModel {
 }
 
 @override final  DeviceInfo? device;
+@override final  String? userId;
+@override final  String? userName;
 
 /// Create a copy of LogModel
 /// with the given fields replaced by the non-null parameter values.
@@ -271,16 +275,16 @@ _$LogModelCopyWith<_LogModel> get copyWith => __$LogModelCopyWithImpl<_LogModel>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LogModel&&(identical(other.id, id) || other.id == id)&&(identical(other.message, message) || other.message == message)&&(identical(other.level, level) || other.level == level)&&(identical(other.type, type) || other.type == type)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.stackTrace, stackTrace) || other.stackTrace == stackTrace)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.device, device) || other.device == device));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LogModel&&(identical(other.id, id) || other.id == id)&&(identical(other.message, message) || other.message == message)&&(identical(other.level, level) || other.level == level)&&(identical(other.type, type) || other.type == type)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.stackTrace, stackTrace) || other.stackTrace == stackTrace)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.device, device) || other.device == device)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.userName, userName) || other.userName == userName));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,message,level,type,timestamp,stackTrace,const DeepCollectionEquality().hash(_metadata),device);
+int get hashCode => Object.hash(runtimeType,id,message,level,type,timestamp,stackTrace,const DeepCollectionEquality().hash(_metadata),device,userId,userName);
 
 @override
 String toString() {
-  return 'LogModel(id: $id, message: $message, level: $level, type: $type, timestamp: $timestamp, stackTrace: $stackTrace, metadata: $metadata, device: $device)';
+  return 'LogModel(id: $id, message: $message, level: $level, type: $type, timestamp: $timestamp, stackTrace: $stackTrace, metadata: $metadata, device: $device, userId: $userId, userName: $userName)';
 }
 
 
@@ -291,7 +295,7 @@ abstract mixin class _$LogModelCopyWith<$Res> implements $LogModelCopyWith<$Res>
   factory _$LogModelCopyWith(_LogModel value, $Res Function(_LogModel) _then) = __$LogModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String message, LogLevel level, LogType type, DateTime timestamp, String? stackTrace, Map<String, dynamic> metadata, DeviceInfo? device
+ String id, String message, LogLevel level, LogType type, DateTime timestamp, String? stackTrace, Map<String, dynamic> metadata, DeviceInfo? device, String? userId, String? userName
 });
 
 
@@ -308,7 +312,7 @@ class __$LogModelCopyWithImpl<$Res>
 
 /// Create a copy of LogModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? message = null,Object? level = null,Object? type = null,Object? timestamp = null,Object? stackTrace = freezed,Object? metadata = null,Object? device = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? message = null,Object? level = null,Object? type = null,Object? timestamp = null,Object? stackTrace = freezed,Object? metadata = null,Object? device = freezed,Object? userId = freezed,Object? userName = freezed,}) {
   return _then(_LogModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
@@ -318,7 +322,9 @@ as LogType,timestamp: null == timestamp ? _self.timestamp : timestamp // ignore:
 as DateTime,stackTrace: freezed == stackTrace ? _self.stackTrace : stackTrace // ignore: cast_nullable_to_non_nullable
 as String?,metadata: null == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,device: freezed == device ? _self.device : device // ignore: cast_nullable_to_non_nullable
-as DeviceInfo?,
+as DeviceInfo?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,userName: freezed == userName ? _self.userName : userName // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

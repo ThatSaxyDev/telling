@@ -1,6 +1,6 @@
 # Telling Dashboard
 
-A military-themed log management and analytics dashboard built with Flutter. This application serves as the command center for monitoring logs, events, and crashes sent from the `telling_logger` SDK.
+An analytics dashboard built with Flutter. This application serves as the command center for monitoring logs, events, and crashes sent from the `telling_logger` SDK.
 
 ## 🚀 Features
 

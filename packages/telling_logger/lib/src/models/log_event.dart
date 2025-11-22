@@ -13,6 +13,8 @@ class LogEvent {
   final String? stackTrace;
   final Map<String, dynamic>? metadata;
   final DeviceMetadata? deviceMetadata;
+  final String? userId;
+  final String? userName;
 
   LogEvent({
     String? id,
@@ -23,6 +25,8 @@ class LogEvent {
     this.stackTrace,
     this.metadata,
     this.deviceMetadata,
+    this.userId,
+    this.userName,
   }) : id =
            id ??
            DateTime.now().millisecondsSinceEpoch
@@ -38,6 +42,8 @@ class LogEvent {
       if (stackTrace != null) 'stackTrace': stackTrace,
       if (metadata != null) 'metadata': metadata,
       if (deviceMetadata != null) 'device': deviceMetadata!.toJson(),
+      if (userId != null) 'userId': userId,
+      if (userName != null) 'userName': userName,
     };
   }
 }

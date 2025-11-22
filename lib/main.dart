@@ -15,6 +15,8 @@ void main() async {
       await Telling.instance.init(
         'TEST_API_KEY',
         baseUrl: 'http://localhost:8080/api/v1/logs',
+        userId: 'demo_user_123',
+        userName: 'Demo User',
       );
     
       Telling.instance.enableCrashReporting();

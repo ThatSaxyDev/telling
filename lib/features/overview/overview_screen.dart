@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/log_stats_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/number_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
+import '../../shared/widgets/military_loader.dart';
 
 class OverviewScreen extends ConsumerWidget {
   const OverviewScreen({super.key});
@@ -34,7 +36,7 @@ class OverviewScreen extends ConsumerWidget {
           // Stats Grid
           statsAsync.when(
             loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+              child: MilitaryLoader(label: 'ANALYZING SYSTEMS...'),
             ),
             error: (error, stack) => Center(
               child: Text(
@@ -84,26 +86,27 @@ class OverviewScreen extends ConsumerWidget {
             _buildStatCard(
               icon: Icons.list_alt,
               label: 'TOTAL LOGS',
-              value: stats.totalLogs.toString(),
+              value: NumberFormatter.format(stats.totalLogs),
               color: AppColors.white,
             ),
             _buildStatCard(
               icon: Icons.error_outline,
               label: 'ERRORS',
-              value: stats.errorCount.toString(),
+              value: NumberFormatter.format(stats.errorCount),
               color: AppColors.error,
             ),
             _buildStatCard(
               icon: Icons.warning_amber,
               label: 'WARNINGS',
-              value: stats.warningCount.toString(),
+              value: NumberFormatter.format(stats.warningCount),
               color: Colors.orange,
             ),
             _buildStatCard(
               icon: Icons.analytics_outlined,
               label: 'EVENTS',
-              value: (stats.totalLogs - stats.errorCount - stats.warningCount)
-                  .toString(), // Approximate events
+              value: NumberFormatter.format(
+                stats.totalLogs - stats.errorCount - stats.warningCount,
+              ),
               color: AppColors.white,
             ),
           ],
@@ -160,6 +163,8 @@ class OverviewScreen extends ConsumerWidget {
                   style: AppTextStyles.displaySmall.copyWith(
                     fontSize: 32,
                     color: color,
+                    fontFamily: 'Urbanist',
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(

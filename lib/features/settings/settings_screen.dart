@@ -32,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
           // Log Generator Section
           MilitaryHoverContainer(
             baseColor: AppColors.surfaceDark,
-            showGrid: true,
+            showGrid: false,
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -43,12 +43,12 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.bug_report, color: AppColors.primary),
+                      const Icon(Icons.bug_report, color: AppColors.secondary),
                       const SizedBox(width: 12),
                       Text(
                         'LOG GENERATOR',
                         style: AppTextStyles.titleMedium.copyWith(
-                          color: AppColors.primary,
+                          color: AppColors.secondary,
                         ),
                       ),
                     ],
@@ -187,7 +187,7 @@ class SettingsScreen extends StatelessWidget {
                         label: 'FORCE CRASH',
                         color: AppColors.error,
                         icon: Icons.flash_on,
-                        isOutlined: true,
+                        // isOutlined: true,
                         onPressed: () {
                           // This will be caught by the global error handler if enabled
                           throw StateError(

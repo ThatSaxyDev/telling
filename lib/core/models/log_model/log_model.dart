@@ -16,6 +16,8 @@ abstract class LogModel with _$LogModel {
     String? stackTrace,
     @Default({}) Map<String, dynamic> metadata,
     DeviceInfo? device,
+    String? userId,
+    String? userName,
   }) = _LogModel;
 
   factory LogModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,8 @@ abstract class LogModel with _$LogModel {
       device: json['device'] != null
           ? DeviceInfo.fromJson(json['device'] as Map<String, dynamic>)
           : null,
+      userId: json['userId'] as String?,
+      userName: json['userName'] as String?,
     );
   }
 }
