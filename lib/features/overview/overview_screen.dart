@@ -106,7 +106,6 @@ class OverviewScreen extends ConsumerWidget {
   Widget _buildStatsGrid(LogStats stats) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        print(constraints.maxWidth);
         final crossAxisCount = constraints.maxWidth > 1200
             ? 4
             : constraints.maxWidth > 1106

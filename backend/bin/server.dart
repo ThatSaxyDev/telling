@@ -45,7 +45,9 @@ final _router = Router()
   ..get('/api/v1/users', _getUsersHandler)
   ..get('/api/v1/users/<userId>/logs', _getUserLogsHandler)
   ..get('/api/v1/users/<userId>/stats', _getUserStatsHandler)
-  ..get('/api/v1/users/<userId>/sessions', _getUserSessionsHandler);
+  ..get('/api/v1/users/<userId>/sessions', _getUserSessionsHandler)
+  ..get('/api/v1/sessions', _getSessionsHandler)
+  ..get('/api/v1/sessions/<sessionId>/logs', _getSessionLogsHandler);
 
 Response _rootHandler(Request req) {
   return Response.ok('Telling Backend API v1.0.0 (SQLite)\n');
@@ -382,6 +384,97 @@ Response _getUserSessionsHandler(Request req, String userId) {
   } catch (e) {
     print('Error fetching user sessions: $e');
     return Response.internalServerError(body: 'Error fetching user sessions');
+  }
+}
+
+// Get all sessions globally
+Response _getSessionsHandler(Request req) {
+  try {
+    final limit = int.tryParse(req.url.queryParameters['limit'] ?? '50') ?? 50;
+    final offset = int.tryParse(req.url.queryParameters['offset'] ?? '0') ?? 0;
+
+    final results = _db.select(
+      '''
+      SELECT 
+        session_id, 
+        user_id,
+        user_name,
+        MIN(timestamp) as start_time, 
+        MAX(timestamp) as end_time, 
+        COUNT(*) as event_count
+      FROM logs
+      WHERE session_id IS NOT NULL
+      GROUP BY session_id
+      ORDER BY start_time DESC
+      LIMIT ? OFFSET ?
+    ''',
+      [limit, offset],
+    );
+
+    final sessions = results.map((row) {
+      final start = DateTime.parse(row['start_time']);
+      final end = DateTime.parse(row['end_time']);
+      final duration = end.difference(start).inSeconds;
+
+      return {
+        'sessionId': row['session_id'],
+        'userId': row['user_id'],
+        'userName': row['user_name'],
+        'startTime': row['start_time'],
+        'endTime': row['end_time'],
+        'durationSeconds': duration,
+        'eventCount': row['event_count'],
+      };
+    }).toList();
+
+    return Response.ok(jsonEncode(sessions));
+  } catch (e) {
+    print('Error fetching sessions: $e');
+    return Response.internalServerError(body: 'Error fetching sessions');
+  }
+}
+
+// Get logs for a specific session
+Response _getSessionLogsHandler(Request req, String sessionId) {
+  print('Fetching logs for session: $sessionId');
+  try {
+    final results = _db.select(
+      '''
+      SELECT * FROM logs
+      WHERE session_id = ?
+      ORDER BY timestamp ASC
+    ''',
+      [sessionId],
+    );
+
+    print('Found ${results.length} logs for session $sessionId');
+
+    final logs = results
+        .map(
+          (row) => {
+            'id': row['id'],
+            'timestamp': row['timestamp'],
+            'level': row['level'],
+            'message': row['message'],
+            'type': row['type'],
+            'metadata': row['metadata'] != null
+                ? jsonDecode(row['metadata'] as String)
+                : {},
+            'device': row['device'] != null
+                ? jsonDecode(row['device'] as String)
+                : {},
+            'stackTrace': row['stack_trace'],
+            'userId': row['user_id'],
+            'sessionId': row['session_id'],
+          },
+        )
+        .toList();
+
+    return Response.ok(jsonEncode(logs));
+  } catch (e, stack) {
+    print('Error fetching session logs: $e');
+    print(stack);
+    return Response.internalServerError(body: 'Error fetching session logs');
   }
 }
 

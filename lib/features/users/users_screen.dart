@@ -121,7 +121,7 @@ class _UserCard extends StatelessWidget {
                   ),
                   child: Icon(
                     Icons.person_outline,
-                    color: colorScheme.primary,
+                    color: colorScheme.secondary,
                   ),
                 ),
                 const SizedBox(width: 12),

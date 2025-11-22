@@ -133,3 +133,34 @@ final logsProvider = AsyncNotifierProvider<LogsNotifier, List<LogModel>>(() {
 final pollingIntervalProvider = StateProvider<Duration>((ref) {
   return const Duration(seconds: 2);
 });
+
+// Session grouping toggle
+class SessionGroupedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
+}
+
+final isSessionGroupedProvider = NotifierProvider<SessionGroupedNotifier, bool>(
+  SessionGroupedNotifier.new,
+);
+
+// Sessions provider
+final sessionsProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
+  final repository = ref.watch(logsRepositoryProvider);
+  // Re-fetch when polling interval triggers (optional, but good for live updates)
+  ref.watch(pollingIntervalProvider);
+  return repository.fetchSessions();
+});
+
+// Session logs provider
+final sessionLogsProvider = FutureProvider.family<List<LogModel>, String>((
+  ref,
+  sessionId,
+) async {
+  final repository = ref.watch(logsRepositoryProvider);
+  return repository.fetchSessionLogs(sessionId);
+});

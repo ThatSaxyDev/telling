@@ -98,6 +98,61 @@ class LogsRepository {
     }
   }
 
+  /// Fetch global sessions
+  Future<List<Map<String, dynamic>>> fetchSessions({
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/sessions?limit=$limit&offset=$offset'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList =
+            jsonDecode(response.body) as List<dynamic>;
+        return jsonList.map((json) => json as Map<String, dynamic>).toList();
+      } else {
+        throw LogsRepositoryException(
+          'Failed to fetch sessions: ${response.statusCode}',
+          response.statusCode,
+        );
+      }
+    } on http.ClientException catch (e) {
+      throw LogsRepositoryException('Network error: ${e.message}');
+    } catch (e) {
+      throw LogsRepositoryException('Unexpected error: $e');
+    }
+  }
+
+  /// Fetch logs for a specific session
+  Future<List<LogModel>> fetchSessionLogs(String sessionId) async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/sessions/$sessionId/logs'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList =
+            jsonDecode(response.body) as List<dynamic>;
+        return jsonList
+            .map((json) => LogModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw LogsRepositoryException(
+          'Failed to fetch session logs: ${response.statusCode}',
+          response.statusCode,
+        );
+      }
+    } on http.ClientException catch (e) {
+      throw LogsRepositoryException('Network error: ${e.message}');
+    } catch (e) {
+      throw LogsRepositoryException('Unexpected error: $e');
+    }
+  }
+
   /// Fetch a single log by ID
   Future<LogModel> fetchLogById(String id) async {
     try {

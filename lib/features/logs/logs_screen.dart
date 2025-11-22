@@ -11,7 +11,10 @@ import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
+import 'widgets/session_timeline_dialog.dart';
 import 'widgets/log_filter_bar.dart';
+
+
 
 class LogsScreen extends ConsumerWidget {
   const LogsScreen({super.key});
@@ -30,7 +33,9 @@ class LogsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 600;
+    final isSessionGrouped = ref.watch(isSessionGroupedProvider);
     final logsAsync = ref.watch(filteredLogsProvider);
+    final sessionsAsync = ref.watch(sessionsProvider);
 
     return Column(
       children: [
@@ -62,100 +67,275 @@ class LogsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              AppButton(
-                text: isMobile ? '' : 'REFRESH',
-                icon: Icons.refresh,
-                isOutlined: true,
-                onPressed: () => ref.refresh(logsProvider),
-                width: isMobile ? 48 : null,
-                height: isMobile ? 48 : null,
-                padding: isMobile ? EdgeInsets.zero : null,
+              Row(
+                children: [
+                  // Group by Session Toggle
+                  // InkWell(
+                  //   onTap: () =>
+                  //       ref.read(isSessionGroupedProvider.notifier).toggle(),
+                  //   child: Container(
+                  //     padding: const EdgeInsets.symmetric(
+                  //       horizontal: 12,
+                  //       vertical: 8,
+                  //     ),
+                  //     decoration: BoxDecoration(
+                  //       color: isSessionGrouped
+                  //           ? AppColors.primary.withOpacity(0.2)
+                  //           : Colors.transparent,
+                  //       border: Border.all(
+                  //         color: isSessionGrouped
+                  //             ? AppColors.primary
+                  //             : AppColors.slate.withOpacity(0.3),
+                  //       ),
+                  //       borderRadius: BorderRadius.circular(4),
+                  //     ),
+                  //     child: Row(
+                  //       children: [
+                  //         Icon(
+                  //           isSessionGrouped
+                  //               ? Icons.view_agenda
+                  //               : Icons.view_headline,
+                  //           size: 16,
+                  //           color: isSessionGrouped
+                  //               ? AppColors.primary
+                  //               : AppColors.slate,
+                  //         ),
+                  //         if (!isMobile) ...[
+                  //           const SizedBox(width: 8),
+                  //           Text(
+                  //             'GROUP BY SESSION',
+                  //             style: TextStyle(
+                  //               color: isSessionGrouped
+                  //                   ? AppColors.primary
+                  //                   : AppColors.slate,
+                  //               fontWeight: FontWeight.bold,
+                  //               fontSize: 12,
+                  //             ),
+                  //           ),
+                  //         ],
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
+                  const SizedBox(width: 12),
+                  AppButton(
+                    text: isMobile ? '' : 'REFRESH',
+                    icon: Icons.refresh,
+                    isOutlined: true,
+                    onPressed: () {
+                      ref.invalidate(logsProvider);
+                      if (isSessionGrouped) ref.invalidate(sessionsProvider);
+                    },
+                    width: isMobile ? 48 : null,
+                    height: isMobile ? 48 : null,
+                    padding: isMobile ? EdgeInsets.zero : null,
+                  ),
+                ],
               ),
             ],
           ),
         ),
 
-        // Filter Bar
-        const LogFilterBar(),
+        // Filter Bar (only show if not grouped, or adapt it)
+        if (!isSessionGrouped) LogFilterBar(),
 
         // Content
         Expanded(
-          child: logsAsync.when(
-            loading: () =>
-                const Center(child: MilitaryLoader(label: 'SCANNING LOGS...')),
-            error: (error, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'ERROR LOADING LOGS',
-                    style: AppTextStyles.titleMedium.copyWith(
-                      color: AppColors.error,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString(),
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.slate,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+          child:
+              // isSessionGrouped
+              //     ? _buildSessionsList(sessionsAsync)
+              //     :
+              _buildLogsList(logsAsync, ref),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSessionsList(
+    AsyncValue<List<Map<String, dynamic>>> sessionsAsync,
+  ) {
+    return sessionsAsync.when(
+      loading: () =>
+          const Center(child: MilitaryLoader(label: 'LOADING SESSIONS...')),
+      error: (error, stack) => Center(
+        child: Text(
+          'Error: $error',
+          style: const TextStyle(color: AppColors.error),
+        ),
+      ),
+      data: (sessions) {
+        if (sessions.isEmpty) {
+          return const Center(
+            child: Text(
+              'NO SESSIONS FOUND',
+              style: TextStyle(color: AppColors.slate),
             ),
-            data: (logs) => logs.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+          );
+        }
+        return ListView.separated(
+          padding: const EdgeInsets.all(24),
+          itemCount: sessions.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final session = sessions[index];
+            final duration = Duration(seconds: session['durationSeconds']);
+            return MilitaryHoverContainer(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => SessionTimelineDialog(
+                    sessionId: session['sessionId'],
+                    userName: session['userName'],
+                    eventCount: session['eventCount'],
+                    duration: duration,
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceDark,
+                  border: Border(
+                    left: BorderSide(color: AppColors.secondary, width: 4),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(
-                          Icons.signal_wifi_off,
-                          size: 48,
-                          color: AppColors.slate,
-                        ),
-                        const SizedBox(height: 16),
                         Text(
-                          'NO SIGNALS DETECTED',
-                          style: AppTextStyles.titleMedium.copyWith(
-                            color: AppColors.slate,
+                          'SESSION ID: ${session['sessionId']}',
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '${duration.inMinutes}m ${duration.inSeconds % 60}s',
+                            style: const TextStyle(
+                              color: AppColors.secondary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  )
-                : Column(
-                    children: [
-                      // Logs List
-                      Expanded(
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          itemCount: logs.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final log = logs[index];
-                            return _buildLogItem(context, log);
-                          },
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.person,
+                          size: 14,
+                          color: AppColors.slate,
                         ),
-                      ),
+                        const SizedBox(width: 4),
+                        Text(
+                          session['userName'] ?? 'Unknown User',
+                          style: const TextStyle(
+                            color: AppColors.slate,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Icon(
+                          Icons.list,
+                          size: 14,
+                          color: AppColors.slate,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${session['eventCount']} EVENTS',
+                          style: const TextStyle(
+                            color: AppColors.slate,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
-                      // Pagination Controls
-                      _buildPaginationControls(ref),
-                    ],
-                  ),
-          ),
+  Widget _buildLogsList(AsyncValue<List<LogModel>> logsAsync, WidgetRef ref) {
+    return logsAsync.when(
+      loading: () =>
+          const Center(child: MilitaryLoader(label: 'SCANNING LOGS...')),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+            const SizedBox(height: 16),
+            Text(
+              'ERROR LOADING LOGS',
+              style: AppTextStyles.titleMedium.copyWith(color: AppColors.error),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-      ],
+      ),
+      data: (logs) => logs.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.signal_wifi_off,
+                    size: 48,
+                    color: AppColors.slate,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'NO SIGNALS DETECTED',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: AppColors.slate,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    itemCount: logs.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) =>
+                        _buildLogItem(context, logs[index]),
+                  ),
+                ),
+                _buildPaginationControls(ref),
+              ],
+            ),
     );
   }
 

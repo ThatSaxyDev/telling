@@ -6,6 +6,7 @@ import '../../core/providers/users_provider.dart';
 import '../../core/models/user.dart';
 import '../../core/models/log_entry.dart';
 import '../../core/theme/app_colors.dart';
+import '../logs/widgets/session_timeline_dialog.dart';
 
 class UserDetailsScreen extends ConsumerWidget {
   final String userId;
@@ -213,7 +214,7 @@ class UserDetailsScreen extends ConsumerWidget {
           label: 'TOTAL LOGS',
           value: stats.totalLogs.toString(),
           icon: Icons.list_alt,
-          color: AppColors.primary,
+          color: AppColors.secondary,
         ),
         _StatCard(
           label: 'SESSIONS',
@@ -313,61 +314,76 @@ class _SessionCard extends StatelessWidget {
     final dateFormat = DateFormat('MMM d, HH:mm:ss');
     final duration = Duration(seconds: session.durationSeconds);
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
-        border: Border(left: BorderSide(color: AppColors.secondary, width: 2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                dateFormat.format(session.startTime),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.white,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${duration.inMinutes}m ${duration.inSeconds % 60}s',
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => SessionTimelineDialog(
+            sessionId: session.sessionId,
+            userName: null, // We are already in user details
+            eventCount: session.eventCount,
+            duration: duration,
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark,
+          border: Border(
+            left: BorderSide(color: AppColors.secondary, width: 2),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  dateFormat.format(session.startTime),
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.secondary,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.white,
                   ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${duration.inMinutes}m ${duration.inSeconds % 60}s',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${session.eventCount} events logged',
+              style: const TextStyle(color: AppColors.slate, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'ID: ${session.sessionId}',
+              style: const TextStyle(
+                color: AppColors.slate,
+                fontSize: 10,
+                fontFamily: 'monospace',
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${session.eventCount} events logged',
-            style: const TextStyle(
-              color: AppColors.slate,
-              fontSize: 12,
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'ID: ${session.sessionId}',
-            style: const TextStyle(
-              color: AppColors.slate,
-              fontSize: 10,
-              fontFamily: 'monospace',
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -384,15 +400,24 @@ class _LogItem extends StatelessWidget {
     
     Color levelColor;
     switch (log.level.toLowerCase()) {
-      case 'error':
       case 'fatal':
+        levelColor = Colors.red.shade900;
+        break;
+      case 'error':
         levelColor = AppColors.error;
         break;
       case 'warning':
-        levelColor = AppColors.warning;
+        levelColor = Colors.orange;
         break;
-      default:
+      case 'info':
+        levelColor = AppColors.white;
+        break;
+      case 'debug':
         levelColor = AppColors.primary;
+        break;
+      case 'trace':
+      default:
+        levelColor = AppColors.slate;
     }
 
     return Container(

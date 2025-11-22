@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:telling/core/theme/app_colors.dart';
 import '../log_level/log_level.dart';
 import '../device_info/device_info.dart';
 
@@ -63,4 +64,25 @@ extension LogModelX on LogModel {
       custom: (name) => Icons.info,
     );
   }
+
+  Color get getLevelColor {
+    switch (level) {
+      case LogLevel.fatal:
+        return Colors.red.shade900;
+      case LogLevel.error:
+        return AppColors.error;
+      case LogLevel.warning:
+        return Colors.orange;
+      case LogLevel.info:
+        return AppColors.white;
+      case LogLevel.debug:
+        return AppColors.primary;
+      case LogLevel.trace:
+        return AppColors.slate;
+      default:
+        return AppColors.slate;
+    }
+  }
 }
+
+
