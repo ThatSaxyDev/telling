@@ -47,7 +47,12 @@ final _router = Router()
   ..get('/api/v1/users/<userId>/stats', _getUserStatsHandler)
   ..get('/api/v1/users/<userId>/sessions', _getUserSessionsHandler)
   ..get('/api/v1/sessions', _getSessionsHandler)
-  ..get('/api/v1/sessions/<sessionId>/logs', _getSessionLogsHandler);
+  ..get('/api/v1/sessions/<sessionId>/logs', _getSessionLogsHandler)
+  ..get('/api/v1/analytics/summary', _getAnalyticsSummaryHandler)
+  ..get('/api/v1/analytics/logs-timeline', _getLogsTimelineHandler)
+  ..get('/api/v1/analytics/log-levels', _getLogLevelsHandler)
+  ..get('/api/v1/analytics/top-errors', _getTopErrorsHandler)
+  ..get('/api/v1/analytics/active-users', _getActiveUsersHandler);
 
 Response _rootHandler(Request req) {
   return Response.ok('Telling Backend API v1.0.0 (SQLite)\n');
@@ -527,6 +532,251 @@ Middleware corsHeaders() {
       });
     };
   };
+}
+
+// Analytics Handlers
+
+Response _getAnalyticsSummaryHandler(Request req) {
+  try {
+    final params = req.url.queryParameters;
+    final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
+    final now = DateTime.now();
+    final startTime = now.subtract(Duration(hours: hours));
+    final previousStartTime = startTime.subtract(Duration(hours: hours));
+
+    // Total logs in current period
+    final currentLogs =
+        _db.select('SELECT COUNT(*) as count FROM logs WHERE timestamp >= ?', [
+              startTime.toIso8601String(),
+            ]).first['count']
+            as int;
+
+    // Total logs in previous period (for trend)
+    final previousLogs =
+        _db.select(
+              'SELECT COUNT(*) as count FROM logs WHERE timestamp >= ? AND timestamp < ?',
+              [
+                previousStartTime.toIso8601String(),
+                startTime.toIso8601String(),
+              ],
+            ).first['count']
+            as int;
+
+    // Error count
+    final errorCount =
+        _db.select(
+              'SELECT COUNT(*) as count FROM logs WHERE level IN (?, ?) AND timestamp >= ?',
+              ['error', 'fatal', startTime.toIso8601String()],
+            ).first['count']
+            as int;
+
+    // Error rate
+    final errorRate = currentLogs > 0 ? (errorCount / currentLogs * 100) : 0.0;
+
+    // Active sessions
+    final activeSessions =
+        _db.select(
+              'SELECT COUNT(DISTINCT session_id) as count FROM logs WHERE timestamp >= ?',
+              [startTime.toIso8601String()],
+            ).first['count']
+            as int;
+
+    // Active users
+    final activeUsers =
+        _db.select(
+              'SELECT COUNT(DISTINCT user_id) as count FROM logs WHERE timestamp >= ? AND user_id IS NOT NULL',
+              [startTime.toIso8601String()],
+            ).first['count']
+            as int;
+
+    // Calculate trend
+    final logsTrend = previousLogs > 0
+        ? ((currentLogs - previousLogs) / previousLogs * 100).round()
+        : 0;
+
+    return Response.ok(
+      jsonEncode({
+        'totalLogs': currentLogs,
+        'errorCount': errorCount,
+        'errorRate': errorRate.toStringAsFixed(2),
+        'activeSessions': activeSessions,
+        'activeUsers': activeUsers,
+        'logsTrend': logsTrend, // positive = increase, negative = decrease
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+  } catch (e) {
+    return Response.internalServerError(body: 'Error: $e');
+  }
+}
+
+Response _getLogsTimelineHandler(Request req) {
+  try {
+    final params = req.url.queryParameters;
+    final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
+    final now = DateTime.now();
+    final startTime = now.subtract(Duration(hours: hours));
+
+    // Group by hour for 24h, by 4 hours for 7d, by day for 30d
+    final intervalHours = hours <= 24
+        ? 1
+        : hours <= 168
+        ? 4
+        : 24;
+
+    final results = _db.select(
+      '''
+      SELECT 
+        strftime('%Y-%m-%dT%H:00:00', timestamp) as time_bucket,
+        level,
+        COUNT(*) as count
+      FROM logs
+      WHERE timestamp >= ?
+      GROUP BY time_bucket, level
+      ORDER BY time_bucket ASC
+    ''',
+      [startTime.toIso8601String()],
+    );
+
+    // Group by time bucket
+    final Map<String, Map<String, int>> timeline = {};
+    for (final row in results) {
+      final bucket = row['time_bucket'] as String;
+      final level = row['level'] as String;
+      final count = row['count'] as int;
+
+      if (!timeline.containsKey(bucket)) {
+        timeline[bucket] = {};
+      }
+      timeline[bucket]![level] = count;
+    }
+
+    final timelineData = timeline.entries.map((entry) {
+      return {'timestamp': entry.key, 'counts': entry.value};
+    }).toList();
+
+    return Response.ok(
+      jsonEncode(timelineData),
+      headers: {'Content-Type': 'application/json'},
+    );
+  } catch (e) {
+    return Response.internalServerError(body: 'Error: $e');
+  }
+}
+
+Response _getLogLevelsHandler(Request req) {
+  try {
+    final params = req.url.queryParameters;
+    final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
+    final now = DateTime.now();
+    final startTime = now.subtract(Duration(hours: hours));
+
+    final results = _db.select(
+      '''
+      SELECT level, COUNT(*) as count
+      FROM logs
+      WHERE timestamp >= ?
+      GROUP BY level
+      ORDER BY count DESC
+    ''',
+      [startTime.toIso8601String()],
+    );
+
+    final distribution = results.map((row) {
+      return {'level': row['level'], 'count': row['count']};
+    }).toList();
+
+    return Response.ok(
+      jsonEncode(distribution),
+      headers: {'Content-Type': 'application/json'},
+    );
+  } catch (e) {
+    return Response.internalServerError(body: 'Error: $e');
+  }
+}
+
+Response _getTopErrorsHandler(Request req) {
+  try {
+    final params = req.url.queryParameters;
+    final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
+    final limit = int.tryParse(params['limit'] ?? '10') ?? 10;
+    final now = DateTime.now();
+    final startTime = now.subtract(Duration(hours: hours));
+
+    final results = _db.select(
+      '''
+      SELECT 
+        message,
+        COUNT(*) as count,
+        MAX(timestamp) as last_seen
+      FROM logs
+      WHERE level IN (?, ?) AND timestamp >= ?
+      GROUP BY message
+      ORDER BY count DESC
+      LIMIT ?
+    ''',
+      ['error', 'fatal', startTime.toIso8601String(), limit],
+    );
+
+    final topErrors = results.map((row) {
+      return {
+        'message': row['message'],
+        'count': row['count'],
+        'lastSeen': row['last_seen'],
+      };
+    }).toList();
+
+    return Response.ok(
+      jsonEncode(topErrors),
+      headers: {'Content-Type': 'application/json'},
+    );
+  } catch (e) {
+    return Response.internalServerError(body: 'Error: $e');
+  }
+}
+
+Response _getActiveUsersHandler(Request req) {
+  try {
+    final params = req.url.queryParameters;
+    final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
+    final limit = int.tryParse(params['limit'] ?? '10') ?? 10;
+    final now = DateTime.now();
+    final startTime = now.subtract(Duration(hours: hours));
+
+    final results = _db.select(
+      '''
+      SELECT 
+        user_id,
+        user_name,
+        user_email,
+        COUNT(*) as log_count,
+        MAX(timestamp) as last_active
+      FROM logs
+      WHERE timestamp >= ? AND user_id IS NOT NULL
+      GROUP BY user_id
+      ORDER BY log_count DESC
+      LIMIT ?
+    ''',
+      [startTime.toIso8601String(), limit],
+    );
+
+    final activeUsers = results.map((row) {
+      return {
+        'userId': row['user_id'],
+        'userName': row['user_name'],
+        'userEmail': row['user_email'],
+        'logCount': row['log_count'],
+        'lastActive': row['last_active'],
+      };
+    }).toList();
+
+    return Response.ok(
+      jsonEncode(activeUsers),
+      headers: {'Content-Type': 'application/json'},
+    );
+  } catch (e) {
+    return Response.internalServerError(body: 'Error: $e');
+  }
 }
 
 void main(List<String> args) async {
