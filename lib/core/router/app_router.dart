@@ -4,6 +4,8 @@ import 'package:telling_logger/telling_logger.dart';
 import '../../features/overview/overview_screen.dart';
 import '../../features/logs/logs_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
+import '../../features/users/users_screen.dart';
+import '../../features/users/user_details_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../shared/widgets/dashboard_layout.dart';
 
@@ -36,6 +38,22 @@ class AppRouter {
             name: 'logs',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const LogsScreen()),
+          ),
+          GoRoute(
+            path: '/users',
+            pageBuilder: (context, state) =>
+                NoTransitionPage(child: const UsersScreen()),
+            routes: [
+              GoRoute(
+                path: ':userId',
+                pageBuilder: (context, state) {
+                  final userId = state.pathParameters['userId']!;
+                  return NoTransitionPage(
+                    child: UserDetailsScreen(userId: userId),
+                  );
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/analytics',

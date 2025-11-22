@@ -19,6 +19,10 @@ class AppColors {
   static const Color surfaceDark = Color(0xFF121212); // Material Dark Surface
   static const Color surfaceLight = Color(0xFFFFFFFF);
 
-  // Error
+  // Status Colors
   static const Color error = Color(0xFFCF6679);
+  static const Color warning = Color(
+    0xFFE0E0E0,
+  ); // Light Grey for warning in monochrome theme
+  static const Color success = Color(0xFFCCCCCC); // Light Grey for success
 }

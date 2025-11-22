@@ -42,6 +42,12 @@ class BottomNav extends StatelessWidget {
               ),
               _buildNavItem(
                 context,
+                icon: Icons.people_alt,
+                route: '/users',
+                isActive: currentRoute == '/users',
+              ),
+              _buildNavItem(
+                context,
                 icon: Icons.analytics,
                 route: '/analytics',
                 isActive: currentRoute == '/analytics',

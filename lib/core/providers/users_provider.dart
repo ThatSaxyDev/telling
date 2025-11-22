@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/user.dart';
 import '../models/log_entry.dart';
 import '../repositories/users_repository.dart';
@@ -27,4 +28,14 @@ final userLogsProvider = FutureProvider.family<List<LogEntry>, String>((ref, use
   return repository.getUserLogs(userId);
 });
 
-final selectedUserIdProvider = StateProvider<String?>((ref) => null);
+class SelectedUserIdNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String? id) => state = id;
+}
+
+final selectedUserIdProvider =
+    NotifierProvider<SelectedUserIdNotifier, String?>(
+      SelectedUserIdNotifier.new,
+    );

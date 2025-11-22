@@ -106,10 +106,11 @@ class OverviewScreen extends ConsumerWidget {
   Widget _buildStatsGrid(LogStats stats) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        print(constraints.maxWidth);
         final crossAxisCount = constraints.maxWidth > 1200
             ? 4
-            : constraints.maxWidth > 800
-            ? 2
+            : constraints.maxWidth > 1106
+            ? 4
             : 2;
 
         final padding = constraints.maxWidth > 800 ? 16.0 : 8.0;

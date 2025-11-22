@@ -240,7 +240,7 @@ Future<Response> _postLogsHandler(Request req) async {
 Response _getUsersHandler(Request req) {
   try {
     final results = _db.select('''
-      SELECT DISTINCT user_id, user_name, user_email, MAX(received_at) as last_seen
+      SELECT DISTINCT user_id, user_name, user_email, MAX(received_at) as last_seen, COUNT(*) as log_count
       FROM logs
       WHERE user_id IS NOT NULL
       GROUP BY user_id
@@ -254,6 +254,7 @@ Response _getUsersHandler(Request req) {
             'userName': row['user_name'],
             'userEmail': row['user_email'],
             'lastSeen': row['last_seen'],
+            'logCount': row['log_count'],
           },
         )
         .toList();

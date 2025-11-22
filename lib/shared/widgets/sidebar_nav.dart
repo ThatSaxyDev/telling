@@ -19,6 +19,7 @@ class _SidebarNavState extends State<SidebarNav> {
   final List<NavItem> _navItems = [
     NavItem(icon: Icons.radar, label: 'COMMAND CENTER', route: '/'),
     NavItem(icon: Icons.list_alt, label: 'LOGS EXPLORER', route: '/logs'),
+    NavItem(icon: Icons.people_alt, label: 'USERS', route: '/users'),
     NavItem(icon: Icons.analytics, label: 'ANALYTICS', route: '/analytics'),
     NavItem(icon: Icons.settings, label: 'SETTINGS', route: '/settings'),
   ];
