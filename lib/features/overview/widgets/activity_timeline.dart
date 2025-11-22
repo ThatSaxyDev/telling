@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:telling/core/models/log_level/log_level.dart';
 import '../../../core/models/log_model/log_model.dart';
 import '../../../core/providers/logs_provider.dart';
-import '../../../core/repositories/logs_repository.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/military_decorations.dart';
@@ -20,6 +19,88 @@ class ActivityTimeline extends ConsumerStatefulWidget {
 class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
   LogLevel? _filterLevel;
   LogType? _filterType;
+  final ScrollController _scrollController = ScrollController();
+
+  List<LogModel> _logs = [];
+  bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  int _currentPage = 1;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    _loadInitialLogs();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadInitialLogs() async {
+    setState(() {
+      _isLoading = true;
+      _currentPage = 1;
+    });
+
+    try {
+      final repository = ref.read(logsRepositoryProvider);
+      final logs = await repository.fetchLogs(page: _currentPage, limit: 20);
+
+      if (mounted) {
+        setState(() {
+          _logs = logs;
+          _hasMore = logs.length == 20;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadMoreLogs() async {
+    if (_isLoadingMore || !_hasMore || _isLoading) return;
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final repository = ref.read(logsRepositoryProvider);
+      _currentPage++;
+      final newLogs = await repository.fetchLogs(page: _currentPage, limit: 20);
+
+      if (mounted) {
+        setState(() {
+          _logs.addAll(newLogs);
+          _hasMore = newLogs.length == 20;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasMore = false;
+          _isLoadingMore = false;
+        });
+      }
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
+      _loadMoreLogs();
+    }
+  }
 
   List<LogModel> _filterLogs(List<LogModel> logs) {
     return logs.where((log) {
@@ -39,8 +120,6 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
   @override
   Widget build(BuildContext context) {
-    final logsAsync = ref.watch(logsProvider);
-
     return MilitaryHoverContainer(
       baseColor: AppColors.surfaceDark,
       hoverColor: AppColors.slate.withOpacity(0.5),
@@ -58,66 +137,67 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
             // Timeline Content
             Expanded(
-              child: logsAsync.when(
-                loading: () => const Center(
-                  child: MilitaryLoader(label: 'LOADING ACTIVITY...', size: 60),
-                ),
-                error: (error, stack) => Center(
-                  child: Text(
-                    'Error loading activity: $error',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.error,
-                    ),
-                  ),
-                ),
-                data: (logs) {
-                  final filteredLogs = _filterLogs(logs);
-
-                  if (filteredLogs.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.timeline,
-                            size: 48,
-                            color: AppColors.slate,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            logs.isEmpty
-                                ? 'NO ACTIVITY DETECTED'
-                                : 'NO MATCHING ACTIVITY',
-                            style: AppTextStyles.titleMedium.copyWith(
-                              color: AppColors.slate,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // Take only the first 15 filtered logs
-                  final recentLogs = filteredLogs.take(15).toList();
-
-                  return ListView.separated(
-                    itemCount: recentLogs.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final log = recentLogs[index];
-                      return _buildTimelineItem(
-                        log,
-                        index == recentLogs.length - 1,
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
+              child: _buildContent()),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildContent() {
+    if (_isLoading) {
+      return const Center(
+        child: MilitaryLoader(label: 'LOADING ACTIVITY...', size: 60),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Text(
+          'Error loading activity: $_error',
+          style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+        ),
+      );
+    }
+
+    final filteredLogs = _filterLogs(_logs);
+
+    if (filteredLogs.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.timeline, size: 48, color: AppColors.slate),
+            const SizedBox(height: 16),
+            Text(
+              _logs.isEmpty ? 'NO ACTIVITY DETECTED' : 'NO MATCHING ACTIVITY',
+              style: AppTextStyles.titleMedium.copyWith(color: AppColors.slate),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      controller: _scrollController,
+      itemCount: filteredLogs.length + (_hasMore ? 1 : 0),
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        if (index == filteredLogs.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: MilitaryLoader(label: 'LOADING MORE...', size: 30),
+            ),
+          );
+        }
+
+        final log = filteredLogs[index];
+        return _buildTimelineItem(
+          log,
+          index == filteredLogs.length - 1 && !_hasMore,
+        );
+      },
     );
   }
 

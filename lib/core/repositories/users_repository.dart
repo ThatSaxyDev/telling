@@ -37,9 +37,17 @@ class UsersRepository {
     }
   }
 
-  Future<List<UserSession>> getUserSessions(String userId) async {
+  Future<List<UserSession>> getUserSessions(
+    String userId, {
+    int limit = 50,
+    int offset = 0,
+  }) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/users/$userId/sessions'));
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/users/$userId/sessions?limit=$limit&offset=$offset',
+        ),
+      );
       
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
