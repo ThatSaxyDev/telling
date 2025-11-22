@@ -17,6 +17,7 @@ abstract class FilterState with _$FilterState {
     @Default('') String searchQuery,
     @Default(SortField.timestamp) SortField sortBy,
     @Default(SortOrder.descending) SortOrder sortOrder,
+    String? userId,
   }) = _FilterState;
 
   factory FilterState.fromJson(Map<String, dynamic> json) => _$FilterStateFromJson(json);

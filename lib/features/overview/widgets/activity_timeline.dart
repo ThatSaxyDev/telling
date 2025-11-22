@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:telling/core/models/log_level/log_level.dart';
 import '../../../core/models/log_model/log_model.dart';
 import '../../../core/providers/logs_provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -16,7 +17,8 @@ class ActivityTimeline extends ConsumerWidget {
 
     return MilitaryHoverContainer(
       baseColor: AppColors.surfaceDark,
-      showGrid: true,
+      hoverColor: AppColors.white.withOpacity(0.8),
+      showGrid: false,
       child: Container(
         height: 400,
         padding: const EdgeInsets.all(24),
@@ -25,17 +27,12 @@ class ActivityTimeline extends ConsumerWidget {
         ),
         child: logsAsync.when(
           loading: () => const Center(
-            child: MilitaryLoader(
-              label: 'LOADING ACTIVITY...',
-              size: 60,
-            ),
+            child: MilitaryLoader(label: 'LOADING ACTIVITY...', size: 60),
           ),
           error: (error, stack) => Center(
             child: Text(
               'Error loading activity: $error',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.error,
-              ),
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
             ),
           ),
           data: (logs) {
@@ -44,7 +41,11 @@ class ActivityTimeline extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.timeline, size: 48, color: AppColors.slate),
+                    const Icon(
+                      Icons.timeline,
+                      size: 48,
+                      color: AppColors.slate,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'NO ACTIVITY DETECTED',
@@ -133,7 +134,10 @@ class ActivityTimeline extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),
                       border: Border.all(color: color.withOpacity(0.3)),
@@ -180,9 +184,7 @@ class ActivityTimeline extends ConsumerWidget {
     );
   }
 
-  Color _getLevelColor(dynamic level) {
-    if (level == null) return AppColors.slate;
-    
+  Color _getLevelColor(LogLevel level) {
     return level.when(
       debug: () => AppColors.slate,
       info: () => Colors.blue,

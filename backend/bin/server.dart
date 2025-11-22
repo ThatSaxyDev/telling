@@ -14,7 +14,8 @@ final _router = Router()
   ..get('/', _rootHandler)
   ..get('/api/v1/logs', _getLogsHandler)
   ..post('/api/v1/logs', _postLogsHandler)
-  ..get('/api/v1/stats', _getStatsHandler);
+  ..get('/api/v1/stats', _getStatsHandler)
+  ..get('/api/v1/users', _getUsersHandler);
 
 Response _rootHandler(Request req) {
   return Response.ok('Telling Backend API v1.0.0 (SQLite)\n');
@@ -27,12 +28,22 @@ Response _getLogsHandler(Request req) {
     final page = int.tryParse(params['page'] ?? '1') ?? 1;
     final limit = int.tryParse(params['limit'] ?? '50') ?? 50;
     final offset = (page - 1) * limit;
+    final userId = params['userId']; // Optional user filter
+
+    // Build query with optional user filter
+    String query = 'SELECT * FROM logs';
+    List<Object?> queryParams = [];
+
+    if (userId != null && userId.isNotEmpty) {
+      query += ' WHERE user_id = ?';
+      queryParams.add(userId);
+    }
+
+    query += ' ORDER BY id DESC LIMIT ? OFFSET ?';
+    queryParams.addAll([limit, offset]);
 
     // Return logs in reverse chronological order (newest first)
-    final ResultSet results = _db.select(
-      'SELECT * FROM logs ORDER BY id DESC LIMIT ? OFFSET ?',
-      [limit, offset],
-    );
+    final ResultSet results = _db.select(query, queryParams);
 
     final logs = results.map((row) {
       return {
@@ -46,6 +57,8 @@ Response _getLogsHandler(Request req) {
             ? jsonDecode(row['metadata'])
             : null,
         'device': row['device'] != null ? jsonDecode(row['device']) : null,
+        'userId': row['user_id'],
+        'userName': row['user_name'],
       };
     }).toList();
 
@@ -100,6 +113,35 @@ Response _getStatsHandler(Request req) {
   } catch (e) {
     print('Error fetching stats: $e');
     return Response.internalServerError(body: 'Error fetching stats');
+  }
+}
+
+Response _getUsersHandler(Request req) {
+  try {
+    // Get unique users with log counts
+    final ResultSet results = _db.select('''
+      SELECT user_id, user_name, COUNT(*) as log_count
+      FROM logs
+      WHERE user_id IS NOT NULL
+      GROUP BY user_id, user_name
+      ORDER BY log_count DESC
+    ''');
+
+    final users = results.map((row) {
+      return {
+        'userId': row['user_id'],
+        'userName': row['user_name'],
+        'logCount': row['log_count'],
+      };
+    }).toList();
+
+    return Response.ok(
+      jsonEncode(users),
+      headers: {'content-type': 'application/json'},
+    );
+  } catch (e) {
+    print('Error fetching users: $e');
+    return Response.internalServerError(body: 'Error fetching users');
   }
 }
 

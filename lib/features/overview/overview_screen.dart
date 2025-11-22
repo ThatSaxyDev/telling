@@ -124,8 +124,8 @@ class OverviewScreen extends ConsumerWidget {
   }) {
     return MilitaryHoverContainer(
       baseColor: AppColors.surfaceDark,
-      // hoverColor: AppColors.white.withOpacity(0.2),
-      showGrid: true,
+      hoverColor: AppColors.white.withOpacity(0.8),
+      showGrid: false,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(

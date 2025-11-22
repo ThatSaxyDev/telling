@@ -26,6 +26,7 @@ _FilterState _$FilterStateFromJson(Map<String, dynamic> json) => _FilterState(
   sortOrder:
       $enumDecodeNullable(_$SortOrderEnumMap, json['sortOrder']) ??
       SortOrder.descending,
+  userId: json['userId'] as String?,
 );
 
 Map<String, dynamic> _$FilterStateToJson(_FilterState instance) =>
@@ -37,6 +38,7 @@ Map<String, dynamic> _$FilterStateToJson(_FilterState instance) =>
       'searchQuery': instance.searchQuery,
       'sortBy': _$SortFieldEnumMap[instance.sortBy]!,
       'sortOrder': _$SortOrderEnumMap[instance.sortOrder]!,
+      'userId': instance.userId,
     };
 
 const _$SortFieldEnumMap = {

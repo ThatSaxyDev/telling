@@ -11,11 +11,22 @@ class LogsRepository {
     http.Client? client,
   }) : _client = client ?? http.Client();
 
-  /// Fetch logs from the API with pagination
-  Future<List<LogModel>> fetchLogs({int page = 1, int limit = 50}) async {
+  /// Fetch logs from the API with pagination and optional user filter
+  Future<List<LogModel>> fetchLogs({
+    int page = 1,
+    int limit = 50,
+    String? userId,
+  }) async {
     try {
+      var uri = Uri.parse('$baseUrl/logs?page=$page&limit=$limit');
+
+      // Add userId query parameter if provided
+      if (userId != null && userId.isNotEmpty) {
+        uri = Uri.parse('$baseUrl/logs?page=$page&limit=$limit&userId=$userId');
+      }
+      
       final response = await _client.get(
-        Uri.parse('$baseUrl/logs?page=$page&limit=$limit'),
+        uri,
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -27,6 +38,31 @@ class LogsRepository {
       } else {
         throw LogsRepositoryException(
           'Failed to fetch logs: ${response.statusCode}',
+          response.statusCode,
+        );
+      }
+    } on http.ClientException catch (e) {
+      throw LogsRepositoryException('Network error: ${e.message}');
+    } catch (e) {
+      throw LogsRepositoryException('Unexpected error: $e');
+    }
+  }
+
+  /// Fetch unique users
+  Future<List<Map<String, dynamic>>> fetchUsers() async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/users'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList =
+            jsonDecode(response.body) as List<dynamic>;
+        return jsonList.map((json) => json as Map<String, dynamic>).toList();
+      } else {
+        throw LogsRepositoryException(
+          'Failed to fetch users: ${response.statusCode}',
           response.statusCode,
         );
       }

@@ -16,10 +16,12 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
   int _page = 1;
   final int _limit = 50;
   bool _hasMore = true;
+  String? _userId;
 
   int get page => _page;
   int get limit => _limit;
   bool get hasMore => _hasMore;
+  String? get userId => _userId;
 
   Timer? _pollingTimer;
   
@@ -51,12 +53,24 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
 
   Future<List<LogModel>> _fetchLogs() async {
     final repository = ref.read(logsRepositoryProvider);
-    final logs = await repository.fetchLogs(page: _page, limit: _limit);
+    final logs = await repository.fetchLogs(
+      page: _page,
+      limit: _limit,
+      userId: _userId,
+    );
 
     // Update hasMore flag
     _hasMore = logs.length == _limit;
 
     return logs;
+  }
+
+  /// Set user filter
+  void setUserFilter(String? userId) async {
+    _userId = userId;
+    _page = 1; // Reset to first page
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _fetchLogs());
   }
 
   /// Manually refresh logs

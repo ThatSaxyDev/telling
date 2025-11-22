@@ -2,14 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/log_level/log_level.dart';
 import '../../../core/providers/filter_provider.dart';
+import '../../../core/providers/logs_provider.dart';
+import '../../../core/repositories/logs_repository.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
-class LogFilterBar extends ConsumerWidget {
+class LogFilterBar extends ConsumerStatefulWidget {
   const LogFilterBar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LogFilterBar> createState() => _LogFilterBarState();
+}
+
+class _LogFilterBarState extends ConsumerState<LogFilterBar> {
+  List<Map<String, dynamic>> _users = [];
+  String? _selectedUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedUserId = ref.read(logsProvider.notifier).userId;
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    try {
+      final users = await ref.read(logsRepositoryProvider).fetchUsers();
+      if (mounted) {
+        setState(() {
+          _users = users;
+        });
+      }
+    } catch (e) {
+      // Silently fail - users filter is optional
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final filter = ref.watch(filterProvider);
     final notifier = ref.read(filterProvider.notifier);
 
@@ -92,6 +122,18 @@ class LogFilterBar extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
+                // User Filter
+                _buildUserDropdown(
+                  value: _selectedUserId,
+                  users: _users,
+                  onChanged: (userId) {
+                    setState(() {
+                      _selectedUserId = userId;
+                    });
+                    ref.read(logsProvider.notifier).setUserFilter(userId);
+                  },
+                ),
+                const SizedBox(width: 16),
                 if (filter.level != null || filter.type != null || (filter.searchQuery.isNotEmpty))
                   TextButton.icon(
                     onPressed: notifier.clearFilters,
@@ -147,6 +189,53 @@ class LogFilterBar extends ConsumerWidget {
                 style: AppTextStyles.labelSmall.copyWith(color: AppColors.white),
               ),
             )),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserDropdown({
+    required String? value,
+    required List<Map<String, dynamic>> users,
+    required Function(String?) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundDark,
+        border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          hint: Text(
+            'ALL USERS',
+            style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate),
+          ),
+          dropdownColor: AppColors.surfaceDark,
+          icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+          items: [
+            const DropdownMenuItem<String>(
+              value: null,
+              child: Text(
+                'ALL USERS',
+                style: TextStyle(color: AppColors.slate),
+              ),
+            ),
+            ...users.map(
+              (user) => DropdownMenuItem<String>(
+                value: user['userId'] as String?,
+                child: Text(
+                  user['userName'] as String? ??
+                      user['userId'] as String? ??
+                      'Unknown',
+                  style: const TextStyle(color: AppColors.white),
+                ),
+              ),
+            ),
           ],
           onChanged: onChanged,
         ),

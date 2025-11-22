@@ -25,7 +25,7 @@ class _SidebarNavState extends State<SidebarNav> {
 
   @override
   Widget build(BuildContext context) {
-    final width = _isCollapsed ? 80.0 : 280.0;
+    final width = _isCollapsed ? 100.0 : 280.0;
 
     return Container(
       width: width,
@@ -65,6 +65,7 @@ class _SidebarNavState extends State<SidebarNav> {
       height: 80,
       padding: const EdgeInsets.all(16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CornerBrackets(
             length: 8,
@@ -74,10 +75,15 @@ class _SidebarNavState extends State<SidebarNav> {
               width: 48,
               height: 48,
               color: AppColors.backgroundDark,
-              child: const Icon(
-                Icons.military_tech,
-                color: AppColors.primary,
-                size: 28,
+              child: Center(
+                child: Text(
+                  'T',
+                  style: AppTextStyles.titleLarge.copyWith(
+                    fontSize: 30,
+                    letterSpacing: 2,
+                    color: AppColors.white,
+                  ),
+                ),
               ),
             ),
           ),
@@ -96,7 +102,7 @@ class _SidebarNavState extends State<SidebarNav> {
                     ),
                   ),
                   Text(
-                    'TACTICAL SYSTEM',
+                    'TACTICAL LOGGER',
                     style: AppTextStyles.labelSmall.copyWith(
                       color: AppColors.slate,
                       fontSize: 10,
