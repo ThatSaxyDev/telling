@@ -10,17 +10,16 @@ void main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
-    
+
       // Initialize SDK
       await Telling.instance.init(
         'TEST_API_KEY',
-        baseUrl: 'http://localhost:8080/api/v1/logs',
         userId: 'demo_user_123',
         userName: 'Demo User',
       );
-    
+
       Telling.instance.enableCrashReporting();
-    
+
       runApp(const ProviderScope(child: MainApp()));
     },
     (error, stack) {
@@ -31,7 +30,7 @@ void main() async {
         error: error,
         stackTrace: stack,
         type: LogType.error,
-    );
+      );
     },
   );
 }
