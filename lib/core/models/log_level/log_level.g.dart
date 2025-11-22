@@ -88,6 +88,19 @@ Map<String, dynamic> _$SecurityToJson(_Security instance) => <String, dynamic>{
   'runtimeType': instance.$type,
 };
 
+_Exception _$ExceptionFromJson(Map<String, dynamic> json) =>
+    _Exception($type: json['runtimeType'] as String?);
+
+Map<String, dynamic> _$ExceptionToJson(_Exception instance) =>
+    <String, dynamic>{'runtimeType': instance.$type};
+
+_Crash _$CrashFromJson(Map<String, dynamic> json) =>
+    _Crash($type: json['runtimeType'] as String?);
+
+Map<String, dynamic> _$CrashToJson(_Crash instance) => <String, dynamic>{
+  'runtimeType': instance.$type,
+};
+
 _Custom _$CustomFromJson(Map<String, dynamic> json) =>
     _Custom(json['name'] as String, $type: json['runtimeType'] as String?);
 

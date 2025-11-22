@@ -18,6 +18,8 @@ const validLogTypes = {
   'performance',
   'network',
   'security',
+  'exception',
+  'crash',
   'custom',
   // Legacy support
   'log', // Maps to 'general'
@@ -75,6 +77,7 @@ Response _getLogsHandler(Request req) {
         'device': row['device'] != null ? jsonDecode(row['device']) : null,
         'userId': row['user_id'],
         'userName': row['user_name'],
+        'userEmail': row['user_email'],
       };
     }).toList();
 
@@ -167,7 +170,7 @@ Future<Response> _postLogsHandler(Request req) async {
     final List<dynamic> events = jsonDecode(payload);
     
     final stmt = _db.prepare(
-      'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name, user_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
 
     for (var event in events) {
@@ -206,6 +209,7 @@ Future<Response> _postLogsHandler(Request req) async {
           DateTime.now().toIso8601String(),
           event['userId'], // Can be null
           event['userName'], // Can be null
+          event['userEmail'], // Can be null
         ]);
       }
     }
@@ -272,6 +276,13 @@ void main(List<String> args) async {
   try {
     _db.execute('ALTER TABLE logs ADD COLUMN user_name TEXT');
     print('Added user_name column');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
+  try {
+    _db.execute('ALTER TABLE logs ADD COLUMN user_email TEXT');
+    print('Added user_email column');
   } catch (e) {
     // Column already exists, ignore
   }

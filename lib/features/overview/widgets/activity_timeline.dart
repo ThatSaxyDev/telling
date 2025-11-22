@@ -153,6 +153,8 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
             LogType.performance(),
             LogType.network(),
             LogType.security(),
+            LogType.exception(),
+            LogType.crash(),
           ],
           onChanged: (type) => setState(() => _filterType = type),
           itemLabel: (type) => type.when(
@@ -162,6 +164,8 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
             performance: () => 'PERFORMANCE',
             network: () => 'NETWORK',
             security: () => 'SECURITY',
+            exception: () => 'EXCEPTION',
+            crash: () => 'CRASH',
             custom: (name) => name.toUpperCase(),
           ),
         ),
@@ -536,6 +540,8 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
       performance: () => Colors.amber,
       network: () => Colors.blue,
       security: () => Colors.red,
+      exception: () => Colors.orange,
+      crash: () => Colors.red.shade900,
       custom: (name) => AppColors.primary,
     );
   }
@@ -548,6 +554,8 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
       performance: () => 'PRF',
       network: () => 'NET',
       security: () => 'SEC',
+      exception: () => 'EXC',
+      crash: () => 'CRS',
       custom: (name) => name.substring(0, 3).toUpperCase(),
     );
   }

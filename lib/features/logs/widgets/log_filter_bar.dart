@@ -111,6 +111,8 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
                     const LogType.performance(),
                     const LogType.network(),
                     const LogType.security(),
+                    const LogType.exception(),
+                    const LogType.crash(),
                   ],
                   onChanged: notifier.setType,
                   itemLabel: (type) => type.when(
@@ -120,6 +122,8 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
                     performance: () => 'PERFORMANCE',
                     network: () => 'NETWORK',
                     security: () => 'SECURITY',
+                    exception: () => 'EXCEPTION',
+                    crash: () => 'CRASH',
                     custom: (name) => name.toUpperCase(),
                   ),
                 ),

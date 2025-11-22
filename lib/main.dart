@@ -29,7 +29,7 @@ void main() async {
         level: LogLevel.fatal,
         error: error,
         stackTrace: stack,
-        type: LogType.performance,
+        type: LogType.crash,
       );
     },
   );

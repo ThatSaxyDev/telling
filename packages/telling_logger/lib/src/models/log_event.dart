@@ -9,6 +9,8 @@ enum LogType {
   performance,
   network,
   security,
+  exception,
+  crash,
   custom,
 }
 
@@ -72,6 +74,10 @@ extension LogTypeExtensions on LogType {
         return 'Network';
       case LogType.security:
         return 'Security';
+      case LogType.exception:
+        return 'Exception';
+      case LogType.crash:
+        return 'Crash';
       case LogType.custom:
         return 'Custom';
     }
@@ -89,6 +95,7 @@ class LogEvent {
   final DeviceMetadata? deviceMetadata;
   final String? userId;
   final String? userName;
+  final String? userEmail;
 
   LogEvent({
     String? id,
@@ -101,6 +108,7 @@ class LogEvent {
     this.deviceMetadata,
     this.userId,
     this.userName,
+    this.userEmail,
   }) : id =
            id ??
            DateTime.now().millisecondsSinceEpoch
@@ -118,6 +126,7 @@ class LogEvent {
       if (deviceMetadata != null) 'device': deviceMetadata!.toJson(),
       if (userId != null) 'userId': userId,
       if (userName != null) 'userName': userName,
+      if (userEmail != null) 'userEmail': userEmail,
     };
   }
 }

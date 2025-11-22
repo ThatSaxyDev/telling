@@ -67,10 +67,10 @@ class Telling {
       print('Telling: CAUGHT FLUTTER ERROR: ${details.exception}');
       log(
         'Crash: ${details.exception}',
-        level: LogLevel.error,
+        level: LogLevel.fatal,
         error: details.exception,
         stackTrace: details.stack,
-        type: LogType.general,
+        type: LogType.crash,
       );
       
       // Pass to original handler if it exists (e.g. to print to console)
@@ -82,10 +82,10 @@ class Telling {
       print('Telling: CAUGHT ASYNC ERROR: $error');
       log(
         'Async Crash: $error',
-        level: LogLevel.error,
+        level: LogLevel.fatal,
         error: error,
         stackTrace: stack,
-        type: LogType.general,
+        type: LogType.crash,
       );
       return true; // Prevent app crash
     };
@@ -127,6 +127,7 @@ class Telling {
       deviceMetadata: _deviceMetadata,
       userId: _userId,
       userName: _userName,
+      userEmail: _userEmail,
     );
 
     _buffer.add(event);

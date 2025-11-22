@@ -19,6 +19,7 @@ abstract class LogModel with _$LogModel {
     DeviceInfo? device,
     String? userId,
     String? userName,
+    String? userEmail,
   }) = _LogModel;
 
   factory LogModel.fromJson(Map<String, dynamic> json) {
@@ -42,6 +43,7 @@ abstract class LogModel with _$LogModel {
           : null,
       userId: json['userId'] as String?,
       userName: json['userName'] as String?,
+      userEmail: json['userEmail'] as String?,
     );
   }
 }
@@ -56,6 +58,8 @@ extension LogModelX on LogModel {
       performance: () => Icons.speed, // or Icons.show_chart, Icons.timer
       network: () => Icons.wifi, // or Icons.cloud, Icons.lan
       security: () => Icons.security,
+      exception: () => Icons.error_outline,
+      crash: () => Icons.dangerous,
       custom: (name) => Icons.info,
     );
   }

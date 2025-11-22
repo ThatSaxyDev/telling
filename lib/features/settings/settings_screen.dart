@@ -75,7 +75,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'Debug signal initiated',
                             level: LogLevel.debug,
-                            type: LogType.custom,
+                            type: LogType.event, // Event type for app events
                           );
                         },
                       ),
@@ -99,7 +99,8 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'Resource usage high',
                             level: LogLevel.warning,
-                            type: LogType.general,
+                            type: LogType
+                                .performance, // Performance type for resource warnings
                             metadata: {'cpu_usage': '85%', 'memory': '1.2GB'},
                           );
                         },
@@ -115,9 +116,13 @@ class SettingsScreen extends StatelessWidget {
                             Telling.instance.log(
                               'Connection failed',
                               level: LogLevel.error,
-                              type: LogType.general,
+                              type: LogType
+                                  .exception, // Exception type for caught errors
                               error: e,
                               stackTrace: stack,
+                              metadata: {
+                                'message': 'Connection refused by host',
+                              },
                             );
                           }
                         },
@@ -130,7 +135,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'CRITICAL SYSTEM FAILURE',
                             level: LogLevel.fatal,
-                            type: LogType.general,
+                            type: LogType.crash, // Crash type for fatal errors
                             metadata: {'code': '0xDEADBEEF'},
                           );
                         },

@@ -42,6 +42,8 @@ abstract class LogType with _$LogType {
   const factory LogType.performance() = _Performance;
   const factory LogType.network() = _Network;
   const factory LogType.security() = _Security;
+  const factory LogType.exception() = _Exception;
+  const factory LogType.crash() = _Crash;
   const factory LogType.custom(String name) = _Custom;
 
   factory LogType.fromJson(Map<String, dynamic> json) => _$LogTypeFromJson(json);
@@ -61,6 +63,10 @@ abstract class LogType with _$LogType {
         return const LogType.network();
       case 'security':
         return const LogType.security();
+      case 'exception':
+        return const LogType.exception();
+      case 'crash':
+        return const LogType.crash();
       case 'error': // Legacy support - map to general
       case 'errorr': // Legacy support for typo
         return const LogType.general();

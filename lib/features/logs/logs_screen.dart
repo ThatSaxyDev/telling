@@ -356,6 +356,8 @@ class LogsScreen extends ConsumerWidget {
                               performance: () => 'PERFORMANCE',
                               network: () => 'NETWORK',
                               security: () => 'SECURITY',
+                              exception: () => 'EXCEPTION',
+                              crash: () => 'CRASH',
                               custom: (name) => name.toUpperCase(),
                             ),
                           ),
