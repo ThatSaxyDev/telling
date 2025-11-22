@@ -787,9 +787,10 @@ class _MilitaryHoverContainerState extends State<MilitaryHoverContainer>
           _controller.reverse();
         }
       },
-      cursor: widget.onTap != null
-          ? SystemMouseCursors.click
-          : SystemMouseCursors.basic,
+      cursor: SystemMouseCursors.none,
+      // widget.onTap != null
+      //     ? SystemMouseCursors.click
+      //     : SystemMouseCursors.basic,
       child: GestureDetector(
         onTap: widget.onTap,
         behavior: HitTestBehavior.translucent,
