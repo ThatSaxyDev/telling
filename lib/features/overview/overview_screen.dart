@@ -6,6 +6,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/number_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
+import 'widgets/activity_timeline.dart';
 
 class OverviewScreen extends ConsumerWidget {
   const OverviewScreen({super.key});
@@ -60,7 +61,7 @@ class OverviewScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildActivityPlaceholder(),
+          const ActivityTimeline(),
         ],
       ),
     );
@@ -181,39 +182,4 @@ class OverviewScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivityPlaceholder() {
-    return MilitaryHoverContainer(
-      baseColor: AppColors.surfaceDark,
-      showGrid: true,
-      child: Container(
-        height: 300,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.slate.withOpacity(0.3)),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.timeline, size: 48, color: AppColors.slate),
-              const SizedBox(height: 16),
-              Text(
-                'ACTIVITY TIMELINE',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.slate,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Coming Soon',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.slate,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
