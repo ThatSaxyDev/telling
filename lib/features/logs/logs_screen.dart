@@ -151,129 +151,129 @@ class LogsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSessionsList(
-    AsyncValue<List<Map<String, dynamic>>> sessionsAsync,
-  ) {
-    return sessionsAsync.when(
-      loading: () =>
-          const Center(child: MilitaryLoader(label: 'LOADING SESSIONS...')),
-      error: (error, stack) => Center(
-        child: Text(
-          'Error: $error',
-          style: const TextStyle(color: AppColors.error),
-        ),
-      ),
-      data: (sessions) {
-        if (sessions.isEmpty) {
-          return const Center(
-            child: Text(
-              'NO SESSIONS FOUND',
-              style: TextStyle(color: AppColors.slate),
-            ),
-          );
-        }
-        return ListView.separated(
-          padding: const EdgeInsets.all(24),
-          itemCount: sessions.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final session = sessions[index];
-            final duration = Duration(seconds: session['durationSeconds']);
-            return MilitaryHoverContainer(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => SessionTimelineDialog(
-                    sessionId: session['sessionId'],
-                    userName: session['userName'],
-                    eventCount: session['eventCount'],
-                    duration: duration,
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceDark,
-                  border: Border(
-                    left: BorderSide(color: AppColors.secondary, width: 4),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'SESSION ID: ${session['sessionId']}',
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.white,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            '${duration.inMinutes}m ${duration.inSeconds % 60}s',
-                            style: const TextStyle(
-                              color: AppColors.secondary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.person,
-                          size: 14,
-                          color: AppColors.slate,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          session['userName'] ?? 'Unknown User',
-                          style: const TextStyle(
-                            color: AppColors.slate,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Icon(
-                          Icons.list,
-                          size: 14,
-                          color: AppColors.slate,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${session['eventCount']} EVENTS',
-                          style: const TextStyle(
-                            color: AppColors.slate,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+  // Widget _buildSessionsList(
+  //   AsyncValue<List<Map<String, dynamic>>> sessionsAsync,
+  // ) {
+  //   return sessionsAsync.when(
+  //     loading: () =>
+  //         const Center(child: MilitaryLoader(label: 'LOADING SESSIONS...')),
+  //     error: (error, stack) => Center(
+  //       child: Text(
+  //         'Error: $error',
+  //         style: const TextStyle(color: AppColors.error),
+  //       ),
+  //     ),
+  //     data: (sessions) {
+  //       if (sessions.isEmpty) {
+  //         return const Center(
+  //           child: Text(
+  //             'NO SESSIONS FOUND',
+  //             style: TextStyle(color: AppColors.slate),
+  //           ),
+  //         );
+  //       }
+  //       return ListView.separated(
+  //         padding: const EdgeInsets.all(24),
+  //         itemCount: sessions.length,
+  //         separatorBuilder: (context, index) => const SizedBox(height: 12),
+  //         itemBuilder: (context, index) {
+  //           final session = sessions[index];
+  //           final duration = Duration(seconds: session['durationSeconds']);
+  //           return MilitaryHoverContainer(
+  //             onTap: () {
+  //               showDialog(
+  //                 context: context,
+  //                 builder: (context) => SessionTimelineDialog(
+  //                   sessionId: session['sessionId'],
+  //                   userName: session['userName'],
+  //                   eventCount: session['eventCount'],
+  //                   duration: duration,
+  //                 ),
+  //               );
+  //             },
+  //             child: Container(
+  //               padding: const EdgeInsets.all(16),
+  //               decoration: BoxDecoration(
+  //                 color: AppColors.surfaceDark,
+  //                 border: Border(
+  //                   left: BorderSide(color: AppColors.secondary, width: 4),
+  //                 ),
+  //               ),
+  //               child: Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   Row(
+  //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                     children: [
+  //                       Text(
+  //                         'SESSION ID: ${session['sessionId']}',
+  //                         style: const TextStyle(
+  //                           fontFamily: 'monospace',
+  //                           fontWeight: FontWeight.bold,
+  //                           color: AppColors.white,
+  //                         ),
+  //                       ),
+  //                       Container(
+  //                         padding: const EdgeInsets.symmetric(
+  //                           horizontal: 8,
+  //                           vertical: 4,
+  //                         ),
+  //                         decoration: BoxDecoration(
+  //                           color: AppColors.secondary.withOpacity(0.1),
+  //                           borderRadius: BorderRadius.circular(4),
+  //                         ),
+  //                         child: Text(
+  //                           '${duration.inMinutes}m ${duration.inSeconds % 60}s',
+  //                           style: const TextStyle(
+  //                             color: AppColors.secondary,
+  //                             fontWeight: FontWeight.bold,
+  //                             fontSize: 12,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                   const SizedBox(height: 8),
+  //                   Row(
+  //                     children: [
+  //                       const Icon(
+  //                         Icons.person,
+  //                         size: 14,
+  //                         color: AppColors.slate,
+  //                       ),
+  //                       const SizedBox(width: 4),
+  //                       Text(
+  //                         session['userName'] ?? 'Unknown User',
+  //                         style: const TextStyle(
+  //                           color: AppColors.slate,
+  //                           fontSize: 12,
+  //                         ),
+  //                       ),
+  //                       const SizedBox(width: 16),
+  //                       const Icon(
+  //                         Icons.list,
+  //                         size: 14,
+  //                         color: AppColors.slate,
+  //                       ),
+  //                       const SizedBox(width: 4),
+  //                       Text(
+  //                         '${session['eventCount']} EVENTS',
+  //                         style: const TextStyle(
+  //                           color: AppColors.slate,
+  //                           fontSize: 12,
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildLogsList(AsyncValue<List<LogModel>> logsAsync, WidgetRef ref) {
     return logsAsync.when(

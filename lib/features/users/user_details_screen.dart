@@ -16,9 +16,20 @@ class UserDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final usersAsync = ref.watch(usersListProvider);
     final statsAsync = ref.watch(userStatsProvider(userId));
     final sessionsAsync = ref.watch(userSessionsProvider(userId));
     final logsAsync = ref.watch(userLogsProvider(userId));
+
+    // Find the current user from the users list to get the userName
+    final currentUser = usersAsync.when(
+      data: (users) => users.firstWhere(
+        (u) => u.userId == userId,
+        orElse: () => User(userId: userId, lastSeen: DateTime.now()),
+      ),
+      loading: () => null,
+      error: (_, __) => null,
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -112,7 +123,10 @@ class UserDetailsScreen extends ConsumerWidget {
                             Expanded(
                               child: TabBarView(
                                 children: [
-                                  PaginatedSessionsList(userId: userId),
+                                  PaginatedSessionsList(
+                                    userId: userId,
+                                    userName: currentUser?.userName,
+                                  ),
                                   PaginatedLogsList(userId: userId),
                                 ],
                               ),
@@ -132,7 +146,10 @@ class UserDetailsScreen extends ConsumerWidget {
                                 _buildSectionHeader(context, 'SESSION HISTORY'),
                                 const SizedBox(height: 16),
                                 Expanded(
-                                  child: PaginatedSessionsList(userId: userId),
+                                  child: PaginatedSessionsList(
+                                    userId: userId,
+                                    userName: currentUser?.userName,
+                                  ),
                                 ),
                               ],
                             ),

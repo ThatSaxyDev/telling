@@ -8,8 +8,9 @@ import '../../logs/widgets/session_timeline_dialog.dart';
 
 class PaginatedSessionsList extends ConsumerStatefulWidget {
   final String userId;
+  final String? userName;
 
-  const PaginatedSessionsList({super.key, required this.userId});
+  const PaginatedSessionsList({super.key, required this.userId, this.userName});
 
   @override
   ConsumerState<PaginatedSessionsList> createState() => _PaginatedSessionsListState();
@@ -146,7 +147,10 @@ class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
           );
         }
         
-        return _SessionCard(session: _sessions[index]);
+        return _SessionCard(
+          session: _sessions[index],
+          userName: widget.userName,
+        );
       },
     );
   }
@@ -154,8 +158,9 @@ class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
 
 class _SessionCard extends StatelessWidget {
   final UserSession session;
+  final String? userName;
 
-  const _SessionCard({required this.session});
+  const _SessionCard({required this.session, this.userName});
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +173,7 @@ class _SessionCard extends StatelessWidget {
           context: context,
           builder: (context) => SessionTimelineDialog(
             sessionId: session.sessionId,
-            userName: null, // We are already in user details
+            userName: userName,
             eventCount: session.eventCount,
             duration: duration,
           ),

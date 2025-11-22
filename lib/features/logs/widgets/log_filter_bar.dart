@@ -58,6 +58,7 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
           // Search Bar
           TextField(
             onChanged: notifier.setSearchQuery,
+            cursorColor: AppColors.secondary,
             style: AppTextStyles.bodyMedium.copyWith(color: AppColors.white),
             decoration: InputDecoration(
               hintText: 'SEARCH LOGS...',
