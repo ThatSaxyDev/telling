@@ -122,7 +122,7 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
                     custom: (name) => name.toUpperCase(),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 64),
                 // User Filter
                 SearchableUserDropdown(
                   selectedUserId: _selectedUserId,

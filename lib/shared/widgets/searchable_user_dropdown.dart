@@ -88,25 +88,25 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
                           child: TextField(
                             controller: _searchController,
                             autofocus: true,
+                            cursorColor: AppColors.white,
                             onChanged: (value) {
                               setState(() {
                                 // Rebuild to filter users
                               });
                               _overlayEntry?.markNeedsBuild();
                             },
-                            style: AppTextStyles.labelSmall.copyWith(
+                            style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.white,
                             ),
                             decoration: InputDecoration(
                               hintText: 'Search by name or ID...',
-                              hintStyle: AppTextStyles.labelSmall.copyWith(
+                              hintStyle: AppTextStyles.bodySmall.copyWith(
                                 color: AppColors.slate,
-                                fontSize: 10,
                               ),
                               prefixIcon: const Icon(
                                 Icons.search,
                                 color: AppColors.slate,
-                                size: 16,
+                                size: 18,
                               ),
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(
@@ -197,18 +197,22 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
         _removeOverlay();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         color: isSelected ? AppColors.primary.withOpacity(0.1) : null,
         child: Row(
           children: [
             if (isSelected)
-              const Icon(Icons.check_circle, color: AppColors.primary, size: 14),
+              const Icon(
+                Icons.check_circle,
+                color: AppColors.secondary,
+                size: 14,
+              ),
             if (isSelected) const SizedBox(width: 8),
             Expanded(
               child: Text(
                 label,
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: isSelected ? AppColors.primary : AppColors.white,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: isSelected ? AppColors.secondary : AppColors.slate,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
@@ -252,7 +256,7 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
             children: [
               Text(
                 _getDisplayText(),
-                style: AppTextStyles.labelSmall.copyWith(
+                style: AppTextStyles.bodySmall.copyWith(
                   color: widget.selectedUserId == null ? AppColors.slate : AppColors.white,
                 ),
               ),
