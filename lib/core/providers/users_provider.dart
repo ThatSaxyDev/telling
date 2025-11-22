@@ -8,22 +8,27 @@ final usersRepositoryProvider = Provider<UsersRepository>((ref) {
   return UsersRepository();
 });
 
-final usersListProvider = FutureProvider<List<User>>((ref) async {
+final usersListProvider = FutureProvider.autoDispose<List<User>>((ref) async {
   final repository = ref.watch(usersRepositoryProvider);
   return repository.getUsers();
 });
 
-final userStatsProvider = FutureProvider.family<UserStats, String>((ref, userId) async {
+final userStatsProvider = FutureProvider.autoDispose.family<UserStats, String>((
+  ref,
+  userId,
+) async {
   final repository = ref.watch(usersRepositoryProvider);
   return repository.getUserStats(userId);
 });
 
-final userSessionsProvider = FutureProvider.family<List<UserSession>, String>((ref, userId) async {
+final userSessionsProvider = FutureProvider.autoDispose
+    .family<List<UserSession>, String>((ref, userId) async {
   final repository = ref.watch(usersRepositoryProvider);
   return repository.getUserSessions(userId);
 });
 
-final userLogsProvider = FutureProvider.family<List<LogEntry>, String>((ref, userId) async {
+final userLogsProvider = FutureProvider.autoDispose
+    .family<List<LogEntry>, String>((ref, userId) async {
   final repository = ref.watch(usersRepositoryProvider);
   return repository.getUserLogs(userId);
 });

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:telling/core/models/log_level/log_level.dart';
 import '../../../../core/models/log_model/log_model.dart';
 import '../../../../core/providers/logs_provider.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -172,20 +171,15 @@ class SessionTimelineDialog extends ConsumerWidget {
   }
 }
 
-class _TimelineNode extends StatefulWidget {
+class _TimelineNode extends StatelessWidget {
   final LogModel log;
   final bool isLast;
   final Duration? timeGap;
 
   const _TimelineNode({required this.log, required this.isLast, this.timeGap});
 
-  @override
-  State<_TimelineNode> createState() => _TimelineNodeState();
-}
-
-class _TimelineNodeState extends State<_TimelineNode> {
   Color _getLevelColor() {
-    switch (widget.log.level.toString().split('.').last.toUpperCase()) {
+    switch (log.level.toString().split('.').last.toUpperCase()) {
       case 'FATAL()':
         return Colors.red.shade900;
       case 'ERROR()':
@@ -203,180 +197,157 @@ class _TimelineNodeState extends State<_TimelineNode> {
     }
   }
 
-  bool _isHovered = false;
-
   @override
   Widget build(BuildContext context) {
+    final color = _getLevelColor();
     final dateFormat = DateFormat('HH:mm:ss.SSS');
-    print(widget.log.level);
 
     return IntrinsicHeight(
-      child: MouseRegion(
-        onEnter: (_) {
-          if (mounted) {
-            setState(() => _isHovered = true);
-          }
-        },
-        onExit: (_) {
-          if (mounted) {
-            setState(() => _isHovered = false);
-          }
-        },
-        cursor: SystemMouseCursors.forbidden,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Time Column
-            SizedBox(
-              width: 80,
-              child: Text(
-                dateFormat.format(widget.log.timestamp),
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  color: _isHovered ? _getLevelColor() : AppColors.slate,
-                  fontSize: 12,
-                ),
-                textAlign: TextAlign.right,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Time Column
+          SizedBox(
+            width: 80,
+            child: Text(
+              dateFormat.format(log.timestamp),
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                color: AppColors.slate,
+                fontSize: 12,
               ),
+              textAlign: TextAlign.right,
             ),
-            const SizedBox(width: 16),
+          ),
+          const SizedBox(width: 16),
 
-            // Line & Node Column
-            Column(
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: _getLevelColor(),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _isHovered ? _getLevelColor() : AppColors.white,
-                      width: 2,
+          // Line & Node Column
+          Column(
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.5),
+                      blurRadius: 8,
+                      spreadRadius: 2,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _getLevelColor().withOpacity(0.5),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ],
+                  ],
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    color: AppColors.slate.withOpacity(0.3),
                   ),
                 ),
-                if (!widget.isLast)
-                  Expanded(
-                    child: Container(
-                      width: 2,
-                      color: AppColors.slate.withOpacity(0.3),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 16),
+            ],
+          ),
+          const SizedBox(width: 16),
 
-            // Content Column
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
+          // Content Column
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Text(
+                          log.level.toString().split('.').last.toUpperCase(),
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (log.type.toString().contains('screen'))
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 6,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _getLevelColor().withOpacity(0.1),
+                            color: AppColors.secondary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(2),
                           ),
-                          child: Text(
-                            widget.log.level
-                                .toString()
-                                .split('.')
-                                .last
-                                .toUpperCase(),
+                          child: const Text(
+                            'SCREEN VIEW',
                             style: TextStyle(
-                              color: _getLevelColor(),
+                              color: AppColors.secondary,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        if (widget.log.type.toString().contains('screen'))
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.secondary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                            child: const Text(
-                              'SCREEN VIEW',
-                              style: TextStyle(
-                                color: AppColors.secondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.log.message,
-                      style: TextStyle(
-                        color: _isHovered ? _getLevelColor() : AppColors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                    if (widget.timeGap != null &&
-                        widget.timeGap!.inMinutes >= 1) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.slate.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.slate.withOpacity(0.2),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.timelapse,
-                              size: 12,
-                              color: AppColors.slate,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${widget.timeGap!.inMinutes} min idle',
-                              style: const TextStyle(
-                                color: AppColors.slate,
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    log.message,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (timeGap != null && timeGap!.inMinutes >= 1) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.slate.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.slate.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.timelapse,
+                            size: 12,
+                            color: AppColors.slate,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${timeGap!.inMinutes} min idle',
+                            style: const TextStyle(
+                              color: AppColors.slate,
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
