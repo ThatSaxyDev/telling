@@ -6,6 +6,7 @@ import '../../../core/providers/logs_provider.dart';
 import '../../../core/repositories/logs_repository.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../shared/widgets/searchable_user_dropdown.dart';
 
 class LogFilterBar extends ConsumerStatefulWidget {
   const LogFilterBar({super.key});
@@ -123,8 +124,8 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
                 ),
                 const SizedBox(width: 16),
                 // User Filter
-                _buildUserDropdown(
-                  value: _selectedUserId,
+                SearchableUserDropdown(
+                  selectedUserId: _selectedUserId,
                   users: _users,
                   onChanged: (userId) {
                     setState(() {
@@ -173,7 +174,7 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
             style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate),
           ),
           dropdownColor: AppColors.surfaceDark,
-          icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+          icon: const Icon(Icons.arrow_drop_down, color: AppColors.secondary),
           items: [
             DropdownMenuItem<T>(
               value: null,
@@ -189,53 +190,6 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
                 style: AppTextStyles.labelSmall.copyWith(color: AppColors.white),
               ),
             )),
-          ],
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserDropdown({
-    required String? value,
-    required List<Map<String, dynamic>> users,
-    required Function(String?) onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundDark,
-        border: Border.all(color: AppColors.slate.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          hint: Text(
-            'ALL USERS',
-            style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate),
-          ),
-          dropdownColor: AppColors.surfaceDark,
-          icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
-          items: [
-            const DropdownMenuItem<String>(
-              value: null,
-              child: Text(
-                'ALL USERS',
-                style: TextStyle(color: AppColors.slate),
-              ),
-            ),
-            ...users.map(
-              (user) => DropdownMenuItem<String>(
-                value: user['userId'] as String?,
-                child: Text(
-                  user['userName'] as String? ??
-                      user['userId'] as String? ??
-                      'Unknown',
-                  style: const TextStyle(color: AppColors.white),
-                ),
-              ),
-            ),
           ],
           onChanged: onChanged,
         ),
