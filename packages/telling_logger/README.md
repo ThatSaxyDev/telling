@@ -1,16 +1,17 @@
 # telling_logger
 
-A comprehensive crash reporting and analytics SDK for Flutter apps, similar to Sentry and Mixpanel combined.
+A comprehensive crash reporting and analytics SDK for Flutter apps, designed to work seamlessly with the Telling Dashboard.
 
-## Features
+## 🚀 Features
 
-- 🐛 **Automatic Crash Reporting**: Catches unhandled errors and exceptions
-- 📊 **Activity Tracking**: Track user events and actions
-- 📱 **Device Metadata**: Automatically collects platform, OS version, device model, and app info
-- 🔄 **Buffered Logging**: Smart batching to avoid network spam
-- 🌐 **Multi-platform**: Works on iOS, Android, Web, macOS, Windows, and Linux
+- **🐛 Automatic Crash Reporting**: Catches unhandled errors and exceptions.
+- **📊 Activity Tracking**: Track user events and actions.
+- **📱 Device Metadata**: Automatically collects platform, OS version, device model, and app info.
+- **📝 Structured Logging**: Support for various log levels (Debug, Info, Warning, Error, Fatal) and types (Log, Analytics, Network, Performance).
+- **🔄 Buffered Logging**: Smart batching to avoid network spam.
+- **🌐 Multi-platform**: Works on iOS, Android, Web, macOS, Windows, and Linux.
 
-## Installation
+## 📦 Installation
 
 Add to your `pubspec.yaml`:
 
@@ -20,9 +21,11 @@ dependencies:
     path: packages/telling_logger
 ```
 
-## Usage
+## 💻 Usage
 
 ### Initialize
+
+Initialize the SDK in your `main.dart` before running the app.
 
 ```dart
 import 'package:telling_logger/telling_logger.dart';
@@ -30,8 +33,11 @@ import 'package:telling_logger/telling_logger.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize with your API key
-  await Telling.instance.init('YOUR_API_KEY');
+  // Initialize with your backend URL
+  await Telling.instance.init(
+    'YOUR_API_KEY', // API Key (placeholder for now)
+    baseUrl: 'http://localhost:8080/api/v1/logs', // Your backend URL
+  );
   
   // Enable automatic crash reporting
   Telling.instance.enableCrashReporting();
@@ -40,35 +46,43 @@ void main() async {
 }
 ```
 
-### Manual Logging
+### Logging
 
 ```dart
-// Simple log
+// Standard Log
 Telling.instance.log('User logged in');
 
-// Log with level
+// Warning with Metadata
 Telling.instance.log(
-  'Failed to load data',
+  'API Latency High',
   level: LogLevel.warning,
+  type: LogType.performance,
+  metadata: {'latency_ms': 450, 'endpoint': '/users'},
 );
 
-// Log with metadata
-Telling.instance.log(
-  'Purchase completed',
-  metadata: {'amount': 99.99, 'currency': 'USD'},
-);
+// Error Log
+try {
+  throw Exception('Database connection failed');
+} catch (e, stack) {
+  Telling.instance.log(
+    'Database Error',
+    level: LogLevel.error,
+    type: LogType.error,
+    stackTrace: stack.toString(),
+  );
+}
 ```
 
-### Track Events (Analytics)
+### Analytics & Events
 
 ```dart
 // Track a user action
 Telling.instance.event('Button Clicked', properties: {
   'button_name': 'Sign Up',
-  'screen': 'Home',
+  'screen': 'Onboarding',
 });
 
-// Track screen views
+// Track a screen view
 Telling.instance.event('Screen Viewed', properties: {
   'screen_name': 'Profile',
 });
@@ -76,37 +90,25 @@ Telling.instance.event('Screen Viewed', properties: {
 
 ### Automatic Crash Reporting
 
-Once you call `enableCrashReporting()`, all uncaught errors will be automatically logged:
+Once `enableCrashReporting()` is called, any unhandled exception in your Flutter app will be automatically caught and sent to the dashboard with a full stack trace and device metadata.
 
 ```dart
-// This crash will be caught automatically
-throw Exception('Something went wrong!');
+// This crash will be caught automatically!
+throw Exception('Unexpected Crash!');
 ```
 
-## Device Metadata
+## 📊 Data Models
 
-Every log event automatically includes:
+The SDK uses structured data models compatible with the Telling Dashboard:
+
+- **LogLevel**: `debug`, `info`, `warning`, `error`, `fatal`
+- **LogType**: `log`, `error`, `analytics`, `event`, `performance`, `network`, `custom`
+
+## 📱 Device Metadata
+
+Every log automatically includes:
 - Platform (iOS, Android, Web, etc.)
 - OS Version
 - Device Model
-- App Version
-- Build Number
+- App Version & Build Number
 - Session ID
-
-## API Reference
-
-### `Telling.instance.init(String apiKey, {String? baseUrl})`
-Initialize the SDK with your API key.
-
-### `Telling.instance.enableCrashReporting()`
-Enable automatic crash and error reporting.
-
-### `Telling.instance.log(String message, {LogLevel level, Map<String, dynamic>? metadata})`
-Log a message with optional level and metadata.
-
-### `Telling.instance.event(String name, {Map<String, dynamic>? properties})`
-Track an analytics event.
-
-## Example
-
-See the main `telling` app for a complete example with all features.

@@ -1,49 +1,56 @@
-A server app built using [Shelf](https://pub.dev/packages/shelf),
-configured to enable running with [Docker](https://www.docker.com/).
+# Telling Backend
 
-This sample code handles HTTP GET requests to `/` and `/echo/<message>`
+A lightweight log ingestion server built with [Shelf](https://pub.dev/packages/shelf) and [SQLite](https://pub.dev/packages/sqlite3).
 
-# Running the sample
+## 🚀 Features
 
-## Running with the Dart SDK
+- **Log Ingestion**: Accepts logs, events, and crash reports via HTTP POST.
+- **Persistence**: Stores all data in a local SQLite database (`telling.db`).
+- **Querying**: Provides endpoints to fetch, filter, and delete logs.
+- **CORS Support**: Enabled for web dashboard access.
 
-You can run the example with the [Dart SDK](https://dart.dev/get-dart)
-like this:
+## 🛠 API Endpoints
 
-```
-$ dart run bin/server.dart
-Server listening on port 8080
-```
+### `POST /api/v1/logs`
+Ingest a new log event.
+- **Body**: JSON object matching `LogEvent` structure.
 
-And then from a second terminal:
-```
-$ curl http://0.0.0.0:8080
-Hello, World!
-$ curl http://0.0.0.0:8080/echo/I_love_Dart
-I_love_Dart
-```
+### `GET /api/v1/logs`
+Retrieve all logs.
+- **Response**: JSON array of logs.
 
-## Running with Docker
+### `GET /api/v1/logs/<id>`
+Retrieve a specific log by ID.
 
-If you have [Docker Desktop](https://www.docker.com/get-started) installed, you
-can build and run with the `docker` command:
+### `DELETE /api/v1/logs/<id>`
+Delete a specific log by ID.
 
-```
-$ docker build . -t myserver
-$ docker run -it -p 8080:8080 myserver
-Server listening on port 8080
-```
+## 🏃‍♂️ Running the Server
 
-And then from a second terminal:
-```
-$ curl http://0.0.0.0:8080
-Hello, World!
-$ curl http://0.0.0.0:8080/echo/I_love_Dart
-I_love_Dart
+### 1. Install Dependencies
+
+```bash
+dart pub get
 ```
 
-You should see the logging printed in the first terminal:
+### 2. Run the Server
+
+```bash
+dart run bin/server.dart
 ```
-2021-05-06T15:47:04.620417  0:00:00.000158 GET     [200] /
-2021-05-06T15:47:08.392928  0:00:00.001216 GET     [200] /echo/I_love_Dart
+
+The server will start on `0.0.0.0:8080`.
+
+## 🗄️ Database
+
+The server uses a SQLite database file named `telling.db` located in the `backend/` directory.
+**Note**: This file is git-ignored to prevent large file issues in version control.
+
+## 🐳 Docker
+
+You can also run the server with Docker:
+
+```bash
+docker build . -t telling-backend
+docker run -it -p 8080:8080 telling-backend
 ```
