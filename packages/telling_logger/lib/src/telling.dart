@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models/log_event.dart';
 import 'models/device_metadata.dart';
 import 'device_info_collector.dart';
@@ -14,6 +15,7 @@ class Telling {
   String _baseUrl = 'https://api.telling.dev/v1/logs'; // Placeholder
   bool _initialized = false;
   DeviceMetadata? _deviceMetadata;
+  static const String _storageKey = 'telling_logs_buffer';
   
   // Simple buffer to avoid spamming network
   final List<LogEvent> _buffer = [];
@@ -31,6 +33,9 @@ class Telling {
     
     // Collect device metadata
     _deviceMetadata = await DeviceInfoCollector.collect();
+    
+    // Load persisted logs
+    await _loadPersistedLogs();
     
     _startFlushTimer();
     print('Telling SDK Initialized');
@@ -109,6 +114,7 @@ class Telling {
     );
 
     _buffer.add(event);
+    _persistLogs(); // Save to disk immediately
     
     // If error, flush immediately
     if (level == LogLevel.error) {
@@ -142,13 +148,72 @@ class Telling {
       
       if (response.statusCode != 200) {
         print('Telling: Failed to send logs. Status: ${response.statusCode}');
-        // In a real app, we might retry or persist to disk
+        // Put back in buffer/storage to retry later
+        _buffer.addAll(eventsToSend);
+        _persistLogs();
+      } else {
+        // Success! Clear from persistence
+        _persistLogs();
       }
       
     } catch (e) {
       print('Telling: Failed to send logs: $e');
-      // Restore buffer on failure? Or just drop?
-      // For now, drop to avoid memory leaks if backend is down
+      // Restore buffer on failure
+      _buffer.addAll(eventsToSend);
+      _persistLogs();
+    }
+  }
+
+  Future<void> _persistLogs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final logsJson = _buffer.map((e) => jsonEncode(e.toJson())).toList();
+      await prefs.setStringList(_storageKey, logsJson);
+    } catch (e) {
+      print('Telling: Failed to persist logs: $e');
+    }
+  }
+
+  Future<void> _loadPersistedLogs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final logsJson = prefs.getStringList(_storageKey);
+
+      if (logsJson != null && logsJson.isNotEmpty) {
+        print('Telling: Found ${logsJson.length} unsent logs on disk.');
+        for (var logString in logsJson) {
+          try {
+            final map = jsonDecode(logString);
+            // Reconstruct LogEvent (simplified for now, assuming structure matches)
+            // Note: You might need a fromJson method in LogEvent
+            final event = LogEvent(
+              type: LogType.values.firstWhere(
+                (e) => e.toString().split('.').last == map['type'],
+                orElse: () => LogType.log,
+              ),
+              level: LogLevel.values.firstWhere(
+                (e) => e.toString().split('.').last == map['level'],
+                orElse: () => LogLevel.info,
+              ),
+              message: map['message'],
+              timestamp: DateTime.parse(map['timestamp']),
+              stackTrace: map['stackTrace'],
+              metadata: map['metadata'],
+              // deviceMetadata is usually re-attached or stored in the log.
+              // For simplicity, we'll assume it's in the log or we attach current.
+              // If stored in log:
+              // deviceMetadata: map['device'] != null ? DeviceMetadata.fromJson(map['device']) : null,
+            );
+            _buffer.add(event);
+          } catch (e) {
+            print('Telling: Error parsing persisted log: $e');
+          }
+        }
+        // Try to send immediately
+        _flush();
+      }
+    } catch (e) {
+      print('Telling: Failed to load persisted logs: $e');
     }
   }
   

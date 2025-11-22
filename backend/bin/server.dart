@@ -4,9 +4,10 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:sqlite3/sqlite3.dart';
 
-// Simple in-memory store for MVP
-final List<Map<String, dynamic>> _logs = [];
+// Database instance
+late final Database _db;
 
 // Configure routes
 final _router = Router()
@@ -15,32 +16,67 @@ final _router = Router()
   ..post('/api/v1/logs', _postLogsHandler);
 
 Response _rootHandler(Request req) {
-  return Response.ok('Telling Backend API v1.0.0\n');
+  return Response.ok('Telling Backend API v1.0.0 (SQLite)\n');
 }
 
 Response _getLogsHandler(Request req) {
-  // Return logs in reverse chronological order (newest first)
-  final reversedLogs = _logs.reversed.toList();
-  return Response.ok(
-    jsonEncode(reversedLogs),
-    headers: {'content-type': 'application/json'},
-  );
+  try {
+    // Return logs in reverse chronological order (newest first)
+    final ResultSet results = _db.select(
+      'SELECT * FROM logs ORDER BY id DESC LIMIT 100',
+    );
+
+    final logs = results.map((row) {
+      return {
+        'id': row['id'],
+        'type': row['type'],
+        'level': row['level'],
+        'message': row['message'],
+        'timestamp': row['timestamp'],
+        'stackTrace': row['stack_trace'],
+        'metadata': row['metadata'] != null
+            ? jsonDecode(row['metadata'])
+            : null,
+        'device': row['device'] != null ? jsonDecode(row['device']) : null,
+      };
+    }).toList();
+
+    return Response.ok(
+      jsonEncode(logs),
+      headers: {'content-type': 'application/json'},
+    );
+  } catch (e) {
+    print('Error fetching logs: $e');
+    return Response.internalServerError(body: 'Error fetching logs');
+  }
 }
 
 Future<Response> _postLogsHandler(Request req) async {
   try {
     final payload = await req.readAsString();
     final List<dynamic> events = jsonDecode(payload);
+    
+    final stmt = _db.prepare(
+      'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    );
 
     for (var event in events) {
       if (event is Map<String, dynamic>) {
-        // Add server-side timestamp if needed, or trust client
-        // event['received_at'] = DateTime.now().toIso8601String();
-        _logs.add(event);
+        stmt.execute([
+          event['type'] ?? 'log',
+          event['level'] ?? 'info',
+          event['message'] ?? '',
+          event['timestamp'] ?? DateTime.now().toIso8601String(),
+          event['stackTrace'], // Can be null
+          event['metadata'] != null ? jsonEncode(event['metadata']) : null,
+          event['device'] != null ? jsonEncode(event['device']) : null,
+          DateTime.now().toIso8601String(),
+        ]);
       }
     }
+    stmt.dispose();
 
-    print('Received ${events.length} logs. Total logs: ${_logs.length}');
+    print('Received and saved ${events.length} logs.');
     return Response.ok(jsonEncode({'status': 'success', 'count': events.length}));
   } catch (e) {
     print('Error processing logs: $e');
@@ -70,6 +106,25 @@ Middleware corsHeaders() {
 }
 
 void main(List<String> args) async {
+  // Initialize Database
+  _db = sqlite3.open('telling.db');
+
+  // Create table if not exists
+  _db.execute('''
+    CREATE TABLE IF NOT EXISTS logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT,
+      level TEXT,
+      message TEXT,
+      timestamp TEXT,
+      stack_trace TEXT,
+      metadata TEXT,
+      device TEXT,
+      received_at TEXT
+    );
+  ''');
+  print('Database initialized: telling.db');
+
   // Use any available host or container IP (usually `0.0.0.0`).
   final ip = InternetAddress.anyIPv4;
 
