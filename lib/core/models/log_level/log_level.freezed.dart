@@ -15,7 +15,11 @@ LogLevel _$LogLevelFromJson(
   Map<String, dynamic> json
 ) {
         switch (json['runtimeType']) {
-                  case 'debug':
+                  case 'trace':
+          return _Trace.fromJson(
+            json
+          );
+                case 'debug':
           return _Debug.fromJson(
             json
           );
@@ -93,10 +97,11 @@ extension LogLevelPatterns on LogLevel {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Debug value)?  debug,TResult Function( _Info value)?  info,TResult Function( _Warning value)?  warning,TResult Function( _Error value)?  error,TResult Function( _Fatal value)?  fatal,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Trace value)?  trace,TResult Function( _Debug value)?  debug,TResult Function( _Info value)?  info,TResult Function( _Warning value)?  warning,TResult Function( _Error value)?  error,TResult Function( _Fatal value)?  fatal,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _Debug() when debug != null:
+case _Trace() when trace != null:
+return trace(_that);case _Debug() when debug != null:
 return debug(_that);case _Info() when info != null:
 return info(_that);case _Warning() when warning != null:
 return warning(_that);case _Error() when error != null:
@@ -119,10 +124,11 @@ return fatal(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Debug value)  debug,required TResult Function( _Info value)  info,required TResult Function( _Warning value)  warning,required TResult Function( _Error value)  error,required TResult Function( _Fatal value)  fatal,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Trace value)  trace,required TResult Function( _Debug value)  debug,required TResult Function( _Info value)  info,required TResult Function( _Warning value)  warning,required TResult Function( _Error value)  error,required TResult Function( _Fatal value)  fatal,}){
 final _that = this;
 switch (_that) {
-case _Debug():
+case _Trace():
+return trace(_that);case _Debug():
 return debug(_that);case _Info():
 return info(_that);case _Warning():
 return warning(_that);case _Error():
@@ -144,10 +150,11 @@ return fatal(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Debug value)?  debug,TResult? Function( _Info value)?  info,TResult? Function( _Warning value)?  warning,TResult? Function( _Error value)?  error,TResult? Function( _Fatal value)?  fatal,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Trace value)?  trace,TResult? Function( _Debug value)?  debug,TResult? Function( _Info value)?  info,TResult? Function( _Warning value)?  warning,TResult? Function( _Error value)?  error,TResult? Function( _Fatal value)?  fatal,}){
 final _that = this;
 switch (_that) {
-case _Debug() when debug != null:
+case _Trace() when trace != null:
+return trace(_that);case _Debug() when debug != null:
 return debug(_that);case _Info() when info != null:
 return info(_that);case _Warning() when warning != null:
 return warning(_that);case _Error() when error != null:
@@ -169,9 +176,10 @@ return fatal(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  debug,TResult Function()?  info,TResult Function()?  warning,TResult Function()?  error,TResult Function()?  fatal,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  trace,TResult Function()?  debug,TResult Function()?  info,TResult Function()?  warning,TResult Function()?  error,TResult Function()?  fatal,required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _Debug() when debug != null:
+case _Trace() when trace != null:
+return trace();case _Debug() when debug != null:
 return debug();case _Info() when info != null:
 return info();case _Warning() when warning != null:
 return warning();case _Error() when error != null:
@@ -194,9 +202,10 @@ return fatal();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  debug,required TResult Function()  info,required TResult Function()  warning,required TResult Function()  error,required TResult Function()  fatal,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  trace,required TResult Function()  debug,required TResult Function()  info,required TResult Function()  warning,required TResult Function()  error,required TResult Function()  fatal,}) {final _that = this;
 switch (_that) {
-case _Debug():
+case _Trace():
+return trace();case _Debug():
 return debug();case _Info():
 return info();case _Warning():
 return warning();case _Error():
@@ -218,9 +227,10 @@ return fatal();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  debug,TResult? Function()?  info,TResult? Function()?  warning,TResult? Function()?  error,TResult? Function()?  fatal,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  trace,TResult? Function()?  debug,TResult? Function()?  info,TResult? Function()?  warning,TResult? Function()?  error,TResult? Function()?  fatal,}) {final _that = this;
 switch (_that) {
-case _Debug() when debug != null:
+case _Trace() when trace != null:
+return trace();case _Debug() when debug != null:
 return debug();case _Info() when info != null:
 return info();case _Warning() when warning != null:
 return warning();case _Error() when error != null:
@@ -232,6 +242,45 @@ return fatal();case _:
 }
 
 }
+
+/// @nodoc
+@JsonSerializable()
+
+class _Trace implements LogLevel {
+  const _Trace({final  String? $type}): $type = $type ?? 'trace';
+  factory _Trace.fromJson(Map<String, dynamic> json) => _$TraceFromJson(json);
+
+
+
+@JsonKey(name: 'runtimeType')
+final String $type;
+
+
+
+@override
+Map<String, dynamic> toJson() {
+  return _$TraceToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Trace);
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'LogLevel.trace()';
+}
+
+
+}
+
+
+
 
 /// @nodoc
 @JsonSerializable()
@@ -432,12 +481,8 @@ LogType _$LogTypeFromJson(
   Map<String, dynamic> json
 ) {
         switch (json['runtimeType']) {
-                  case 'log':
-          return _Log.fromJson(
-            json
-          );
-                case 'errorr':
-          return _Errorr.fromJson(
+                  case 'general':
+          return _General.fromJson(
             json
           );
                 case 'analytics':
@@ -454,6 +499,10 @@ LogType _$LogTypeFromJson(
           );
                 case 'network':
           return _Network.fromJson(
+            json
+          );
+                case 'security':
+          return _Security.fromJson(
             json
           );
                 case 'custom':
@@ -518,16 +567,16 @@ extension LogTypePatterns on LogType {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Log value)?  log,TResult Function( _Errorr value)?  errorr,TResult Function( _Analytics value)?  analytics,TResult Function( _Event value)?  event,TResult Function( _Performance value)?  performance,TResult Function( _Network value)?  network,TResult Function( _Custom value)?  custom,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _General value)?  general,TResult Function( _Analytics value)?  analytics,TResult Function( _Event value)?  event,TResult Function( _Performance value)?  performance,TResult Function( _Network value)?  network,TResult Function( _Security value)?  security,TResult Function( _Custom value)?  custom,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _Log() when log != null:
-return log(_that);case _Errorr() when errorr != null:
-return errorr(_that);case _Analytics() when analytics != null:
+case _General() when general != null:
+return general(_that);case _Analytics() when analytics != null:
 return analytics(_that);case _Event() when event != null:
 return event(_that);case _Performance() when performance != null:
 return performance(_that);case _Network() when network != null:
-return network(_that);case _Custom() when custom != null:
+return network(_that);case _Security() when security != null:
+return security(_that);case _Custom() when custom != null:
 return custom(_that);case _:
   return orElse();
 
@@ -546,16 +595,16 @@ return custom(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Log value)  log,required TResult Function( _Errorr value)  errorr,required TResult Function( _Analytics value)  analytics,required TResult Function( _Event value)  event,required TResult Function( _Performance value)  performance,required TResult Function( _Network value)  network,required TResult Function( _Custom value)  custom,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _General value)  general,required TResult Function( _Analytics value)  analytics,required TResult Function( _Event value)  event,required TResult Function( _Performance value)  performance,required TResult Function( _Network value)  network,required TResult Function( _Security value)  security,required TResult Function( _Custom value)  custom,}){
 final _that = this;
 switch (_that) {
-case _Log():
-return log(_that);case _Errorr():
-return errorr(_that);case _Analytics():
+case _General():
+return general(_that);case _Analytics():
 return analytics(_that);case _Event():
 return event(_that);case _Performance():
 return performance(_that);case _Network():
-return network(_that);case _Custom():
+return network(_that);case _Security():
+return security(_that);case _Custom():
 return custom(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -573,16 +622,16 @@ return custom(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Log value)?  log,TResult? Function( _Errorr value)?  errorr,TResult? Function( _Analytics value)?  analytics,TResult? Function( _Event value)?  event,TResult? Function( _Performance value)?  performance,TResult? Function( _Network value)?  network,TResult? Function( _Custom value)?  custom,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _General value)?  general,TResult? Function( _Analytics value)?  analytics,TResult? Function( _Event value)?  event,TResult? Function( _Performance value)?  performance,TResult? Function( _Network value)?  network,TResult? Function( _Security value)?  security,TResult? Function( _Custom value)?  custom,}){
 final _that = this;
 switch (_that) {
-case _Log() when log != null:
-return log(_that);case _Errorr() when errorr != null:
-return errorr(_that);case _Analytics() when analytics != null:
+case _General() when general != null:
+return general(_that);case _Analytics() when analytics != null:
 return analytics(_that);case _Event() when event != null:
 return event(_that);case _Performance() when performance != null:
 return performance(_that);case _Network() when network != null:
-return network(_that);case _Custom() when custom != null:
+return network(_that);case _Security() when security != null:
+return security(_that);case _Custom() when custom != null:
 return custom(_that);case _:
   return null;
 
@@ -600,15 +649,15 @@ return custom(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  log,TResult Function()?  errorr,TResult Function()?  analytics,TResult Function()?  event,TResult Function()?  performance,TResult Function()?  network,TResult Function( String name)?  custom,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  general,TResult Function()?  analytics,TResult Function()?  event,TResult Function()?  performance,TResult Function()?  network,TResult Function()?  security,TResult Function( String name)?  custom,required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _Log() when log != null:
-return log();case _Errorr() when errorr != null:
-return errorr();case _Analytics() when analytics != null:
+case _General() when general != null:
+return general();case _Analytics() when analytics != null:
 return analytics();case _Event() when event != null:
 return event();case _Performance() when performance != null:
 return performance();case _Network() when network != null:
-return network();case _Custom() when custom != null:
+return network();case _Security() when security != null:
+return security();case _Custom() when custom != null:
 return custom(_that.name);case _:
   return orElse();
 
@@ -627,15 +676,15 @@ return custom(_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  log,required TResult Function()  errorr,required TResult Function()  analytics,required TResult Function()  event,required TResult Function()  performance,required TResult Function()  network,required TResult Function( String name)  custom,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  general,required TResult Function()  analytics,required TResult Function()  event,required TResult Function()  performance,required TResult Function()  network,required TResult Function()  security,required TResult Function( String name)  custom,}) {final _that = this;
 switch (_that) {
-case _Log():
-return log();case _Errorr():
-return errorr();case _Analytics():
+case _General():
+return general();case _Analytics():
 return analytics();case _Event():
 return event();case _Performance():
 return performance();case _Network():
-return network();case _Custom():
+return network();case _Security():
+return security();case _Custom():
 return custom(_that.name);case _:
   throw StateError('Unexpected subclass');
 
@@ -653,15 +702,15 @@ return custom(_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  log,TResult? Function()?  errorr,TResult? Function()?  analytics,TResult? Function()?  event,TResult? Function()?  performance,TResult? Function()?  network,TResult? Function( String name)?  custom,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  general,TResult? Function()?  analytics,TResult? Function()?  event,TResult? Function()?  performance,TResult? Function()?  network,TResult? Function()?  security,TResult? Function( String name)?  custom,}) {final _that = this;
 switch (_that) {
-case _Log() when log != null:
-return log();case _Errorr() when errorr != null:
-return errorr();case _Analytics() when analytics != null:
+case _General() when general != null:
+return general();case _Analytics() when analytics != null:
 return analytics();case _Event() when event != null:
 return event();case _Performance() when performance != null:
 return performance();case _Network() when network != null:
-return network();case _Custom() when custom != null:
+return network();case _Security() when security != null:
+return security();case _Custom() when custom != null:
 return custom(_that.name);case _:
   return null;
 
@@ -673,9 +722,9 @@ return custom(_that.name);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _Log implements LogType {
-  const _Log({final  String? $type}): $type = $type ?? 'log';
-  factory _Log.fromJson(Map<String, dynamic> json) => _$LogFromJson(json);
+class _General implements LogType {
+  const _General({final  String? $type}): $type = $type ?? 'general';
+  factory _General.fromJson(Map<String, dynamic> json) => _$GeneralFromJson(json);
 
 
 
@@ -686,12 +735,12 @@ final String $type;
 
 @override
 Map<String, dynamic> toJson() {
-  return _$LogToJson(this, );
+  return _$GeneralToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Log);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _General);
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -700,46 +749,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'LogType.log()';
-}
-
-
-}
-
-
-
-
-/// @nodoc
-@JsonSerializable()
-
-class _Errorr implements LogType {
-  const _Errorr({final  String? $type}): $type = $type ?? 'errorr';
-  factory _Errorr.fromJson(Map<String, dynamic> json) => _$ErrorrFromJson(json);
-
-
-
-@JsonKey(name: 'runtimeType')
-final String $type;
-
-
-
-@override
-Map<String, dynamic> toJson() {
-  return _$ErrorrToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Errorr);
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => runtimeType.hashCode;
-
-@override
-String toString() {
-  return 'LogType.errorr()';
+  return 'LogType.general()';
 }
 
 
@@ -896,6 +906,45 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'LogType.network()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _Security implements LogType {
+  const _Security({final  String? $type}): $type = $type ?? 'security';
+  factory _Security.fromJson(Map<String, dynamic> json) => _$SecurityFromJson(json);
+
+
+
+@JsonKey(name: 'runtimeType')
+final String $type;
+
+
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SecurityToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Security);
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'LogType.security()';
 }
 
 

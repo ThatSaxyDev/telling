@@ -6,6 +6,13 @@ part of 'log_level.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_Trace _$TraceFromJson(Map<String, dynamic> json) =>
+    _Trace($type: json['runtimeType'] as String?);
+
+Map<String, dynamic> _$TraceToJson(_Trace instance) => <String, dynamic>{
+  'runtimeType': instance.$type,
+};
+
 _Debug _$DebugFromJson(Map<String, dynamic> json) =>
     _Debug($type: json['runtimeType'] as String?);
 
@@ -41,17 +48,10 @@ Map<String, dynamic> _$FatalToJson(_Fatal instance) => <String, dynamic>{
   'runtimeType': instance.$type,
 };
 
-_Log _$LogFromJson(Map<String, dynamic> json) =>
-    _Log($type: json['runtimeType'] as String?);
+_General _$GeneralFromJson(Map<String, dynamic> json) =>
+    _General($type: json['runtimeType'] as String?);
 
-Map<String, dynamic> _$LogToJson(_Log instance) => <String, dynamic>{
-  'runtimeType': instance.$type,
-};
-
-_Errorr _$ErrorrFromJson(Map<String, dynamic> json) =>
-    _Errorr($type: json['runtimeType'] as String?);
-
-Map<String, dynamic> _$ErrorrToJson(_Errorr instance) => <String, dynamic>{
+Map<String, dynamic> _$GeneralToJson(_General instance) => <String, dynamic>{
   'runtimeType': instance.$type,
 };
 
@@ -78,6 +78,13 @@ _Network _$NetworkFromJson(Map<String, dynamic> json) =>
     _Network($type: json['runtimeType'] as String?);
 
 Map<String, dynamic> _$NetworkToJson(_Network instance) => <String, dynamic>{
+  'runtimeType': instance.$type,
+};
+
+_Security _$SecurityFromJson(Map<String, dynamic> json) =>
+    _Security($type: json['runtimeType'] as String?);
+
+Map<String, dynamic> _$SecurityToJson(_Security instance) => <String, dynamic>{
   'runtimeType': instance.$type,
 };
 

@@ -75,7 +75,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'Debug signal initiated',
                             level: LogLevel.debug,
-                            type: LogType.log,
+                            type: LogType.custom,
                           );
                         },
                       ),
@@ -87,7 +87,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'System status nominal',
                             level: LogLevel.info,
-                            type: LogType.log,
+                            type: LogType.general,
                           );
                         },
                       ),
@@ -99,7 +99,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'Resource usage high',
                             level: LogLevel.warning,
-                            type: LogType.log,
+                            type: LogType.general,
                             metadata: {'cpu_usage': '85%', 'memory': '1.2GB'},
                           );
                         },
@@ -115,7 +115,7 @@ class SettingsScreen extends StatelessWidget {
                             Telling.instance.log(
                               'Connection failed',
                               level: LogLevel.error,
-                              type: LogType.error,
+                              type: LogType.general,
                               error: e,
                               stackTrace: stack,
                             );
@@ -130,7 +130,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'CRITICAL SYSTEM FAILURE',
                             level: LogLevel.fatal,
-                            type: LogType.error,
+                            type: LogType.general,
                             metadata: {'code': '0xDEADBEEF'},
                           );
                         },

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../log_level/log_level.dart';
 import '../device_info/device_info.dart';
@@ -30,7 +31,7 @@ abstract class LogModel with _$LogModel {
           : const LogLevel.info(),
       type: json['type'] != null
           ? LogType.fromString(json['type'] as String)
-          : const LogType.event(),
+          : const LogType.general(),
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'] as String)
           : DateTime.now(),
@@ -41,6 +42,21 @@ abstract class LogModel with _$LogModel {
           : null,
       userId: json['userId'] as String?,
       userName: json['userName'] as String?,
+    );
+  }
+}
+
+
+extension LogModelX on LogModel {
+  IconData get icon {
+    return type.when(
+      general: () => Icons.info,
+      analytics: () => Icons.analytics,
+      event: () => Icons.event,
+      performance: () => Icons.speed, // or Icons.show_chart, Icons.timer
+      network: () => Icons.wifi, // or Icons.cloud, Icons.lan
+      security: () => Icons.security,
+      custom: (name) => Icons.info,
     );
   }
 }

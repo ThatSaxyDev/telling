@@ -129,6 +129,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
           value: _filterLevel,
           hint: 'ALL LEVELS',
           items: const [
+            LogLevel.trace(),
             LogLevel.debug(),
             LogLevel.info(),
             LogLevel.warning(),
@@ -146,21 +147,21 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
           value: _filterType,
           hint: 'TYPE',
           items: const [
-            LogType.log(),
-            LogType.errorr(),
+            LogType.general(),
             LogType.analytics(),
             LogType.event(),
             LogType.performance(),
             LogType.network(),
+            LogType.security(),
           ],
           onChanged: (type) => setState(() => _filterType = type),
           itemLabel: (type) => type.when(
-            log: () => 'LOG',
-            errorr: () => 'ERROR',
+            general: () => 'GENERAL',
             analytics: () => 'ANALYTICS',
             event: () => 'EVENT',
             performance: () => 'PERFORMANCE',
             network: () => 'NETWORK',
+            security: () => 'SECURITY',
             custom: (name) => name.toUpperCase(),
           ),
         ),
@@ -391,7 +392,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                             const SizedBox(width: 8),
 
                             // Type badge (if not default)
-                            if (log.type != const LogType.log())
+                            if (log.type != const LogType.general())
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 5,
@@ -518,6 +519,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
   IconData _getLevelIcon(LogLevel level) {
     return level.when(
+      trace: () => Icons.bug_report,
       debug: () => Icons.bug_report,
       info: () => Icons.info_outline,
       warning: () => Icons.warning_amber,
@@ -528,30 +530,31 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
   Color _getTypeColor(LogType type) {
     return type.when(
-      log: () => AppColors.slate,
-      errorr: () => AppColors.error,
+      general: () => AppColors.slate,
       analytics: () => Colors.purple,
       event: () => Colors.green,
       performance: () => Colors.amber,
       network: () => Colors.blue,
+      security: () => Colors.red,
       custom: (name) => AppColors.primary,
     );
   }
 
   String _getTypeLabel(LogType type) {
     return type.when(
-      log: () => 'LOG',
-      errorr: () => 'ERR',
+      general: () => 'GEN',
       analytics: () => 'ANA',
       event: () => 'EVT',
       performance: () => 'PRF',
       network: () => 'NET',
+      security: () => 'SEC',
       custom: (name) => name.substring(0, 3).toUpperCase(),
     );
   }
 
   Color _getLevelColor(LogLevel level) {
     return level.when(
+      trace: () => AppColors.slate.withOpacity(0.7),
       debug: () => AppColors.slate,
       info: () => Colors.blue,
       warning: () => Colors.orange,

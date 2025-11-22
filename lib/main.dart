@@ -26,10 +26,10 @@ void main() async {
       print('Telling: CAUGHT ZONED ERROR: $error');
       Telling.instance.log(
         'Zoned Crash: $error',
-        level: LogLevel.error,
+        level: LogLevel.fatal,
         error: error,
         stackTrace: stack,
-        type: LogType.error,
+        type: LogType.performance,
       );
     },
   );

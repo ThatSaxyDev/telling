@@ -1,8 +1,82 @@
 import 'device_metadata.dart';
 
-enum LogLevel { debug, info, warning, error, fatal }
+enum LogLevel { trace, debug, info, warning, error, fatal }
 
-enum LogType { log, error, analytics, event, performance, network, custom }
+enum LogType {
+  general,
+  analytics,
+  event,
+  performance,
+  network,
+  security,
+  custom,
+}
+
+extension LogLevelExtensions on LogLevel {
+  /// Severity value (0 = trace, 5 = fatal)
+  int get severity {
+    switch (this) {
+      case LogLevel.trace:
+        return 0;
+      case LogLevel.debug:
+        return 1;
+      case LogLevel.info:
+        return 2;
+      case LogLevel.warning:
+        return 3;
+      case LogLevel.error:
+        return 4;
+      case LogLevel.fatal:
+        return 5;
+    }
+  }
+
+  /// Check if this is an error level
+  bool get isError => this == LogLevel.error || this == LogLevel.fatal;
+
+  /// Check if this is warning or more severe
+  bool get isWarningOrAbove => severity >= 3;
+
+  /// Get display name
+  String get displayName {
+    switch (this) {
+      case LogLevel.trace:
+        return 'Trace';
+      case LogLevel.debug:
+        return 'Debug';
+      case LogLevel.info:
+        return 'Info';
+      case LogLevel.warning:
+        return 'Warning';
+      case LogLevel.error:
+        return 'Error';
+      case LogLevel.fatal:
+        return 'Fatal';
+    }
+  }
+}
+
+extension LogTypeExtensions on LogType {
+  /// Get display name
+  String get displayName {
+    switch (this) {
+      case LogType.general:
+        return 'General';
+      case LogType.analytics:
+        return 'Analytics';
+      case LogType.event:
+        return 'Event';
+      case LogType.performance:
+        return 'Performance';
+      case LogType.network:
+        return 'Network';
+      case LogType.security:
+        return 'Security';
+      case LogType.custom:
+        return 'Custom';
+    }
+  }
+}
 
 class LogEvent {
   final String id;
@@ -18,7 +92,7 @@ class LogEvent {
 
   LogEvent({
     String? id,
-    this.type = LogType.log,
+    this.type = LogType.general,
     required this.level,
     required this.message,
     required this.timestamp,

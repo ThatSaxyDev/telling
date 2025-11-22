@@ -17,6 +17,7 @@ class LogsScreen extends ConsumerWidget {
 
   Color _getLevelColor(LogLevel level) {
     return level.when(
+      trace: () => AppColors.slate.withOpacity(0.7),
       debug: () => AppColors.slate,
       info: () => AppColors.white,
       warning: () => Colors.orange,
@@ -238,10 +239,7 @@ class LogsScreen extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Icon(
-                  log.type.maybeWhen(
-                    errorr: () => Icons.warning_amber,
-                    orElse: () => Icons.info_outline,
-                  ),
+                  log.icon,
                   color: color,
                   size: 20,
                 ),
@@ -352,12 +350,12 @@ class LogsScreen extends ConsumerWidget {
                           _buildDetailSection(
                             'TYPE',
                             log.type.when(
-                              log: () => 'LOG',
-                              errorr: () => 'ERROR',
+                              general: () => 'GENERAL',
                               analytics: () => 'ANALYTICS',
                               event: () => 'EVENT',
                               performance: () => 'PERFORMANCE',
                               network: () => 'NETWORK',
+                              security: () => 'SECURITY',
                               custom: (name) => name.toUpperCase(),
                             ),
                           ),

@@ -5,6 +5,7 @@ part 'log_level.g.dart';
 
 @freezed
 abstract class LogLevel with _$LogLevel {
+  const factory LogLevel.trace() = _Trace;
   const factory LogLevel.debug() = _Debug;
   const factory LogLevel.info() = _Info;
   const factory LogLevel.warning() = _Warning;
@@ -15,6 +16,8 @@ abstract class LogLevel with _$LogLevel {
   
   static LogLevel fromString(String level) {
     switch (level.toLowerCase()) {
+      case 'trace':
+        return const LogLevel.trace();
       case 'debug':
         return const LogLevel.debug();
       case 'info':
@@ -33,22 +36,21 @@ abstract class LogLevel with _$LogLevel {
 
 @freezed
 abstract class LogType with _$LogType {
-  const factory LogType.log() = _Log;
-  const factory LogType.errorr() = _Errorr;
+  const factory LogType.general() = _General;
   const factory LogType.analytics() = _Analytics;
   const factory LogType.event() = _Event;
   const factory LogType.performance() = _Performance;
   const factory LogType.network() = _Network;
+  const factory LogType.security() = _Security;
   const factory LogType.custom(String name) = _Custom;
 
   factory LogType.fromJson(Map<String, dynamic> json) => _$LogTypeFromJson(json);
   
   static LogType fromString(String type) {
     switch (type.toLowerCase()) {
-      case 'log':
-        return const LogType.log();
-      case 'error':
-        return const LogType.errorr();
+      case 'general':
+      case 'log': // Legacy support
+        return const LogType.general();
       case 'analytics':
         return const LogType.analytics();
       case 'event':
@@ -57,6 +59,11 @@ abstract class LogType with _$LogType {
         return const LogType.performance();
       case 'network':
         return const LogType.network();
+      case 'security':
+        return const LogType.security();
+      case 'error': // Legacy support - map to general
+      case 'errorr': // Legacy support for typo
+        return const LogType.general();
       default:
         return LogType.custom(type);
     }

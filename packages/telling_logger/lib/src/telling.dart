@@ -70,7 +70,7 @@ class Telling {
         level: LogLevel.error,
         error: details.exception,
         stackTrace: details.stack,
-        type: LogType.error,
+        type: LogType.general,
       );
       
       // Pass to original handler if it exists (e.g. to print to console)
@@ -85,7 +85,7 @@ class Telling {
         level: LogLevel.error,
         error: error,
         stackTrace: stack,
-        type: LogType.error,
+        type: LogType.general,
       );
       return true; // Prevent app crash
     };
@@ -110,7 +110,7 @@ class Telling {
     Object? error,
     StackTrace? stackTrace,
     Map<String, dynamic>? metadata,
-    LogType type = LogType.log,
+    LogType type = LogType.general,
   }) {
     if (!_initialized) {
       print('Telling SDK not initialized. Call Telling.instance.init() first.');
@@ -205,7 +205,7 @@ class Telling {
             final event = LogEvent(
               type: LogType.values.firstWhere(
                 (e) => e.toString().split('.').last == map['type'],
-                orElse: () => LogType.log,
+                orElse: () => LogType.general,
               ),
               level: LogLevel.values.firstWhere(
                 (e) => e.toString().split('.').last == map['level'],

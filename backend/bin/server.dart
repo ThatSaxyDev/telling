@@ -9,6 +9,22 @@ import 'package:sqlite3/sqlite3.dart';
 // Database instance
 late final Database _db;
 
+// Validation constants
+const validLogLevels = {'trace', 'debug', 'info', 'warning', 'error', 'fatal'};
+const validLogTypes = {
+  'general',
+  'analytics',
+  'event',
+  'performance',
+  'network',
+  'security',
+  'custom',
+  // Legacy support
+  'log', // Maps to 'general'
+  'error', // Maps to 'general'
+  'errorr', // Maps to 'general' (typo fix)
+};
+
 // Configure routes
 final _router = Router()
   ..get('/', _rootHandler)
@@ -89,7 +105,7 @@ Response _getStatsHandler(Request req) {
     final warningCount = warningResult.first['count'] as int;
 
     final eventResult = _db.select(
-      "SELECT COUNT(*) as count FROM logs WHERE type = 'event'",
+      "SELECT COUNT(*) as count FROM logs WHERE type IN ('event', 'analytics')",
     );
     final eventCount = eventResult.first['count'] as int;
 
@@ -156,9 +172,32 @@ Future<Response> _postLogsHandler(Request req) async {
 
     for (var event in events) {
       if (event is Map<String, dynamic>) {
+        // Normalize and validate level
+        String level = event['level'] ?? 'info';
+        if (!validLogLevels.contains(level.toLowerCase())) {
+          print('Warning: Invalid log level "$level", defaulting to "info"');
+          level = 'info';
+        }
+
+        // Normalize and validate type (with legacy support)
+        String type = event['type'] ?? 'general';
+        final typeLower = type.toLowerCase();
+        if (!validLogTypes.contains(typeLower)) {
+          print('Warning: Invalid log type "$type", defaulting to "general"');
+          type = 'general';
+        } else {
+          // Map legacy values
+          if (typeLower == 'log' ||
+              typeLower == 'error' ||
+              typeLower == 'errorr') {
+            type = 'general';
+            print('Info: Mapping legacy type "${event['type']}" to "general"');
+          }
+        }
+
         stmt.execute([
-          event['type'] ?? 'log',
-          event['level'] ?? 'info',
+          type,
+          level,
           event['message'] ?? '',
           event['timestamp'] ?? DateTime.now().toIso8601String(),
           event['stackTrace'], // Can be null
