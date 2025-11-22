@@ -87,6 +87,7 @@ Response _getLogsHandler(Request req) {
         'userId': row['user_id'],
         'userName': row['user_name'],
         'userEmail': row['user_email'],
+        'sessionId': row['session_id'],
       };
     }).toList();
 
@@ -179,7 +180,7 @@ Future<Response> _postLogsHandler(Request req) async {
     final List<dynamic> events = jsonDecode(payload);
     
     final stmt = _db.prepare(
-      'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name, user_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name, user_email, session_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
 
     int saved = 0;
@@ -233,6 +234,7 @@ Future<Response> _postLogsHandler(Request req) async {
           event['userId'], // Can be null
           event['userName'], // Can be null
           event['userEmail'], // Can be null
+          event['sessionId'], // Can be null
         ]);
         
         _recentLogs[hash] = now;
@@ -324,7 +326,9 @@ void main(List<String> args) async {
       device TEXT,
       received_at TEXT,
       user_id TEXT,
-      user_name TEXT
+      user_name TEXT,
+      user_email TEXT,
+      session_id TEXT
     );
   ''');
   
@@ -346,6 +350,13 @@ void main(List<String> args) async {
   try {
     _db.execute('ALTER TABLE logs ADD COLUMN user_email TEXT');
     print('Added user_email column');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  
+  try {
+    _db.execute('ALTER TABLE logs ADD COLUMN session_id TEXT');
+    print('Added session_id column');
   } catch (e) {
     // Column already exists, ignore
   }

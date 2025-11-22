@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/log_event.dart';
 import 'models/device_metadata.dart';
+import 'models/session.dart';
 import 'device_info_collector.dart';
 import 'rate_limiter.dart';
 
@@ -30,6 +32,9 @@ class Telling {
 
   // Rate limiter
   final LogRateLimiter _rateLimiter = LogRateLimiter();
+  
+  // Session tracking
+  Session? _currentSession;
 
   Telling._internal();
 
@@ -68,10 +73,17 @@ class Telling {
     // Collect device metadata
     _deviceMetadata = await DeviceInfoCollector.collect();
     
+    // Start new session
+    _startNewSession();
+    
     // Load persisted logs
     await _loadPersistedLogs();
     
     _startFlushTimer();
+    
+    // Setup app lifecycle listeners
+    _setupAppLifecycleListeners();
+    
     print('Telling SDK Initialized');
   }
 
@@ -175,6 +187,7 @@ class Telling {
       userId: _userId,
       userName: _userName,
       userEmail: _userEmail,
+      sessionId: _currentSession?.sessionId,
     );
 
     // Check rate limiter
@@ -311,7 +324,91 @@ class Telling {
     }
   }
   
+  // ===== Session Management =====
+
+  /// Start a new session
+  void _startNewSession() {
+    _currentSession = Session(
+      sessionId: _generateSessionId(),
+      startTime: DateTime.now(),
+      userId: _userId,
+      userEmail: _userEmail,
+      userName: _userName,
+    );
+
+    if (kDebugMode) {
+      print('Telling: Started session ${_currentSession!.sessionId}');
+    }
+
+    // Track session start event
+    log(
+      'Session started',
+      level: LogLevel.info,
+      type: LogType.analytics,
+      metadata: {
+        'sessionId': _currentSession!.sessionId,
+        'startTime': _currentSession!.startTime.toIso8601String(),
+      },
+    );
+  }
+
+  /// End the current session
+  void _endSession() {
+    if (_currentSession != null && _currentSession!.isActive) {
+      _currentSession!.endTime = DateTime.now();
+
+      if (kDebugMode) {
+        print(
+          'Telling: Ended session ${_currentSession!.sessionId} (duration: ${_currentSession!.duration?.inSeconds}s)',
+        );
+      }
+
+      // Track session end event
+      log(
+        'Session ended',
+        level: LogLevel.info,
+        type: LogType.analytics,
+        metadata: _currentSession!.toJson(),
+      );
+
+      // Flush logs immediately
+      _flush();
+    }
+  }
+
+  /// Generate a unique session ID
+  String _generateSessionId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final userPrefix = _userId ?? 'anon';
+    return '${userPrefix}_$timestamp';
+  }
+
+  /// Setup app lifecycle listeners for session tracking
+  void _setupAppLifecycleListeners() {
+    WidgetsBinding.instance.addObserver(
+      _AppLifecycleObserver(onPause: _endSession, onResume: _startNewSession),
+    );
+  }
+  
   void dispose() {
     _flushTimer?.cancel();
+  }
+}
+
+/// Observer for app lifecycle changes to manage sessions
+class _AppLifecycleObserver extends WidgetsBindingObserver {
+  final VoidCallback onPause;
+  final VoidCallback onResume;
+
+  _AppLifecycleObserver({required this.onPause, required this.onResume});
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      onPause();
+    } else if (state == AppLifecycleState.resumed) {
+      onResume();
+    }
   }
 }

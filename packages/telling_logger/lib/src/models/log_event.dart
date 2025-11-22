@@ -96,6 +96,7 @@ class LogEvent {
   final String? userId;
   final String? userName;
   final String? userEmail;
+  final String? sessionId;
 
   LogEvent({
     String? id,
@@ -109,6 +110,7 @@ class LogEvent {
     this.userId,
     this.userName,
     this.userEmail,
+    this.sessionId,
   }) : id =
            id ??
            DateTime.now().millisecondsSinceEpoch
@@ -127,6 +129,7 @@ class LogEvent {
       if (userId != null) 'userId': userId,
       if (userName != null) 'userName': userName,
       if (userEmail != null) 'userEmail': userEmail,
+      if (sessionId != null) 'sessionId': sessionId,
     };
   }
 }
