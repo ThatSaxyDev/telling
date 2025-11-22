@@ -181,6 +181,8 @@ class ActivityTimeline extends ConsumerWidget {
   }
 
   Color _getLevelColor(dynamic level) {
+    if (level == null) return AppColors.slate;
+    
     return level.when(
       debug: () => AppColors.slate,
       info: () => Colors.blue,
