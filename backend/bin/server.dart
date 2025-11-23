@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
@@ -90,6 +91,7 @@ void main(List<String> args) async {
       .addHandler(_router.call);
 
   // Start the server
-  final server = await serve(handler, 'localhost', 8080);
+  final port = int.parse(Platform.environment['PORT'] ?? '8080');
+  final server = await serve(handler, InternetAddress.anyIPv4, port);
   print('Serving at http://${server.address.host}:${server.port}');
 }
