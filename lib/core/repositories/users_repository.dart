@@ -8,9 +8,15 @@ class UsersRepository {
 
   UsersRepository({this.baseUrl = 'http://localhost:8080/api/v1'});
 
-  Future<List<User>> getUsers() async {
+  Future<List<User>> getUsers({
+    required String projectId,
+    required String userId,
+  }) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/users'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/users?projectId=$projectId'),
+        headers: {'x-user-id': userId},
+      );
       
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);

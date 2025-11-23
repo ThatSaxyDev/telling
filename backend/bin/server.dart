@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:math';
 
-
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -735,7 +734,7 @@ Response _getAnalyticsSummaryHandler(Request req) {
 
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
-    
+
     final todayLogsResult = _db.select(
       'SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND timestamp >= ?',
       [projectId, todayStart],
@@ -806,8 +805,8 @@ Response _getLogsTimelineHandler(Request req) {
     );
 
     final timeline = results
-        .map((row) => {'time': row['hour'], 'count': row['count'],
-    }).toList();
+        .map((row) => {'time': row['hour'], 'count': row['count']})
+        .toList();
 
     return Response.ok(
       jsonEncode(timeline),
@@ -837,12 +836,12 @@ Response _getLogLevelsHandler(Request req) {
 
     final results = _db.select(
       'SELECT level, COUNT(*) as count FROM logs WHERE project_id = ? GROUP BY level',
-      [projectId]
+      [projectId],
     );
 
     final levels = results
-        .map((row) => {'level': row['level'], 'count': row['count'],
-    }).toList();
+        .map((row) => {'level': row['level'], 'count': row['count']})
+        .toList();
 
     return Response.ok(
       jsonEncode(levels),
@@ -896,7 +895,23 @@ Response _getTopErrorsHandler(Request req) {
 
 Response _getActiveUsersHandler(Request req) {
   try {
+    // Validate user context
+    final userId = req.headers['x-user-id'];
+    if (userId == null) return Response.forbidden('Missing user context');
+
     final params = req.url.queryParameters;
+    final projectId = params['projectId'];
+    if (projectId == null) {
+      return Response.badRequest(body: 'Missing projectId');
+    }
+
+    // Verify project ownership
+    final project = _db.select(
+      'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+      [projectId, userId],
+    );
+    if (project.isEmpty) return Response.forbidden('Access denied');
+
     final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
     final limit = int.tryParse(params['limit'] ?? '10') ?? 10;
     final now = DateTime.now();
@@ -911,12 +926,12 @@ Response _getActiveUsersHandler(Request req) {
         COUNT(*) as log_count,
         MAX(timestamp) as last_active
       FROM logs
-      WHERE timestamp >= ? AND user_id IS NOT NULL
+      WHERE timestamp >= ? AND user_id IS NOT NULL AND project_id = ?
       GROUP BY user_id
       ORDER BY log_count DESC
       LIMIT ?
     ''',
-      [startTime.toIso8601String(), limit],
+      [startTime.toIso8601String(), projectId, limit],
     );
 
     final activeUsers = results.map((row) {
@@ -1056,7 +1071,7 @@ void main(List<String> args) async {
       FOREIGN KEY(project_id) REFERENCES projects(id)
     );
   ''');
-  
+
   // Migrate existing table if columns don't exist
   // These ALTER TABLE statements are now redundant if the CREATE TABLE IF NOT EXISTS
   // for logs already includes them, but keeping them for robustness against older schemas.
@@ -1080,18 +1095,17 @@ void main(List<String> args) async {
   } catch (e) {
     // Column already exists, ignore
   }
-  
+
   try {
     _db.execute('ALTER TABLE logs ADD COLUMN session_id TEXT');
     print('Added session_id column');
   } catch (e) {
     // Column already exists, ignore
   }
-  
+
   print('Database initialized: telling.db');
 
   // Use any available host or container IP (usually `0.0.0.0`).
-
 
   // Configure a pipeline that logs requests and adds CORS headers.
   // Start cleanup timer for rate limiting caches

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user.dart';
 import '../models/log_entry.dart';
 import '../repositories/users_repository.dart';
+import './auth_provider.dart';
+import './project_provider.dart';
 
 final usersRepositoryProvider = Provider<UsersRepository>((ref) {
   return UsersRepository();
@@ -10,7 +12,17 @@ final usersRepositoryProvider = Provider<UsersRepository>((ref) {
 
 final usersListProvider = FutureProvider.autoDispose<List<User>>((ref) async {
   final repository = ref.watch(usersRepositoryProvider);
-  return repository.getUsers();
+  final authState = ref.watch(authProvider);
+  final projectState = ref.watch(projectProvider);
+
+  final userId = authState.user?.id;
+  final projectId = projectState.selectedProject?.id;
+
+  if (userId == null || projectId == null) {
+    throw Exception('User or project not selected');
+  }
+
+  return repository.getUsers(projectId: projectId, userId: userId);
 });
 
 final userStatsProvider = FutureProvider.autoDispose.family<UserStats, String>((
