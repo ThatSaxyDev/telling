@@ -69,7 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const Text(
                       'ACCESS_CONTROL // LOGIN',
                       style: TextStyle(
-                        fontFamily: 'Urbanist',
+                        fontFamily: 'Syne',
                         color: AppColors.white,
                         fontSize: 20,
                         letterSpacing: 2,

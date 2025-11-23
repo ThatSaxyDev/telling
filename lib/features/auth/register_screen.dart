@@ -73,7 +73,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const Text(
                       'NEW_OPERATOR // REGISTRATION',
                       style: TextStyle(
-                        fontFamily: 'Urbanist',
+                        fontFamily: 'Syne',
                         color: AppColors.white,
                         fontSize: 20,
                         letterSpacing: 2,

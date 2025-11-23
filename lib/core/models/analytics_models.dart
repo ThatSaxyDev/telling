@@ -17,12 +17,14 @@ class AnalyticsSummary {
 
   factory AnalyticsSummary.fromJson(Map<String, dynamic> json) {
     return AnalyticsSummary(
-      totalLogs: json['totalLogs'],
-      errorCount: json['errorCount'],
-      errorRate: double.parse(json['errorRate'].toString()),
-      activeSessions: json['activeSessions'],
-      activeUsers: json['activeUsers'],
-      logsTrend: json['logsTrend'],
+      totalLogs: json['totalLogs'] ?? 0,
+      errorCount: json['errorCount'] ?? 0,
+      errorRate: json['errorRate'] != null
+          ? double.parse(json['errorRate'].toString())
+          : 0.0,
+      activeSessions: json['activeSessions'] ?? 0,
+      activeUsers: json['activeUsers'] ?? 0,
+      logsTrend: json['logsTrend'] ?? 0,
     );
   }
 }
@@ -57,8 +59,8 @@ class LogLevelStat {
 
   factory LogLevelStat.fromJson(Map<String, dynamic> json) {
     return LogLevelStat(
-      level: json['level'],
-      count: json['count'],
+      level: json['level'] ?? 'unknown',
+      count: json['count'] ?? 0,
     );
   }
 }
@@ -76,9 +78,11 @@ class TopErrorItem {
 
   factory TopErrorItem.fromJson(Map<String, dynamic> json) {
     return TopErrorItem(
-      message: json['message'],
-      count: json['count'],
-      lastSeen: DateTime.parse(json['lastSeen']),
+      message: json['message'] ?? 'Unknown error',
+      count: json['count'] ?? 0,
+      lastSeen: json['lastSeen'] != null
+          ? DateTime.parse(json['lastSeen'])
+          : DateTime.now(),
     );
   }
 }
@@ -100,11 +104,13 @@ class ActiveUserStat {
 
   factory ActiveUserStat.fromJson(Map<String, dynamic> json) {
     return ActiveUserStat(
-      userId: json['userId'],
+      userId: json['userId'] ?? 'unknown',
       userName: json['userName'],
       userEmail: json['userEmail'],
-      logCount: json['logCount'],
-      lastActive: DateTime.parse(json['lastActive']),
+      logCount: json['logCount'] ?? 0,
+      lastActive: json['lastActive'] != null
+          ? DateTime.parse(json['lastActive'])
+          : DateTime.now(),
     );
   }
 }

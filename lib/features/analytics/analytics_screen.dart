@@ -66,15 +66,13 @@ class AnalyticsScreen extends ConsumerWidget {
                       const SizedBox(width: 16),
                       Flexible(
                         child: GlitchText(
-                          text: 'ANALYTICS_MODULE // v2.0',
+                          text: 'ANALYTICS_MODULE',
                           style: isMobile
                               ? AppTextStyles.titleMedium.copyWith(
-                                  fontFamily: 'Urbanist',
-                                  letterSpacing: 2,
+                                  fontFamily: 'Syne',
                                 )
                               : AppTextStyles.headlineSmall.copyWith(
-                                  fontFamily: 'Urbanist',
-                                  letterSpacing: 4,
+                                  fontFamily: 'Syne',
                                 ),
                           glitchAmount: 2.0,
                         ),
@@ -739,8 +737,7 @@ class _LogLevelChart extends StatelessWidget {
                       height: 24,
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.1),
-                        border: Border.all(
-                          color: color.withOpacity(0.2)),
+                        border: Border.all(color: color.withOpacity(0.2)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
