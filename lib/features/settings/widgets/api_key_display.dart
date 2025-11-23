@@ -160,7 +160,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                           'API KEY COPIED TO CLIPBOARD',
                           style: TextStyle(fontFamily: 'Urbanist'),
                         ),
-                        backgroundColor: AppColors.surfaceDark,
+                        backgroundColor: AppColors.secondary,
                         duration: Duration(seconds: 2),
                       ),
                     );

@@ -91,8 +91,7 @@ class AnalyticsScreen extends ConsumerWidget {
                         onTap: () =>
                             ref
                                     .read(analyticsTimeRangeProvider.notifier)
-                                    .state =
-                                24,
+                            .set(24),
                       ),
                       const SizedBox(width: 12),
                       _TimeRangeTab(
@@ -102,8 +101,7 @@ class AnalyticsScreen extends ConsumerWidget {
                         onTap: () =>
                             ref
                                     .read(analyticsTimeRangeProvider.notifier)
-                                    .state =
-                                168,
+                            .set(168),
                       ),
                       const SizedBox(width: 12),
                       _TimeRangeTab(
@@ -113,8 +111,7 @@ class AnalyticsScreen extends ConsumerWidget {
                         onTap: () =>
                             ref
                                     .read(analyticsTimeRangeProvider.notifier)
-                                    .state =
-                                720,
+                            .set(720),
                       ),
                     ],
                   ),

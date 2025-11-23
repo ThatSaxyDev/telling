@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import '../models/project.dart';
 import 'auth_provider.dart';
+import '../services/api_client.dart';
 
 class ProjectState {
   final List<Project> projects;
@@ -49,12 +49,12 @@ class ProjectNotifier extends Notifier<ProjectState> {
     final authState = ref.read(authProvider);
     if (!authState.isAuthenticated) return;
 
+    final apiClient = ref.read(apiClientProvider);
+
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await http.get(
-        Uri.parse(_baseUrl),
-        headers: {'x-user-id': authState.user!.id},
-      );
+      // ApiClient handles Authorization header
+      final response = await apiClient.get(Uri.parse(_baseUrl));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -77,11 +77,12 @@ class ProjectNotifier extends Notifier<ProjectState> {
     final authState = ref.read(authProvider);
     if (!authState.isAuthenticated) return;
 
+    final apiClient = ref.read(apiClientProvider);
+
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await http.post(
+      final response = await apiClient.post(
         Uri.parse(_baseUrl),
-        headers: {'x-user-id': authState.user!.id},
         body: jsonEncode({'name': name}),
       );
 
@@ -106,11 +107,12 @@ class ProjectNotifier extends Notifier<ProjectState> {
     final authState = ref.read(authProvider);
     if (!authState.isAuthenticated) return;
 
+    final apiClient = ref.read(apiClientProvider);
+
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await http.delete(
+      final response = await apiClient.delete(
         Uri.parse('$_baseUrl/$projectId'),
-        headers: {'x-user-id': authState.user!.id},
       );
 
       if (response.statusCode == 200) {

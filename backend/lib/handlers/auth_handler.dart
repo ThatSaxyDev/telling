@@ -1,11 +1,23 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:crypto/crypto.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import '../db/database.dart';
 import '../utils/helpers.dart';
+import '../utils/constants.dart';
 
 class AuthHandler {
   final _db = DatabaseService().db;
+
+  // Helper to generate JWT
+  String _generateJwt(String userId, String email) {
+    final jwt = JWT({
+      'sub': userId,
+      'email': email,
+      'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    }, issuer: jwtIssuer);
+    return jwt.sign(SecretKey(jwtSecret), expiresIn: Duration(days: 7));
+  }
 
   Future<Response> registerHandler(Request req) async {
     try {
@@ -27,6 +39,7 @@ class AuthHandler {
       }
 
       // Hash password (simple hash for demo - use bcrypt in prod)
+      // TODO: Add salt
       final passwordHash = sha256.convert(utf8.encode(password)).toString();
       final userId = generateUuid();
 
@@ -36,24 +49,26 @@ class AuthHandler {
       );
 
       // Create default project
-      final projectId = generateUuid();
-      final apiKey = generateApiKey();
-      _db.execute(
-        'INSERT INTO projects (id, user_id, name, api_key, created_at) VALUES (?, ?, ?, ?, ?)',
-        [
-          projectId,
-          userId,
-          'Default Project',
-          apiKey,
-          DateTime.now().toIso8601String(),
-        ],
-      );
+      // final projectId = generateUuid();
+      // final apiKey = generateApiKey();
+      // _db.execute(
+      //   'INSERT INTO projects (id, user_id, name, api_key, created_at) VALUES (?, ?, ?, ?, ?)',
+      //   [
+      //     projectId,
+      //     userId,
+      //     'Default Project',
+      //     apiKey,
+      //     DateTime.now().toIso8601String(),
+      //   ],
+      // );
+
+      final token = _generateJwt(userId, email);
 
       return Response.ok(
         jsonEncode({
-          'token': userId, // Simple token for demo (use JWT in prod)
+          'token': token,
           'user': {'id': userId, 'email': email, 'name': name},
-          'defaultProject': {'id': projectId, 'apiKey': apiKey},
+          // 'defaultProject': {'id': projectId, 'apiKey': apiKey},
         }),
       );
     } catch (e) {
@@ -83,10 +98,13 @@ class AuthHandler {
       }
 
       final user = results.first;
+      final userId = user['id'] as String;
+      final token = _generateJwt(userId, email);
+
       return Response.ok(
         jsonEncode({
-          'token': user['id'], // Simple token
-          'user': {'id': user['id'], 'email': email, 'name': user['name']},
+          'token': token,
+          'user': {'id': userId, 'email': email, 'name': user['name']},
         }),
       );
     } catch (e) {

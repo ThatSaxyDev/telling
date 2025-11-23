@@ -7,7 +7,7 @@ class AnalyticsHandler {
 
   Response getStatsHandler(Request req) {
     try {
-      final userId = req.headers['x-user-id'];
+      final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
 
       final projectId = req.url.queryParameters['projectId'];
@@ -71,7 +71,7 @@ class AnalyticsHandler {
 
   Response getAnalyticsSummaryHandler(Request req) {
     try {
-      final userId = req.headers['x-user-id'];
+      final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
 
       final projectId = req.url.queryParameters['projectId'];
@@ -124,7 +124,7 @@ class AnalyticsHandler {
 
   Response getLogsTimelineHandler(Request req) {
     try {
-      final userId = req.headers['x-user-id'];
+      final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
 
       final projectId = req.url.queryParameters['projectId'];
@@ -173,7 +173,7 @@ class AnalyticsHandler {
 
   Response getLogLevelsHandler(Request req) {
     try {
-      final userId = req.headers['x-user-id'];
+      final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
 
       final projectId = req.url.queryParameters['projectId'];
@@ -208,7 +208,29 @@ class AnalyticsHandler {
 
   Response getTopErrorsHandler(Request req) {
     try {
+      final userId = req.context['userId'] as String?;
+      if (userId == null) return Response.forbidden('Missing user context');
+
       final params = req.url.queryParameters;
+      final projectId =
+          params['projectId']; // Assuming projectId is needed for context, though not explicitly used in query before?
+      // Wait, getTopErrorsHandler previously didn't check project ownership! It just queried ALL logs.
+      // That's a bug in the previous implementation. I should fix it now.
+      // It needs to filter by project_id.
+
+      if (projectId == null) {
+        // If no project ID, maybe it was intended for all user's projects?
+        // For now, let's enforce projectId to be safe.
+        return Response.badRequest(body: 'Missing projectId');
+      }
+
+      // Verify ownership
+      final projectCheck = _db.select(
+        'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+        [projectId, userId],
+      );
+      if (projectCheck.isEmpty) return Response.forbidden('Access denied');
+
       final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
       final limit = int.tryParse(params['limit'] ?? '10') ?? 10;
       final now = DateTime.now();
@@ -221,12 +243,12 @@ class AnalyticsHandler {
           COUNT(*) as count,
           MAX(timestamp) as last_seen
         FROM logs
-        WHERE level IN (?, ?) AND timestamp >= ?
+        WHERE project_id = ? AND level IN (?, ?) AND timestamp >= ?
         GROUP BY message
         ORDER BY count DESC
         LIMIT ?
       ''',
-        ['error', 'fatal', startTime.toIso8601String(), limit],
+        [projectId, 'error', 'fatal', startTime.toIso8601String(), limit],
       );
 
       final topErrors = results.map((row) {

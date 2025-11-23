@@ -1,21 +1,24 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../services/api_client.dart';
 import '../models/user.dart';
 import '../models/log_entry.dart';
 
 class UsersRepository {
+  final ApiClient _client;
   final String baseUrl;
 
-  UsersRepository({this.baseUrl = 'http://localhost:8080/api/v1'});
+  UsersRepository(
+    this._client, {
+    this.baseUrl = 'http://localhost:8080/api/v1',
+  });
 
   Future<List<User>> getUsers({
     required String projectId,
-    required String userId,
   }) async {
     try {
-      final response = await http.get(
+      // Note: x-user-id is no longer needed as it's extracted from the JWT token
+      final response = await _client.get(
         Uri.parse('$baseUrl/users?projectId=$projectId'),
-        headers: {'x-user-id': userId},
       );
       
       if (response.statusCode == 200) {
@@ -29,9 +32,14 @@ class UsersRepository {
     }
   }
 
-  Future<UserStats> getUserStats(String userId) async {
+  Future<UserStats> getUserStats(
+    String userId, {
+    required String projectId,
+  }) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/users/$userId/stats'));
+      final response = await _client.get(
+        Uri.parse('$baseUrl/users/$userId/stats?projectId=$projectId'),
+      );
       
       if (response.statusCode == 200) {
         return UserStats.fromJson(jsonDecode(response.body));
@@ -45,13 +53,14 @@ class UsersRepository {
 
   Future<List<UserSession>> getUserSessions(
     String userId, {
+    required String projectId,
     int limit = 50,
     int offset = 0,
   }) async {
     try {
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse(
-          '$baseUrl/users/$userId/sessions?limit=$limit&offset=$offset',
+          '$baseUrl/users/$userId/sessions?projectId=$projectId&limit=$limit&offset=$offset',
         ),
       );
       
@@ -66,10 +75,17 @@ class UsersRepository {
     }
   }
   
-  Future<List<LogEntry>> getUserLogs(String userId, {int limit = 100, int offset = 0}) async {
+  Future<List<LogEntry>> getUserLogs(
+    String userId, {
+    required String projectId,
+    int limit = 100,
+    int offset = 0,
+  }) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/users/$userId/logs?limit=$limit&offset=$offset'),
+      final response = await _client.get(
+        Uri.parse(
+          '$baseUrl/users/$userId/logs?projectId=$projectId&limit=$limit&offset=$offset',
+        ),
       );
       
       if (response.statusCode == 200) {

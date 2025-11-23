@@ -13,7 +13,7 @@ void main() async {
 
       // Initialize SDK anonymously (user context set after login)
       await Telling.instance.init(
-        'abhszVmr7ZdYUqdyOXfmV-W_WX0aRXPR1Wq7eyuIrXI=',
+        'xVlOMY2rP03dYrSoutSiGe_rRPM64Q7sKjxSlhZeHJg=',
       );
 
       Telling.instance.enableCrashReporting();

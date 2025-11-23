@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/log_entry.dart';
 import '../../../core/providers/users_provider.dart';
+import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 class PaginatedLogsList extends ConsumerStatefulWidget {
@@ -45,9 +46,13 @@ class _PaginatedLogsListState extends ConsumerState<PaginatedLogsList> {
     });
     
     try {
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
       final repository = ref.read(usersRepositoryProvider);
       final logs = await repository.getUserLogs(
         widget.userId,
+        projectId: projectState.selectedProject!.id,
         limit: _limit,
         offset: _currentOffset,
       );
@@ -76,9 +81,13 @@ class _PaginatedLogsListState extends ConsumerState<PaginatedLogsList> {
     setState(() => _isLoadingMore = true);
     
     try {
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
       final repository = ref.read(usersRepositoryProvider);
       final newLogs = await repository.getUserLogs(
         widget.userId,
+        projectId: projectState.selectedProject!.id,
         limit: _limit,
         offset: _currentOffset,
       );

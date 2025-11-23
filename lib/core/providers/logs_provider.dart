@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../models/log_model/log_model.dart';
 import '../repositories/logs_repository.dart';
 import 'auth_provider.dart';
 import 'project_provider.dart';
+import '../services/api_client.dart';
 
 // Repository provider
 final logsRepositoryProvider = Provider<LogsRepository>((ref) {
-  final repository = LogsRepository();
-  ref.onDispose(() => repository.dispose());
+  final apiClient = ref.watch(apiClientProvider);
+  final repository = LogsRepository(apiClient);
+  // ref.onDispose(() => repository.dispose()); // ApiClient manages its own client
   return repository;
 });
 
@@ -69,7 +70,6 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
       page: _page,
       limit: _limit,
       userId: _userId,
-      authenticatedUserId: authState.user!.id,
       projectId: projectState.selectedProject!.id,
     );
 
@@ -144,9 +144,16 @@ final logsProvider = AsyncNotifierProvider<LogsNotifier, List<LogModel>>(() {
 });
 
 // Polling interval provider (configurable)
-final pollingIntervalProvider = StateProvider<Duration>((ref) {
-  return const Duration(seconds: 2);
-});
+class PollingIntervalNotifier extends Notifier<Duration> {
+  @override
+  Duration build() => const Duration(seconds: 2);
+  void set(Duration duration) => state = duration;
+}
+
+final pollingIntervalProvider =
+    NotifierProvider<PollingIntervalNotifier, Duration>(
+      PollingIntervalNotifier.new,
+    );
 
 // Session grouping toggle
 class SessionGroupedNotifier extends Notifier<bool> {
@@ -172,7 +179,11 @@ final sessionsProvider = FutureProvider<List<Map<String, dynamic>>>((
   final projectState = ref.watch(projectProvider);
   if (projectState.selectedProject == null) return [];
 
-  return repository.fetchSessions(limit: 50, offset: 0);
+  return repository.fetchSessions(
+    projectId: projectState.selectedProject!.id,
+    limit: 50,
+    offset: 0,
+  );
 });
 
 // Session logs provider
@@ -181,5 +192,14 @@ final sessionLogsProvider = FutureProvider.family<List<LogModel>, String>((
   sessionId,
 ) async {
   final repository = ref.watch(logsRepositoryProvider);
-  return repository.fetchSessionLogs(sessionId);
+  final projectState = ref.watch(projectProvider);
+
+  if (projectState.selectedProject == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.fetchSessionLogs(
+    sessionId,
+    projectId: projectState.selectedProject!.id,
+  );
 });

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/log_level/log_level.dart';
 import '../../../core/providers/filter_provider.dart';
 import '../../../core/providers/logs_provider.dart';
+import '../../../core/providers/project_provider.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -28,7 +29,12 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
 
   Future<void> _loadUsers() async {
     try {
-      final users = await ref.read(logsRepositoryProvider).fetchUsers();
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
+      final users = await ref
+          .read(logsRepositoryProvider)
+          .fetchUsers(projectId: projectState.selectedProject!.id);
       if (mounted) {
         setState(() {
           _users = users;

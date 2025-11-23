@@ -8,7 +8,7 @@ class UserHandler {
   Response getActiveUsersHandler(Request req) {
     try {
       // Validate user context
-      final userId = req.headers['x-user-id'];
+      final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
 
       final params = req.url.queryParameters;
@@ -66,7 +66,38 @@ class UserHandler {
   }
 
   Response getUserLogsHandler(Request req, String userId) {
+    // Note: userId here is the target user ID (the one whose logs we want),
+    // NOT the authenticated admin user ID.
+    // We need to verify that the authenticated admin owns the project that these logs belong to.
+    // However, this endpoint doesn't take a projectId param in the URL?
+    // It seems to be fetching logs for a user across ALL projects? Or just one?
+    // The previous implementation didn't check project ownership!
+    // It just fetched logs by user_id.
+    // We should probably require a projectId here too, or check if the target user has logs in any of the admin's projects.
+
+    // For now, let's assume we need to pass a projectId to scope this.
+    // Or, we can check if the authenticated user owns ANY project that has logs for this target user.
+    
     try {
+      final authUserId = req.context['userId'] as String?;
+      if (authUserId == null) return Response.forbidden('Missing user context');
+
+      // TODO: Improve this security model. For now, requiring projectId is safer.
+      final projectId = req.url.queryParameters['projectId'];
+      if (projectId == null) {
+        // Fallback: Check if authUser owns the project associated with the logs?
+        // But we are querying logs.
+        // Let's require projectId for now to be safe and consistent.
+        return Response.badRequest(body: 'Missing projectId');
+      }
+
+      // Verify ownership
+      final project = _db.select(
+        'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+        [projectId, authUserId],
+      );
+      if (project.isEmpty) return Response.forbidden('Access denied');
+
       final limit =
           int.tryParse(req.url.queryParameters['limit'] ?? '100') ?? 100;
       final offset = int.tryParse(req.url.queryParameters['offset'] ?? '0') ?? 0;
@@ -74,11 +105,11 @@ class UserHandler {
       final results = _db.select(
         '''
         SELECT * FROM logs
-        WHERE user_id = ?
+        WHERE user_id = ? AND project_id = ?
         ORDER BY id DESC
         LIMIT ? OFFSET ?
       ''',
-        [userId, limit, offset],
+        [userId, projectId, limit, offset],
       );
 
       final logs = results
@@ -112,24 +143,38 @@ class UserHandler {
 
   Response getUserStatsHandler(Request req, String userId) {
     try {
+      final authUserId = req.context['userId'] as String?;
+      if (authUserId == null) return Response.forbidden('Missing user context');
+
+      final projectId = req.url.queryParameters['projectId'];
+      if (projectId == null)
+        return Response.badRequest(body: 'Missing projectId');
+
+      // Verify ownership
+      final project = _db.select(
+        'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+        [projectId, authUserId],
+      );
+      if (project.isEmpty) return Response.forbidden('Access denied');
+
       final totalLogs = _db.select(
-        'SELECT COUNT(*) as count FROM logs WHERE user_id = ?',
-        [userId],
+        'SELECT COUNT(*) as count FROM logs WHERE user_id = ? AND project_id = ?',
+        [userId, projectId],
       ).first['count'];
 
       final errorCount = _db.select(
-        'SELECT COUNT(*) as count FROM logs WHERE user_id = ? AND (level = "error" OR level = "fatal")',
-        [userId],
+        'SELECT COUNT(*) as count FROM logs WHERE user_id = ? AND project_id = ? AND (level = "error" OR level = "fatal")',
+        [userId, projectId],
       ).first['count'];
 
       final sessionCount = _db.select(
-        'SELECT COUNT(DISTINCT session_id) as count FROM logs WHERE user_id = ? AND session_id IS NOT NULL',
-        [userId],
+        'SELECT COUNT(DISTINCT session_id) as count FROM logs WHERE user_id = ? AND project_id = ? AND session_id IS NOT NULL',
+        [userId, projectId],
       ).first['count'];
 
       final lastActive = _db.select(
-        'SELECT MAX(received_at) as last_seen FROM logs WHERE user_id = ?',
-        [userId],
+        'SELECT MAX(received_at) as last_seen FROM logs WHERE user_id = ? AND project_id = ?',
+        [userId, projectId],
       ).first['last_seen'];
 
       return Response.ok(
@@ -148,17 +193,31 @@ class UserHandler {
 
   Response getUserSessionsHandler(Request req, String userId) {
     try {
+      final authUserId = req.context['userId'] as String?;
+      if (authUserId == null) return Response.forbidden('Missing user context');
+
+      final projectId = req.url.queryParameters['projectId'];
+      if (projectId == null)
+        return Response.badRequest(body: 'Missing projectId');
+
+      // Verify ownership
+      final project = _db.select(
+        'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+        [projectId, authUserId],
+      );
+      if (project.isEmpty) return Response.forbidden('Access denied');
+
       // Get all session start events for this user
       final results = _db.select(
         '''
         SELECT session_id, MIN(timestamp) as start_time, MAX(timestamp) as end_time, COUNT(*) as event_count
         FROM logs
-        WHERE user_id = ? AND session_id IS NOT NULL
+        WHERE user_id = ? AND project_id = ? AND session_id IS NOT NULL
         GROUP BY session_id
         ORDER BY start_time DESC
         LIMIT 50
       ''',
-        [userId],
+        [userId, projectId],
       );
 
       final sessions = results.map((row) {
@@ -184,6 +243,20 @@ class UserHandler {
 
   Response getSessionsHandler(Request req) {
     try {
+      final authUserId = req.context['userId'] as String?;
+      if (authUserId == null) return Response.forbidden('Missing user context');
+
+      final projectId = req.url.queryParameters['projectId'];
+      if (projectId == null)
+        return Response.badRequest(body: 'Missing projectId');
+
+      // Verify ownership
+      final project = _db.select(
+        'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+        [projectId, authUserId],
+      );
+      if (project.isEmpty) return Response.forbidden('Access denied');
+
       final limit = int.tryParse(req.url.queryParameters['limit'] ?? '50') ?? 50;
       final offset = int.tryParse(req.url.queryParameters['offset'] ?? '0') ?? 0;
 
@@ -197,12 +270,12 @@ class UserHandler {
           MAX(timestamp) as end_time, 
           COUNT(*) as event_count
         FROM logs
-        WHERE session_id IS NOT NULL
+        WHERE session_id IS NOT NULL AND project_id = ?
         GROUP BY session_id
         ORDER BY start_time DESC
         LIMIT ? OFFSET ?
       ''',
-        [limit, offset],
+        [projectId, limit, offset],
       );
 
       final sessions = results.map((row) {
@@ -231,13 +304,27 @@ class UserHandler {
   Response getSessionLogsHandler(Request req, String sessionId) {
     print('Fetching logs for session: $sessionId');
     try {
+      final authUserId = req.context['userId'] as String?;
+      if (authUserId == null) return Response.forbidden('Missing user context');
+
+      final projectId = req.url.queryParameters['projectId'];
+      if (projectId == null)
+        return Response.badRequest(body: 'Missing projectId');
+
+      // Verify ownership
+      final project = _db.select(
+        'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+        [projectId, authUserId],
+      );
+      if (project.isEmpty) return Response.forbidden('Access denied');
+
       final results = _db.select(
         '''
         SELECT * FROM logs
-        WHERE session_id = ?
+        WHERE session_id = ? AND project_id = ?
         ORDER BY timestamp ASC
       ''',
-        [sessionId],
+        [sessionId, projectId],
       );
 
       print('Found ${results.length} logs for session $sessionId');

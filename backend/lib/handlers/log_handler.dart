@@ -8,10 +8,6 @@ class LogHandler {
   final _db = DatabaseService().db;
   final Map<String, DateTime> _recentLogs = {};
 
-  // Start cleanup timer for rate limiting caches (if needed here, or keep in server.dart)
-  // Actually, _recentLogs is used here, so we should probably manage it here or pass it in.
-  // For simplicity, let's keep it here and maybe expose a cleanup method.
-
   Future<Response> postLogsHandler(Request req) async {
     try {
       // Validate API Key
@@ -111,7 +107,7 @@ class LogHandler {
 
   Response getLogsHandler(Request req) {
     try {
-      final userId = req.headers['x-user-id'];
+      final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
 
       final params = req.url.queryParameters;

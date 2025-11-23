@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/user.dart';
 import '../../../core/providers/users_provider.dart';
+import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../logs/widgets/session_timeline_dialog.dart';
 
@@ -47,9 +48,13 @@ class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
     });
     
     try {
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
       final repository = ref.read(usersRepositoryProvider);
       final sessions = await repository.getUserSessions(
         widget.userId,
+        projectId: projectState.selectedProject!.id,
         limit: _limit,
         offset: _currentOffset,
       );
@@ -78,9 +83,13 @@ class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
     setState(() => _isLoadingMore = true);
     
     try {
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
       final repository = ref.read(usersRepositoryProvider);
       final newSessions = await repository.getUserSessions(
         widget.userId,
+        projectId: projectState.selectedProject!.id,
         limit: _limit,
         offset: _currentOffset,
       );

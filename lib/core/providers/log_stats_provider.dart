@@ -68,7 +68,6 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
 
     final repository = ref.read(logsRepositoryProvider);
     final statsMap = await repository.fetchStats(
-      authenticatedUserId: authState.user!.id,
       projectId: projectState.selectedProject!.id,
     );
     

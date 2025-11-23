@@ -1,20 +1,20 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../services/api_client.dart';
 import '../models/analytics_models.dart';
 
 class AnalyticsRepository {
+  final ApiClient _client;
   final String baseUrl;
 
-  AnalyticsRepository({required this.baseUrl});
+  AnalyticsRepository(this._client, {required this.baseUrl});
 
   Future<AnalyticsSummary> getSummary({
-    required String userId,
     required String projectId,
     int hours = 24,
   }) async {
-    final response = await http.get(
+    // Note: userId is extracted from the JWT token by the backend
+    final response = await _client.get(
       Uri.parse('$baseUrl/analytics/summary?projectId=$projectId&hours=$hours'),
-      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
@@ -25,15 +25,13 @@ class AnalyticsRepository {
   }
 
   Future<List<LogTimelinePoint>> getLogsTimeline({
-    required String userId,
     required String projectId,
     int hours = 24,
   }) async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse(
         '$baseUrl/analytics/timeline?projectId=$projectId&hours=$hours',
       ),
-      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
@@ -45,13 +43,11 @@ class AnalyticsRepository {
   }
 
   Future<List<LogLevelStat>> getLogLevels({
-    required String userId,
     required String projectId,
     int hours = 24,
   }) async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/analytics/levels?projectId=$projectId&hours=$hours'),
-      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
@@ -63,16 +59,14 @@ class AnalyticsRepository {
   }
 
   Future<List<TopErrorItem>> getTopErrors({
-    required String userId,
     required String projectId,
     int hours = 24,
     int limit = 10,
   }) async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse(
         '$baseUrl/analytics/errors?projectId=$projectId&hours=$hours&limit=$limit',
       ),
-      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
@@ -84,16 +78,14 @@ class AnalyticsRepository {
   }
 
   Future<List<ActiveUserStat>> getActiveUsers({
-    required String userId,
     required String projectId,
     int hours = 24,
     int limit = 10,
   }) async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse(
         '$baseUrl/analytics/users?projectId=$projectId&hours=$hours&limit=$limit',
       ),
-      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {

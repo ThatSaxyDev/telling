@@ -8,8 +8,7 @@ class ProjectHandler {
   final _db = DatabaseService().db;
 
   Response getUserProjectsHandler(Request req) {
-    // TODO: Extract user ID from token middleware
-    final userId = req.headers['x-user-id'];
+    final userId = req.context['userId'] as String?;
     if (userId == null) return Response.forbidden('Missing user context');
 
     final results = _db.select('SELECT * FROM projects WHERE user_id = ?', [
@@ -31,7 +30,7 @@ class ProjectHandler {
   }
 
   Future<Response> createProjectHandler(Request req) async {
-    final userId = req.headers['x-user-id'];
+    final userId = req.context['userId'] as String?;
     if (userId == null) return Response.forbidden('Missing user context');
 
     // Check project limit (Max 3)
@@ -69,7 +68,7 @@ class ProjectHandler {
   }
 
   Future<Response> deleteProjectHandler(Request req, String projectId) async {
-    final userId = req.headers['x-user-id'];
+    final userId = req.context['userId'] as String?;
     if (userId == null) return Response.forbidden('Missing user context');
 
     // Verify ownership
@@ -90,7 +89,7 @@ class ProjectHandler {
   }
 
   Response regenerateApiKeyHandler(Request req, String projectId) {
-    final userId = req.headers['x-user-id'];
+    final userId = req.context['userId'] as String?;
     if (userId == null) return Response.forbidden('Missing user context');
 
     // Verify ownership

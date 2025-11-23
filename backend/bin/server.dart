@@ -7,6 +7,7 @@ import 'package:shelf_router/shelf_router.dart';
 import 'package:backend/db/database.dart';
 import 'package:backend/utils/constants.dart';
 import 'package:backend/middleware/cors_middleware.dart';
+import 'package:backend/middleware/auth_middleware.dart';
 import 'package:backend/handlers/auth_handler.dart';
 import 'package:backend/handlers/project_handler.dart';
 import 'package:backend/handlers/log_handler.dart';
@@ -82,9 +83,10 @@ void main(List<String> args) async {
     'Rate limiting enabled: $maxRequestsPerMinute req/min, ${dedupeWindowSeconds}s deduplication',
   );
 
-  // Create the server handler with CORS middleware
+  // Create the server handler with CORS and Auth middleware
   final handler = Pipeline()
       .addMiddleware(corsHeaders())
+      .addMiddleware(authMiddleware())
       .addHandler(_router.call);
 
   // Start the server

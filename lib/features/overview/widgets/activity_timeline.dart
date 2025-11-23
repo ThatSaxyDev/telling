@@ -67,7 +67,6 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
       final logs = await repository.fetchLogs(
         page: _currentPage,
         limit: 20,
-        authenticatedUserId: authState.user!.id,
         projectId: projectState.selectedProject!.id,
       );
 
@@ -107,7 +106,6 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
       final newLogs = await repository.fetchLogs(
         page: _currentPage,
         limit: 20,
-        authenticatedUserId: authState.user!.id,
         projectId: projectState.selectedProject!.id,
       );
 
