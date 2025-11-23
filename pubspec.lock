@@ -793,10 +793,10 @@ packages:
     dependency: "direct main"
     description:
       name: telling_logger
-      sha256: "78d490044600fe7ae7007ff58128cf789b841f59352d45472645d4bc643a3dad"
+      sha256: deb6fdfd4d0f54dd7ad6ccefa279adefe239931f2b88370a9dd0090ac619303b
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   term_glyph:
     dependency: transitive
     description:
