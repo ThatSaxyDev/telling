@@ -34,8 +34,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  telling_logger:
-    path: packages/telling_logger
+  telling_logger: ^1.0.2
   http: ^1.6.0
   go_router: ^17.0.0
   flutter_riverpod: ^3.0.3

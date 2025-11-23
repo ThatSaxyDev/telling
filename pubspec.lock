@@ -792,10 +792,11 @@ packages:
   telling_logger:
     dependency: "direct main"
     description:
-      path: "packages/telling_logger"
-      relative: true
-    source: path
-    version: "0.0.1"
+      name: telling_logger
+      sha256: "78d490044600fe7ae7007ff58128cf789b841f59352d45472645d4bc643a3dad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   term_glyph:
     dependency: transitive
     description:
