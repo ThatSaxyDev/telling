@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/military_decorations.dart';
+import 'package:telling_logger/telling_logger.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -26,13 +27,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      Telling.instance.event(
+        'Action: Login Attempt',
+        properties: {'email': _emailController.text},
+      );
       await ref
           .read(authProvider.notifier)
           .login(_emailController.text, _passwordController.text);
 
       // Check if login was successful by checking auth state
       if (mounted && ref.read(authProvider).isAuthenticated) {
+        Telling.instance.event(
+          'Action: Login Success',
+          properties: {'email': _emailController.text},
+        );
         context.go('/projects');
+      } else {
+        Telling.instance.event(
+          'Action: Login Failed',
+          properties: {'email': _emailController.text},
+        );
       }
     }
   }
@@ -150,7 +164,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 16),
                     Center(
                       child: TextButton(
-                        onPressed: () => context.go('/register'),
+                        onPressed: () {
+                          Telling.instance.event(
+                            'Interaction: Navigate to Register',
+                            properties: {'from': 'LoginScreen'},
+                          );
+                          context.go('/register');
+                        },
                         child: const Text(
                           'REQUEST_CLEARANCE (REGISTER)',
                           style: TextStyle(

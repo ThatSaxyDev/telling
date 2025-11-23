@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:telling_logger/telling_logger.dart';
 import '../providers/auth_provider.dart';
 
 class ApiClient {
@@ -18,10 +19,56 @@ class ApiClient {
     return headers;
   }
 
+  Future<http.Response> _send(
+    Future<http.Response> Function() requestFn,
+    String method,
+    Uri url,
+  ) async {
+    final startTime = DateTime.now();
+    try {
+      final response = await requestFn();
+      final duration = DateTime.now().difference(startTime);
+
+      if (response.statusCode >= 400) {
+        Telling.instance.log(
+          'API Error: $method ${url.path}',
+          type: LogType.network,
+          metadata: {
+            'method': method,
+            'url': url.toString(),
+            'statusCode': response.statusCode,
+            'durationMs': duration.inMilliseconds,
+            'responseSize': response.bodyBytes.length,
+            'responseBody': response.body,
+          },
+          level: LogLevel.error,
+        );
+      }
+
+      return response;
+    } catch (e, stack) {
+      final duration = DateTime.now().difference(startTime);
+      Telling.instance.log(
+        'API Error: $method ${url.path}',
+        type: LogType.network,
+        level: LogLevel.error,
+        error: e,
+        stackTrace: stack,
+        metadata: {
+          'method': method,
+          'url': url.toString(),
+          'durationMs': duration.inMilliseconds,
+        },
+      );
+      rethrow;
+    }
+  }
+
   Future<http.Response> get(Uri url, {Map<String, String>? headers}) {
-    return _client.get(
+    return _send(
+      () => _client.get(url, headers: {..._headers, ...?headers}),
+      'GET',
       url,
-      headers: {..._headers, ...?headers},
     );
   }
 
@@ -30,10 +77,10 @@ class ApiClient {
     Object? body,
     Map<String, String>? headers,
   }) {
-    return _client.post(
+    return _send(
+      () => _client.post(url, headers: {..._headers, ...?headers}, body: body),
+      'POST',
       url,
-      headers: {..._headers, ...?headers},
-      body: body,
     );
   }
 
@@ -42,10 +89,10 @@ class ApiClient {
     Object? body,
     Map<String, String>? headers,
   }) {
-    return _client.put(
+    return _send(
+      () => _client.put(url, headers: {..._headers, ...?headers}, body: body),
+      'PUT',
       url,
-      headers: {..._headers, ...?headers},
-      body: body,
     );
   }
 
@@ -54,10 +101,11 @@ class ApiClient {
     Object? body,
     Map<String, String>? headers,
   }) {
-    return _client.delete(
+    return _send(
+      () =>
+          _client.delete(url, headers: {..._headers, ...?headers}, body: body),
+      'DELETE',
       url,
-      headers: {..._headers, ...?headers},
-      body: body,
     );
   }
 }
