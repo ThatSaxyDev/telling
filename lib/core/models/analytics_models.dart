@@ -40,8 +40,16 @@ class LogTimelinePoint {
 
   factory LogTimelinePoint.fromJson(Map<String, dynamic> json) {
     return LogTimelinePoint(
-      timestamp: DateTime.parse(json['timestamp']),
-      counts: Map<String, int>.from(json['counts']),
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'])
+          : DateTime.now(),
+      counts: json['counts'] != null
+          ? Map<String, int>.from(
+              json['counts'].map(
+                (key, value) => MapEntry(key.toString(), (value ?? 0) as int),
+              ),
+            )
+          : {},
     );
   }
 

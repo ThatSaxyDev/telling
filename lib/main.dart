@@ -11,11 +11,9 @@ void main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Initialize SDK
+      // Initialize SDK anonymously (user context set after login)
       await Telling.instance.init(
-        'TEST_API_KEY',
-        userId: 'demo_user_123',
-        userName: 'Demo User',
+        'abhszVmr7ZdYUqdyOXfmV-W_WX0aRXPR1Wq7eyuIrXI=',
       );
 
       Telling.instance.enableCrashReporting();

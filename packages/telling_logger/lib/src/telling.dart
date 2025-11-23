@@ -169,6 +169,62 @@ class Telling {
       type: LogType.analytics,
     );
   }
+
+  /// Set user context (call after user logs in)
+  void setUser({required String userId, String? userName, String? userEmail}) {
+    if (!_initialized) {
+      print('Telling SDK not initialized. Call Telling.instance.init() first.');
+      return;
+    }
+
+    _userId = userId;
+    _userName = userName;
+    _userEmail = userEmail;
+
+    // Start a new session with the updated user context
+    _endSession();
+    _startNewSession();
+
+    if (kDebugMode) {
+      print('Telling: User context updated - $userId');
+    }
+
+    // Log the user identification event
+    log(
+      'User identified',
+      level: LogLevel.info,
+      type: LogType.analytics,
+      metadata: {
+        'userId': userId,
+        if (userName != null) 'userName': userName,
+        if (userEmail != null) 'userEmail': userEmail,
+      },
+    );
+  }
+
+  /// Clear user context (call after user logs out)
+  void clearUser() {
+    if (!_initialized) {
+      print('Telling SDK not initialized. Call Telling.instance.init() first.');
+      return;
+    }
+
+    if (kDebugMode) {
+      print('Telling: User context cleared');
+    }
+
+    // Log the logout event before clearing
+    log('User logged out', level: LogLevel.info, type: LogType.analytics);
+
+    _userId = null;
+    _userName = null;
+    _userEmail = null;
+
+    // Start a new anonymous session
+    _endSession();
+    _startNewSession();
+  }
+  
   
   /// Get the screen tracker for use with Navigator
   RouteObserver<PageRoute> get screenTracker {

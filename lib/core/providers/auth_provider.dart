@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:telling_logger/telling_logger.dart';
 import '../models/auth_user.dart';
 
 class AuthState {
@@ -74,6 +75,13 @@ class AuthNotifier extends Notifier<AuthState> {
 
         await _persistSession(user, token);
         state = state.copyWith(user: user, token: token, isLoading: false);
+        
+        // Set user context in Telling SDK after successful login
+        Telling.instance.setUser(
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
+        );
       } else {
         state = state.copyWith(isLoading: false, error: 'Invalid credentials');
       }
@@ -83,6 +91,9 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Clear user context in Telling SDK before logout
+    Telling.instance.clearUser();
+    
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     await prefs.remove('auth_user');
@@ -104,6 +115,14 @@ class AuthNotifier extends Notifier<AuthState> {
 
         await _persistSession(user, token);
         state = AuthState(user: user, token: token, isLoading: false);
+        
+        // Set user context in Telling SDK after successful registration
+        Telling.instance.setUser(
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
+        );
+        
         return true;
       } else {
         state = state.copyWith(
