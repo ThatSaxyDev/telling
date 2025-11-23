@@ -134,6 +134,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       controller: _emailController,
                       label: 'OPERATOR_ID (EMAIL)',
                       icon: Icons.person_outline,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'REQUIRED_FIELD';
+                        }
+                        final emailRegex = RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        );
+                        if (!emailRegex.hasMatch(value)) {
+                          return 'INVALID_EMAIL_FORMAT';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
