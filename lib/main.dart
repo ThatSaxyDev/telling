@@ -20,7 +20,6 @@ void main() async {
       runApp(const ProviderScope(child: MainApp()));
     },
     (error, stack) {
-      print('Telling: CAUGHT ZONED ERROR: $error');
       Telling.instance.log(
         'Zoned Crash: $error',
         level: LogLevel.fatal,
