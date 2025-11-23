@@ -26,11 +26,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(authProvider.notifier).login(
-        _emailController.text,
-        _passwordController.text,
-      );
-      
+      await ref
+          .read(authProvider.notifier)
+          .login(_emailController.text, _passwordController.text);
+
       // Check if login was successful by checking auth state
       if (mounted && ref.read(authProvider).isAuthenticated) {
         context.go('/projects');
@@ -88,7 +87,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning, color: AppColors.error, size: 16),
+                            const Icon(
+                              Icons.warning,
+                              color: AppColors.error,
+                              size: 16,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -130,7 +133,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text(
                                 'INITIATE_SESSION',
@@ -192,6 +197,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             fontFamily: 'Urbanist',
             color: AppColors.white,
           ),
+          cursorColor: AppColors.secondary,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: AppColors.slate, size: 18),
             filled: true,

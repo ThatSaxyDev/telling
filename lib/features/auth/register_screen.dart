@@ -28,7 +28,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
-      final success = await ref.read(authProvider.notifier).register(
+      final success = await ref
+          .read(authProvider.notifier)
+          .register(
             _nameController.text,
             _emailController.text,
             _passwordController.text,
@@ -89,7 +91,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning, color: AppColors.error, size: 16),
+                            const Icon(
+                              Icons.warning,
+                              color: AppColors.error,
+                              size: 16,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -137,7 +143,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text(
                                 'SUBMIT_CREDENTIALS',
@@ -195,6 +203,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         TextFormField(
           controller: controller,
           obscureText: isPassword,
+          cursorColor: AppColors.secondary,
           style: const TextStyle(
             fontFamily: 'Urbanist',
             color: AppColors.white,

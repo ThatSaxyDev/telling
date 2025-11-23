@@ -114,6 +114,7 @@ class ProjectSelector extends ConsumerWidget {
         ),
         content: TextField(
           controller: controller,
+          cursorColor: AppColors.secondary,
           style: const TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
           decoration: const InputDecoration(
             labelText: 'PROJECT_CODENAME',
