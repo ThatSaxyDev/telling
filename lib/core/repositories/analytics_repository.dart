@@ -7,9 +7,14 @@ class AnalyticsRepository {
 
   AnalyticsRepository({required this.baseUrl});
 
-  Future<AnalyticsSummary> getSummary({int hours = 24}) async {
+  Future<AnalyticsSummary> getSummary({
+    required String userId,
+    required String projectId,
+    int hours = 24,
+  }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/analytics/summary?hours=$hours'),
+      Uri.parse('$baseUrl/analytics/summary?projectId=$projectId&hours=$hours'),
+      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
@@ -19,9 +24,16 @@ class AnalyticsRepository {
     }
   }
 
-  Future<List<LogTimelinePoint>> getLogsTimeline({int hours = 24}) async {
+  Future<List<LogTimelinePoint>> getLogsTimeline({
+    required String userId,
+    required String projectId,
+    int hours = 24,
+  }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/analytics/logs-timeline?hours=$hours'),
+      Uri.parse(
+        '$baseUrl/analytics/timeline?projectId=$projectId&hours=$hours',
+      ),
+      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
@@ -32,9 +44,14 @@ class AnalyticsRepository {
     }
   }
 
-  Future<List<LogLevelStat>> getLogLevels({int hours = 24}) async {
+  Future<List<LogLevelStat>> getLogLevels({
+    required String userId,
+    required String projectId,
+    int hours = 24,
+  }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/analytics/log-levels?hours=$hours'),
+      Uri.parse('$baseUrl/analytics/levels?projectId=$projectId&hours=$hours'),
+      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
@@ -46,11 +63,16 @@ class AnalyticsRepository {
   }
 
   Future<List<TopErrorItem>> getTopErrors({
+    required String userId,
+    required String projectId,
     int hours = 24,
     int limit = 10,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/analytics/top-errors?hours=$hours&limit=$limit'),
+      Uri.parse(
+        '$baseUrl/analytics/errors?projectId=$projectId&hours=$hours&limit=$limit',
+      ),
+      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
@@ -62,11 +84,16 @@ class AnalyticsRepository {
   }
 
   Future<List<ActiveUserStat>> getActiveUsers({
+    required String userId,
+    required String projectId,
     int hours = 24,
     int limit = 10,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/analytics/active-users?hours=$hours&limit=$limit'),
+      Uri.parse(
+        '$baseUrl/analytics/users?projectId=$projectId&hours=$hours&limit=$limit',
+      ),
+      headers: {'x-user-id': userId},
     );
 
     if (response.statusCode == 200) {
