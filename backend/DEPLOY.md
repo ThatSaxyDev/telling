@@ -1,53 +1,35 @@
 # Deployment Guide for Telling Backend
 
-## 1. Prerequisites
-Install the Globe CLI:
-```bash
-dart pub global activate globe_cli
-```
-
-Login to your Globe account:
-```bash
-globe login
-```
-
-## 2. Deploying to Globe
-Run the deploy command from the `backend` directory:
+## 1. Initial Deployment
+Run the deploy command to create your project on Globe:
 ```bash
 globe deploy
 ```
-Globe will detect your `Dockerfile` and build your application.
+*   Follow the prompts to create a new project (e.g., name it `telling-backend`).
+*   **Note:** This first deployment will use a temporary database. Any data created now will be lost until we set up the volume.
 
-## 3. Database & Persistence (CRITICAL)
-Your application currently uses **SQLite** (`telling.db`), which saves data to a local file.
+## 2. Set Up Persistence (Globe Volume)
+Since the Globe CLI doesn't support volume management yet, you must do this in the dashboard.
 
-**⚠️ IMPORTANT:** On serverless platforms like Globe, the file system is **ephemeral**. This means:
-- Every time you redeploy, your database is reset.
-- If the server restarts, your data might be lost.
+1.  **Open Dashboard:** Go to [https://globe.dev/dashboard](https://globe.dev/dashboard) and open your new project.
+2.  **Create Volume:**
+    *   Navigate to **Settings** > **Volumes** (or similar storage section).
+    *   Create a new volume.
+    *   **Mount Path:** `/data`
+    *   **Name:** `telling-data` (or any name you prefer).
+3.  **Verify Environment Variable:**
+    *   I have created a `globe.yaml` that sets `DB_PATH` to `/data/telling.db`.
+    *   Check **Settings** > **Environment Variables** in the dashboard to ensure `DB_PATH` is set to `/data/telling.db`. If not, add it manually.
 
-### Option A: Use a Globe Volume (For Persistence with SQLite)
-If you want to keep using SQLite, you must create a persistent volume.
-1. Create a volume:
-   ```bash
-   globe volume create telling-data
-   ```
-2. Configure your deployment to mount this volume to `/app/data` (or wherever you want).
-3. Update `lib/db/database.dart` to look for the DB in that mounted path if needed, or mount it to where the app expects it.
-   * Currently, the app expects `telling.db` in the current working directory (`/app/bin/` or `/app/`).
-   * You might need to update the `init` call in `bin/server.dart` to use a path from an environment variable like `DB_PATH`.
+## 3. Redeploy
+Once the volume is mounted and the environment variable is set:
+```bash
+globe deploy
+```
+Now your database will be stored in `/data/telling.db`, which lives on the persistent volume. Your users and logs will survive restarts and redeployments!
 
-### Option B: Use a Hosted Database (Recommended for Production)
-Switch to a hosted PostgreSQL database (e.g., Supabase, Neon, Railway).
-1. Create a project on Supabase.
-2. Get the connection string.
-3. Update the backend code to use the `postgres` package instead of `sqlite3`.
-4. Set the connection string as a secret in Globe:
-   ```bash
-   globe secret set DATABASE_URL=postgresql://...
-   ```
-
-## 4. Recent Changes
-I have made the following changes to prepare your app for deployment:
-- **`bin/server.dart`**: Updated to listen on `0.0.0.0` (required for Docker) and use the `PORT` environment variable.
-- **`Dockerfile`**: Switched to `debian:stable-slim` to ensure the `sqlite3` library is available.
-- **`.dockerignore`**: Added `telling.db` so you don't accidentally deploy your local test data.
+## 4. Future: Switching to Postgres
+When you are ready to scale, we can switch to a hosted PostgreSQL database.
+1.  Get a Postgres connection string (e.g., from Supabase).
+2.  Update `globe.yaml` or Dashboard secrets with `DATABASE_URL`.
+3.  We will need to update the code to use `postgres` package.

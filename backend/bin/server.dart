@@ -74,9 +74,10 @@ void startCleanupTimer() {
 
 void main(List<String> args) async {
   // Initialize Database
-  DatabaseService().init('telling.db');
+  final dbPath = Platform.environment['DB_PATH'] ?? 'telling.db';
+  DatabaseService().init(dbPath);
   
-  print('Database initialized: telling.db');
+  print('Database initialized: $dbPath');
 
   // Start cleanup timer
   startCleanupTimer();
