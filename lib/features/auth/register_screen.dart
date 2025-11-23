@@ -16,18 +16,32 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
+      if (_passwordController.text != _confirmPasswordController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('PASSWORDS_DO_NOT_MATCH'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
       final success = await ref
           .read(authProvider.notifier)
           .register(
@@ -127,6 +141,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       label: 'ACCESS_CODE (PASSWORD)',
                       icon: Icons.lock_outline,
                       isPassword: true,
+                      isPasswordVisible: _isPasswordVisible,
+                      onTogglePasswordVisibility: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _confirmPasswordController,
+                      label: 'CONFIRM_ACCESS_CODE',
+                      icon: Icons.lock_outline,
+                      isPassword: true,
+                      isPasswordVisible: _isConfirmPasswordVisible,
+                      onTogglePasswordVisibility: () {
+                        setState(() {
+                          _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'REQUIRED_FIELD';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'PASSWORDS_DO_NOT_MATCH';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 32),
                     SizedBox(
@@ -186,6 +229,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     required String label,
     required IconData icon,
     bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onTogglePasswordVisibility,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +248,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: isPassword && !isPasswordVisible,
           cursorColor: AppColors.secondary,
           style: const TextStyle(
             fontFamily: 'Urbanist',
@@ -210,6 +256,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: AppColors.slate, size: 18),
+            suffixIcon: isPassword
+                ? IconButton(
+                    icon: Icon(
+                      isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: AppColors.slate,
+                      size: 18,
+                    ),
+                    onPressed: onTogglePasswordVisibility,
+                  )
+                : null,
             filled: true,
             fillColor: AppColors.primary.withOpacity(0.3),
             border: OutlineInputBorder(
@@ -225,12 +283,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               borderSide: BorderSide(color: AppColors.white),
             ),
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'REQUIRED_FIELD';
-            }
-            return null;
-          },
+          validator:
+              validator ??
+              (value) {
+                if (value == null || value.isEmpty) {
+                  return 'REQUIRED_FIELD';
+                }
+                return null;
+              },
         ),
       ],
     );

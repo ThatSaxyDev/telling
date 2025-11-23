@@ -17,6 +17,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -131,6 +132,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       label: 'ACCESS_CODE (PASSWORD)',
                       icon: Icons.lock_outline,
                       isPassword: true,
+                      isPasswordVisible: _isPasswordVisible,
+                      onTogglePasswordVisibility: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
                     ),
                     const SizedBox(height: 32),
                     SizedBox(
@@ -196,6 +203,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     required String label,
     required IconData icon,
     bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onTogglePasswordVisibility,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +221,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: isPassword && !isPasswordVisible,
           style: const TextStyle(
             fontFamily: 'Urbanist',
             color: AppColors.white,
@@ -220,6 +229,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           cursorColor: AppColors.secondary,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: AppColors.slate, size: 18),
+            suffixIcon: isPassword
+                ? IconButton(
+                    icon: Icon(
+                      isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: AppColors.slate,
+                      size: 18,
+                    ),
+                    onPressed: onTogglePasswordVisibility,
+                  )
+                : null,
             filled: true,
             fillColor: AppColors.primary.withOpacity(0.3),
             border: OutlineInputBorder(
