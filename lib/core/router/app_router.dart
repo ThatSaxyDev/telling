@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
@@ -16,13 +17,19 @@ import '../providers/auth_provider.dart';
 import '../providers/project_provider.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
-  final projectState = ref.watch(projectProvider);
+  final routerNotifier = ValueNotifier<int>(0);
+
+  ref.listen(authProvider, (_, __) => routerNotifier.value++);
+  ref.listen(projectProvider, (_, __) => routerNotifier.value++);
 
   return GoRouter(
     initialLocation: '/',
     observers: [Telling.instance.goRouterScreenTracker],
+    refreshListenable: routerNotifier,
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      final projectState = ref.read(projectProvider);
+
       final isLoggedIn = authState.isAuthenticated;
       final hasSelectedProject = projectState.selectedProject != null;
       final isLoggingIn =
