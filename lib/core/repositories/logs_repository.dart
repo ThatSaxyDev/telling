@@ -15,19 +15,28 @@ class LogsRepository {
   Future<List<LogModel>> fetchLogs({
     int page = 1,
     int limit = 50,
-    String? userId,
+    String? userId, // Filter by user ID
+    required String authenticatedUserId, // For x-user-id header
+    required String projectId, // For project isolation
   }) async {
     try {
-      var uri = Uri.parse('$baseUrl/logs?page=$page&limit=$limit');
+      var uri = Uri.parse(
+        '$baseUrl/logs?page=$page&limit=$limit&projectId=$projectId',
+      );
 
       // Add userId query parameter if provided
       if (userId != null && userId.isNotEmpty) {
-        uri = Uri.parse('$baseUrl/logs?page=$page&limit=$limit&userId=$userId');
+        uri = Uri.parse(
+          '$baseUrl/logs?page=$page&limit=$limit&projectId=$projectId&userId=$userId',
+        );
       }
       
       final response = await _client.get(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': authenticatedUserId,
+        },
       );
 
       if (response.statusCode == 200) {
@@ -74,11 +83,17 @@ class LogsRepository {
   }
 
   /// Fetch log statistics
-  Future<Map<String, int>> fetchStats() async {
+  Future<Map<String, int>> fetchStats({
+    required String authenticatedUserId,
+    required String projectId,
+  }) async {
     try {
       final response = await _client.get(
-        Uri.parse('$baseUrl/stats'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('$baseUrl/stats?projectId=$projectId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': authenticatedUserId,
+        },
       );
 
       if (response.statusCode == 200) {

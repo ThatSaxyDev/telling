@@ -212,7 +212,7 @@ class _TimelineNode extends StatelessWidget {
             child: Text(
               dateFormat.format(log.timestamp),
               style: const TextStyle(
-                fontFamily: 'monospace',
+                fontFamily: 'Urbanist',
                 color: AppColors.slate,
                 fontSize: 12,
               ),

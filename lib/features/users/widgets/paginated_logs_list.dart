@@ -214,7 +214,7 @@ class _LogItem extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.slate,
                   fontSize: 10,
-                  fontFamily: 'monospace',
+                  fontFamily: 'Urbanist',
                 ),
               ),
             ],
@@ -240,7 +240,7 @@ class _LogItem extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.slate,
                   fontSize: 10,
-                  fontFamily: 'monospace',
+                  fontFamily: 'Urbanist',
                 ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,

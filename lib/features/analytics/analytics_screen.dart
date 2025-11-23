@@ -69,11 +69,11 @@ class AnalyticsScreen extends ConsumerWidget {
                           text: 'ANALYTICS_MODULE // v2.0',
                           style: isMobile
                               ? AppTextStyles.titleMedium.copyWith(
-                                  fontFamily: 'monospace',
+                                  fontFamily: 'Urbanist',
                                   letterSpacing: 2,
                                 )
                               : AppTextStyles.headlineSmall.copyWith(
-                                  fontFamily: 'monospace',
+                                  fontFamily: 'Urbanist',
                                   letterSpacing: 4,
                                 ),
                           glitchAmount: 2.0,
@@ -361,7 +361,7 @@ class _TimeRangeTab extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'monospace',
+            fontFamily: 'Urbanist',
             color: isSelected ? AppColors.primary : AppColors.slate,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.5,
@@ -415,7 +415,7 @@ class _MetricCard extends StatelessWidget {
               child: Text(
                 code,
                 style: TextStyle(
-                  fontFamily: 'monospace',
+                  fontFamily: 'Urbanist',
                   fontSize: 10,
                   color: AppColors.slate.withOpacity(0.5),
                 ),
@@ -461,7 +461,7 @@ class _MetricCard extends StatelessWidget {
                             Text(
                               '${trend!.abs()}%',
                               style: TextStyle(
-                                fontFamily: 'monospace',
+                                fontFamily: 'Urbanist',
                                 fontSize: 11,
                                 color: trend! > 0 ? Colors.green : Colors.red,
                                 fontWeight: FontWeight.bold,
@@ -476,7 +476,7 @@ class _MetricCard extends StatelessWidget {
                 Text(
                   value,
                   style: TextStyle(
-                    fontFamily: 'monospace',
+                    fontFamily: 'Urbanist',
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: isError ? AppColors.error : AppColors.white,
@@ -544,7 +544,7 @@ class _SectionCard extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2.0,
-                    fontFamily: 'monospace',
+                    fontFamily: 'Urbanist',
                   ),
                 ),
                 const Spacer(),
@@ -578,7 +578,7 @@ class _LogsTimelineChart extends StatelessWidget {
         child: Center(
           child: Text(
             'NO_DATA_AVAILABLE',
-            style: TextStyle(color: AppColors.slate, fontFamily: 'monospace'),
+            style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
           ),
         ),
       );
@@ -648,7 +648,7 @@ class _LogsTimelineChart extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.slate,
                         fontSize: 10,
-                        fontFamily: 'monospace',
+                        fontFamily: 'Urbanist',
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -696,7 +696,7 @@ class _LogLevelChart extends StatelessWidget {
         child: Center(
           child: Text(
             'NO_DATA_AVAILABLE',
-            style: TextStyle(color: AppColors.slate, fontFamily: 'monospace'),
+            style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
           ),
         ),
       );
@@ -727,7 +727,7 @@ class _LogLevelChart extends StatelessWidget {
                     color: color,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace',
+                    fontFamily: 'Urbanist',
                   ),
                 ),
               ),
@@ -771,7 +771,7 @@ class _LogLevelChart extends StatelessWidget {
                 child: Text(
                   stat.count.toString().padLeft(4, '0'),
                   style: const TextStyle(
-                    fontFamily: 'monospace',
+                    fontFamily: 'Urbanist',
                     color: AppColors.white,
                     fontSize: 14,
                   ),
@@ -805,7 +805,7 @@ class _TopErrorsList extends StatelessWidget {
               SizedBox(height: 16),
               Text(
                 'SYSTEM_OPTIMAL',
-                style: TextStyle(color: Colors.green, fontFamily: 'monospace'),
+                style: TextStyle(color: Colors.green, fontFamily: 'Urbanist'),
               ),
             ],
           ),
@@ -829,7 +829,7 @@ class _TopErrorsList extends StatelessWidget {
                 Text(
                   '[${(index + 1).toString().padLeft(2, '0')}]',
                   style: const TextStyle(
-                    fontFamily: 'monospace',
+                    fontFamily: 'Urbanist',
                     color: AppColors.error,
                     fontWeight: FontWeight.bold,
                   ),
@@ -844,7 +844,7 @@ class _TopErrorsList extends StatelessWidget {
                         style: const TextStyle(
                           color: AppColors.white,
                           fontSize: 13,
-                          fontFamily: 'monospace',
+                          fontFamily: 'Urbanist',
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -855,7 +855,7 @@ class _TopErrorsList extends StatelessWidget {
                         style: const TextStyle(
                           color: AppColors.slate,
                           fontSize: 10,
-                          fontFamily: 'monospace',
+                          fontFamily: 'Urbanist',
                         ),
                       ),
                     ],
@@ -873,7 +873,7 @@ class _TopErrorsList extends StatelessWidget {
                   child: Text(
                     'x${error.count}',
                     style: const TextStyle(
-                      fontFamily: 'monospace',
+                      fontFamily: 'Urbanist',
                       color: AppColors.error,
                       fontSize: 12,
                     ),
@@ -902,7 +902,7 @@ class _ActiveUsersList extends ConsumerWidget {
         child: Center(
           child: Text(
             'NO_ACTIVE_SIGNALS',
-            style: TextStyle(color: AppColors.slate, fontFamily: 'monospace'),
+            style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
           ),
         ),
       );
@@ -959,7 +959,7 @@ class _ActiveUsersList extends ConsumerWidget {
                           style: const TextStyle(
                             color: AppColors.slate,
                             fontSize: 11,
-                            fontFamily: 'monospace',
+                            fontFamily: 'Urbanist',
                           ),
                         ),
                       ],

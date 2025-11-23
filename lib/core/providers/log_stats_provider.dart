@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'logs_provider.dart';
+import 'auth_provider.dart';
+import 'project_provider.dart';
 
 class LogStats {
   final int totalLogs;
@@ -32,6 +34,9 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
 
   @override
   Future<LogStats> build() async {
+    // Watch project provider to refetch when project changes
+    ref.watch(projectProvider);
+    
     // Start auto-polling
     _startPolling();
     
@@ -54,8 +59,18 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
   }
 
   Future<LogStats> _fetchStats() async {
+    final authState = ref.read(authProvider);
+    final projectState = ref.read(projectProvider);
+
+    if (authState.user == null || projectState.selectedProject == null) {
+      return LogStats.empty();
+    }
+
     final repository = ref.read(logsRepositoryProvider);
-    final statsMap = await repository.fetchStats();
+    final statsMap = await repository.fetchStats(
+      authenticatedUserId: authState.user!.id,
+      projectId: projectState.selectedProject!.id,
+    );
     
     return LogStats(
       totalLogs: statsMap['totalLogs'] ?? 0,

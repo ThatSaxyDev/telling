@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:telling/core/models/log_level/log_level.dart';
 import '../../../core/models/log_model/log_model.dart';
 import '../../../core/providers/logs_provider.dart';
+import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/military_decorations.dart';
@@ -48,8 +50,26 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     });
 
     try {
+      final authState = ref.read(authProvider);
+      final projectState = ref.read(projectProvider);
+
+      if (authState.user == null || projectState.selectedProject == null) {
+        if (mounted) {
+          setState(() {
+            _logs = [];
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
       final repository = ref.read(logsRepositoryProvider);
-      final logs = await repository.fetchLogs(page: _currentPage, limit: 20);
+      final logs = await repository.fetchLogs(
+        page: _currentPage,
+        limit: 20,
+        authenticatedUserId: authState.user!.id,
+        projectId: projectState.selectedProject!.id,
+      );
 
       if (mounted) {
         setState(() {
@@ -74,9 +94,22 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     setState(() => _isLoadingMore = true);
 
     try {
+      final authState = ref.read(authProvider);
+      final projectState = ref.read(projectProvider);
+
+      if (authState.user == null || projectState.selectedProject == null) {
+        setState(() => _isLoadingMore = false);
+        return;
+      }
+
       final repository = ref.read(logsRepositoryProvider);
       _currentPage++;
-      final newLogs = await repository.fetchLogs(page: _currentPage, limit: 20);
+      final newLogs = await repository.fetchLogs(
+        page: _currentPage,
+        limit: 20,
+        authenticatedUserId: authState.user!.id,
+        projectId: projectState.selectedProject!.id,
+      );
 
       if (mounted) {
         setState(() {
@@ -466,7 +499,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                                       fontSize: 10,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 1,
-                                      fontFamily: 'monospace',
+                                      fontFamily: 'Urbanist',
                                     ),
                                   ),
                                 ],
@@ -507,7 +540,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                               style: const TextStyle(
                                 color: AppColors.slate,
                                 fontSize: 10,
-                                fontFamily: 'monospace',
+                                fontFamily: 'Urbanist',
                                 letterSpacing: 0.5,
                               ),
                             ),

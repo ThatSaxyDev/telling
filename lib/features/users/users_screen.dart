@@ -407,7 +407,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                       Text(
                         'ID: ${user.userId}',
                         style: const TextStyle(
-                          fontFamily: 'monospace',
+                          fontFamily: 'Urbanist',
                           color: AppColors.slate,
                           fontSize: 13,
                         ),
@@ -420,7 +420,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                             SnackBar(
                               content: Text(
                                 'Copied: ${user.userId}',
-                                style: const TextStyle(fontFamily: 'monospace'),
+                                style: const TextStyle(fontFamily: 'Urbanist'),
                               ),
                               duration: const Duration(seconds: 2),
                               backgroundColor: AppColors.secondary,
@@ -463,7 +463,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                         color: AppColors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'monospace',
+                        fontFamily: 'Urbanist',
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -491,7 +491,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                       style: const TextStyle(
                         color: AppColors.slate,
                         fontSize: 13,
-                        fontFamily: 'monospace',
+                        fontFamily: 'Urbanist',
                       ),
                     ),
                   ],

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/log_level/log_level.dart';
 import '../../../core/providers/filter_provider.dart';
 import '../../../core/providers/logs_provider.dart';
-import '../../../core/repositories/logs_repository.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/searchable_user_dropdown.dart';

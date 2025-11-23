@@ -11,7 +11,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
-import 'widgets/session_timeline_dialog.dart';
+
 import 'widgets/log_filter_bar.dart';
 
 
@@ -35,7 +35,7 @@ class LogsScreen extends ConsumerWidget {
     final isMobile = MediaQuery.of(context).size.width < 600;
     final isSessionGrouped = ref.watch(isSessionGroupedProvider);
     final logsAsync = ref.watch(filteredLogsProvider);
-    final sessionsAsync = ref.watch(sessionsProvider);
+    // final sessionsAsync = ref.watch(sessionsProvider);
 
     return Column(
       children: [
@@ -208,7 +208,7 @@ class LogsScreen extends ConsumerWidget {
   //                       Text(
   //                         'SESSION ID: ${session['sessionId']}',
   //                         style: const TextStyle(
-  //                           fontFamily: 'monospace',
+  //                           fontFamily: 'Urbanist',
   //                           fontWeight: FontWeight.bold,
   //                           color: AppColors.white,
   //                         ),

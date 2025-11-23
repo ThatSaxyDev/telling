@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/providers/users_provider.dart';
 import '../../core/models/user.dart';
-import '../../core/models/log_entry.dart';
+
 import '../../core/theme/app_colors.dart';
 import 'widgets/paginated_sessions_list.dart';
 import 'widgets/paginated_logs_list.dart';
@@ -18,8 +18,8 @@ class UserDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final usersAsync = ref.watch(usersListProvider);
     final statsAsync = ref.watch(userStatsProvider(userId));
-    final sessionsAsync = ref.watch(userSessionsProvider(userId));
-    final logsAsync = ref.watch(userLogsProvider(userId));
+    // final sessionsAsync = ref.watch(userSessionsProvider(userId));
+    // final logsAsync = ref.watch(userLogsProvider(userId));
 
     // Find the current user from the users list to get the userName
     final currentUser = usersAsync.when(
@@ -67,7 +67,7 @@ class UserDetailsScreen extends ConsumerWidget {
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
-                              fontFamily: 'monospace',
+                              fontFamily: 'Urbanist',
                               color: AppColors.white,
                             ),
                       ),
@@ -290,7 +290,7 @@ class _StatCard extends StatelessWidget {
                   value,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace',
+                    fontFamily: 'Urbanist',
                     color: AppColors.white,
                   ),
                   maxLines: 1,

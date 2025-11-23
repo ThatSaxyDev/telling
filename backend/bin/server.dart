@@ -1,11 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:async';
+import 'dart:math';
+
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:sqlite3/sqlite3.dart';
+import 'package:crypto/crypto.dart';
 
 // Database instance
 late final Database _db;
@@ -39,48 +41,371 @@ const dedupeWindowSeconds = 10;
 // Configure routes
 final _router = Router()
   ..get('/', _rootHandler)
-  ..get('/api/v1/logs', _getLogsHandler)
+  // Auth Routes
+  ..post('/api/v1/auth/register', _registerHandler)
+  ..post('/api/v1/auth/login', _loginHandler)
+  // Project Routes
+  ..get('/api/v1/projects', _getUserProjectsHandler)
+  ..post('/api/v1/projects', _createProjectHandler)
+  ..delete('/api/v1/projects/<projectId>', _deleteProjectHandler)
+  ..post('/api/v1/projects/<projectId>/keys', _regenerateApiKeyHandler)
+  // Log Ingestion (Secured by API Key)
   ..post('/api/v1/logs', _postLogsHandler)
+  // Analytics Routes (Secured by User Auth - TODO: Add middleware)
+  ..get('/api/v1/logs', _getLogsHandler)
   ..get('/api/v1/stats', _getStatsHandler)
-  ..get('/api/v1/users', _getUsersHandler)
+  ..get('/api/v1/users', _getActiveUsersHandler)
   ..get('/api/v1/users/<userId>/logs', _getUserLogsHandler)
   ..get('/api/v1/users/<userId>/stats', _getUserStatsHandler)
   ..get('/api/v1/users/<userId>/sessions', _getUserSessionsHandler)
   ..get('/api/v1/sessions', _getSessionsHandler)
   ..get('/api/v1/sessions/<sessionId>/logs', _getSessionLogsHandler)
   ..get('/api/v1/analytics/summary', _getAnalyticsSummaryHandler)
-  ..get('/api/v1/analytics/logs-timeline', _getLogsTimelineHandler)
-  ..get('/api/v1/analytics/log-levels', _getLogLevelsHandler)
-  ..get('/api/v1/analytics/top-errors', _getTopErrorsHandler)
-  ..get('/api/v1/analytics/active-users', _getActiveUsersHandler);
+  ..get('/api/v1/analytics/timeline', _getLogsTimelineHandler)
+  ..get('/api/v1/analytics/levels', _getLogLevelsHandler)
+  ..get('/api/v1/analytics/errors', _getTopErrorsHandler)
+  ..get('/api/v1/analytics/users', _getActiveUsersHandler);
 
 Response _rootHandler(Request req) {
-  return Response.ok('Telling Backend API v1.0.0 (SQLite)\n');
+  return Response.ok('Telling Backend API v2.0.0 (Secured)\n');
 }
+
+// ===== Authentication Handlers =====
+
+Future<Response> _registerHandler(Request req) async {
+  try {
+    final payload = jsonDecode(await req.readAsString());
+    final email = payload['email'] as String?;
+    final password = payload['password'] as String?;
+    final name = payload['name'] as String?;
+
+    if (email == null || password == null || name == null) {
+      return Response.badRequest(body: 'Missing required fields');
+    }
+
+    // Check if user exists
+    final existing = _db.select('SELECT id FROM users WHERE email = ?', [
+      email,
+    ]);
+    if (existing.isNotEmpty) {
+      return Response.badRequest(body: 'User already exists');
+    }
+
+    // Hash password (simple hash for demo - use bcrypt in prod)
+    final passwordHash = sha256.convert(utf8.encode(password)).toString();
+    final userId = _generateUuid();
+
+    _db.execute(
+      'INSERT INTO users (id, email, password_hash, name, created_at) VALUES (?, ?, ?, ?, ?)',
+      [userId, email, passwordHash, name, DateTime.now().toIso8601String()],
+    );
+
+    // Create default project
+    final projectId = _generateUuid();
+    final apiKey = _generateApiKey();
+    _db.execute(
+      'INSERT INTO projects (id, user_id, name, api_key, created_at) VALUES (?, ?, ?, ?, ?)',
+      [
+        projectId,
+        userId,
+        'Default Project',
+        apiKey,
+        DateTime.now().toIso8601String(),
+      ],
+    );
+
+    return Response.ok(
+      jsonEncode({
+        'token': userId, // Simple token for demo (use JWT in prod)
+        'user': {'id': userId, 'email': email, 'name': name},
+        'defaultProject': {'id': projectId, 'apiKey': apiKey},
+      }),
+    );
+  } catch (e) {
+    print('Register error: $e');
+    return Response.internalServerError(body: 'Registration failed');
+  }
+}
+
+Future<Response> _loginHandler(Request req) async {
+  try {
+    final payload = jsonDecode(await req.readAsString());
+    final email = payload['email'] as String?;
+    final password = payload['password'] as String?;
+
+    if (email == null || password == null) {
+      return Response.badRequest(body: 'Missing credentials');
+    }
+
+    final passwordHash = sha256.convert(utf8.encode(password)).toString();
+    final results = _db.select(
+      'SELECT id, name FROM users WHERE email = ? AND password_hash = ?',
+      [email, passwordHash],
+    );
+
+    if (results.isEmpty) {
+      return Response.forbidden('Invalid credentials');
+    }
+
+    final user = results.first;
+    return Response.ok(
+      jsonEncode({
+        'token': user['id'], // Simple token
+        'user': {'id': user['id'], 'email': email, 'name': user['name']},
+      }),
+    );
+  } catch (e) {
+    return Response.internalServerError(body: 'Login failed');
+  }
+}
+
+// ===== Project Handlers =====
+
+Response _getUserProjectsHandler(Request req) {
+  // TODO: Extract user ID from token middleware
+  final userId = req.headers['x-user-id'];
+  if (userId == null) return Response.forbidden('Missing user context');
+
+  final results = _db.select('SELECT * FROM projects WHERE user_id = ?', [
+    userId,
+  ]);
+
+  final projects = results
+      .map(
+        (row) => {
+          'id': row['id'],
+          'name': row['name'],
+          'apiKey': row['api_key'],
+          'createdAt': row['created_at'],
+        },
+      )
+      .toList();
+
+  return Response.ok(jsonEncode(projects));
+}
+
+Future<Response> _createProjectHandler(Request req) async {
+  final userId = req.headers['x-user-id'];
+  if (userId == null) return Response.forbidden('Missing user context');
+
+  // Check project limit (Max 3)
+  final countResult = _db.select(
+    'SELECT COUNT(*) as count FROM projects WHERE user_id = ?',
+    [userId],
+  );
+  final count = countResult.first['count'] as int;
+  if (count >= 3) {
+    return Response.forbidden('Project limit reached (Max 3)');
+  }
+
+  final payload = jsonDecode(await req.readAsString());
+  final name = payload['name'] as String?;
+
+  if (name == null) return Response.badRequest(body: 'Missing project name');
+
+  final projectId = _generateUuid();
+  final apiKey = _generateApiKey();
+  final createdAt = DateTime.now().toIso8601String();
+
+  _db.execute(
+    'INSERT INTO projects (id, user_id, name, api_key, created_at) VALUES (?, ?, ?, ?, ?)',
+    [projectId, userId, name, apiKey, createdAt],
+  );
+
+  return Response.ok(
+    jsonEncode({
+      'id': projectId,
+      'name': name,
+      'apiKey': apiKey,
+      'createdAt': createdAt,
+    }),
+  );
+}
+
+Future<Response> _deleteProjectHandler(Request req, String projectId) async {
+  final userId = req.headers['x-user-id'];
+  if (userId == null) return Response.forbidden('Missing user context');
+
+  // Verify ownership
+  final project = _db.select(
+    'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+    [projectId, userId],
+  );
+
+  if (project.isEmpty) return Response.forbidden('Access denied');
+
+  // Delete logs first (if no cascade)
+  _db.execute('DELETE FROM logs WHERE project_id = ?', [projectId]);
+
+  // Delete project
+  _db.execute('DELETE FROM projects WHERE id = ?', [projectId]);
+
+  return Response.ok(jsonEncode({'success': true}));
+}
+
+Response _regenerateApiKeyHandler(Request req, String projectId) {
+  final userId = req.headers['x-user-id'];
+  if (userId == null) return Response.forbidden('Missing user context');
+
+  // Verify ownership
+  final project = _db.select(
+    'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+    [projectId, userId],
+  );
+
+  if (project.isEmpty) return Response.forbidden('Access denied');
+
+  final newKey = _generateApiKey();
+  _db.execute('UPDATE projects SET api_key = ? WHERE id = ?', [
+    newKey,
+    projectId,
+  ]);
+
+  return Response.ok(jsonEncode({'apiKey': newKey}));
+}
+
+// ===== Log Ingestion =====
+
+Future<Response> _postLogsHandler(Request req) async {
+  try {
+    // Validate API Key
+    final apiKey = req.headers['x-api-key'];
+    if (apiKey == null) {
+      return Response.forbidden('Missing API Key');
+    }
+
+    final projectResult = _db.select(
+      'SELECT id FROM projects WHERE api_key = ?',
+      [apiKey],
+    );
+    if (projectResult.isEmpty) {
+      return Response.forbidden('Invalid API Key');
+    }
+    final projectId = projectResult.first['id'] as String;
+
+    final payload = await req.readAsString();
+    final List<dynamic> events = jsonDecode(payload);
+
+    final stmt = _db.prepare(
+      'INSERT INTO logs (project_id, type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name, user_email, session_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    );
+
+    int saved = 0;
+    int duplicates = 0;
+
+    for (var event in events) {
+      if (event is Map<String, dynamic>) {
+        // Normalize level/type...
+        String level = event['level'] ?? 'info';
+        if (!validLogLevels.contains(level.toLowerCase())) {
+          print('Warning: Invalid log level "$level", defaulting to "info"');
+          level = 'info';
+        }
+
+        String type = event['type'] ?? 'general';
+        final typeLower = type.toLowerCase();
+        if (!validLogTypes.contains(typeLower)) {
+          print('Warning: Invalid log type "$type", defaulting to "general"');
+          type = 'general';
+        } else {
+          // Map legacy values
+          if (typeLower == 'log' ||
+              typeLower == 'error' ||
+              typeLower == 'errorr') {
+            type = 'general';
+            print('Info: Mapping legacy type "${event['type']}" to "general"');
+          }
+        }
+
+        // Dedupe check
+        final hash = _hashLogEvent(event);
+        final lastSeen = _recentLogs[hash];
+        final now = DateTime.now();
+
+        if (lastSeen != null &&
+            now.difference(lastSeen).inSeconds < dedupeWindowSeconds) {
+          duplicates++;
+          continue;
+        }
+
+        stmt.execute([
+          projectId, // Link to project
+          type,
+          level,
+          event['message'] ?? '',
+          event['timestamp'] ?? DateTime.now().toIso8601String(),
+          event['stackTrace'],
+          event['metadata'] != null ? jsonEncode(event['metadata']) : null,
+          event['device'] != null ? jsonEncode(event['device']) : null,
+          DateTime.now().toIso8601String(),
+          event['userId'],
+          event['userName'],
+          event['userEmail'],
+          event['sessionId'],
+        ]);
+
+        _recentLogs[hash] = now;
+        saved++;
+      }
+    }
+    stmt.dispose();
+
+    return Response.ok(
+      jsonEncode({
+        'status': 'success',
+        'saved': saved,
+        'duplicates': duplicates,
+      }),
+    );
+  } catch (e) {
+    print('Error processing logs: $e');
+    return Response.internalServerError(body: 'Error processing logs');
+  }
+}
+
+// ===== Analytics Handlers =====
+// For now, these handlers will query ALL logs.
+// In a real scenario, we'd add `WHERE project_id IN (SELECT id FROM projects WHERE user_id = ?)`
+// based on the authenticated user's projects.
 
 Response _getLogsHandler(Request req) {
   try {
-    // Pagination parameters
+    final userId = req.headers['x-user-id'];
+    if (userId == null) return Response.forbidden('Missing user context');
+
     final params = req.url.queryParameters;
+    final projectId = params['projectId'];
+
+    if (projectId == null) {
+      return Response.badRequest(body: 'Missing projectId');
+    }
+
+    // Verify project ownership
+    final projectCheck = _db.select(
+      'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+      [projectId, userId],
+    );
+    if (projectCheck.isEmpty) {
+      return Response.forbidden('Access denied to project');
+    }
+
     final page = int.tryParse(params['page'] ?? '1') ?? 1;
     final limit = int.tryParse(params['limit'] ?? '50') ?? 50;
     final offset = (page - 1) * limit;
-    final userId = params['userId']; // Optional user filter
+    final filterUserId = params['userId'];
 
-    // Build query with optional user filter
-    String query = 'SELECT * FROM logs';
-    List<Object?> queryParams = [];
+    String query = 'SELECT * FROM logs WHERE project_id = ?';
+    List<Object?> queryParams = [projectId];
 
-    if (userId != null && userId.isNotEmpty) {
-      query += ' WHERE user_id = ?';
-      queryParams.add(userId);
+    if (filterUserId != null && filterUserId.isNotEmpty) {
+      query += ' AND user_id = ?';
+      queryParams.add(filterUserId);
     }
 
     query += ' ORDER BY id DESC LIMIT ? OFFSET ?';
     queryParams.addAll([limit, offset]);
 
-    // Return logs in reverse chronological order (newest first)
-    final ResultSet results = _db.select(query, queryParams);
+    final results = _db.select(query, queryParams);
 
     final logs = results.map((row) {
       return {
@@ -98,6 +423,7 @@ Response _getLogsHandler(Request req) {
         'userName': row['user_name'],
         'userEmail': row['user_email'],
         'sessionId': row['session_id'],
+        'projectId': row['project_id'],
       };
     }).toList();
 
@@ -113,27 +439,47 @@ Response _getLogsHandler(Request req) {
 
 Response _getStatsHandler(Request req) {
   try {
-    // Calculate stats efficiently using SQL
-    final totalResult = _db.select('SELECT COUNT(*) as count FROM logs');
+    final userId = req.headers['x-user-id'];
+    if (userId == null) return Response.forbidden('Missing user context');
+
+    final projectId = req.url.queryParameters['projectId'];
+    if (projectId == null)
+      return Response.badRequest(body: 'Missing projectId');
+
+    // Verify ownership
+    final projectCheck = _db.select(
+      'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+      [projectId, userId],
+    );
+    if (projectCheck.isEmpty) return Response.forbidden('Access denied');
+
+    final totalResult = _db.select(
+      'SELECT COUNT(*) as count FROM logs WHERE project_id = ?',
+      [projectId],
+    );
     final total = totalResult.first['count'] as int;
 
     final errorResult = _db.select(
-      "SELECT COUNT(*) as count FROM logs WHERE level IN ('error', 'fatal')",
+      "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND level IN ('error', 'fatal')",
+      [projectId],
     );
     final errorCount = errorResult.first['count'] as int;
 
     final warningResult = _db.select(
-      "SELECT COUNT(*) as count FROM logs WHERE level = 'warning'",
+      "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND level = 'warning'",
+      [projectId],
     );
     final warningCount = warningResult.first['count'] as int;
 
     final eventResult = _db.select(
-      "SELECT COUNT(*) as count FROM logs WHERE type IN ('event', 'analytics')",
+      "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND type IN ('event', 'analytics')",
+      [projectId],
     );
     final eventCount = eventResult.first['count'] as int;
 
     final performanceResult = _db.select(
-      "SELECT COUNT(*) as count FROM logs WHERE type = 'performance'",
+      "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND type = 'performance'",
+      [projectId],
     );
     final performanceCount = performanceResult.first['count'] as int;
 
@@ -155,123 +501,7 @@ Response _getStatsHandler(Request req) {
   }
 }
 
-
-
-Future<Response> _postLogsHandler(Request req) async {
-  try {
-    final payload = await req.readAsString();
-    final List<dynamic> events = jsonDecode(payload);
-    
-    final stmt = _db.prepare(
-      'INSERT INTO logs (type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name, user_email, session_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    );
-
-    int saved = 0;
-    int duplicates = 0;
-
-    for (var event in events) {
-      if (event is Map<String, dynamic>) {
-        // Normalize and validate level
-        String level = event['level'] ?? 'info';
-        if (!validLogLevels.contains(level.toLowerCase())) {
-          print('Warning: Invalid log level "$level", defaulting to "info"');
-          level = 'info';
-        }
-
-        // Normalize and validate type (with legacy support)
-        String type = event['type'] ?? 'general';
-        final typeLower = type.toLowerCase();
-        if (!validLogTypes.contains(typeLower)) {
-          print('Warning: Invalid log type "$type", defaulting to "general"');
-          type = 'general';
-        } else {
-          // Map legacy values
-          if (typeLower == 'log' ||
-              typeLower == 'error' ||
-              typeLower == 'errorr') {
-            type = 'general';
-            print('Info: Mapping legacy type "${event['type']}" to "general"');
-          }
-        }
-
-        // Check for duplicates
-        final hash = _hashLogEvent(event);
-        final lastSeen = _recentLogs[hash];
-        final now = DateTime.now();
-
-        if (lastSeen != null &&
-            now.difference(lastSeen).inSeconds < dedupeWindowSeconds) {
-          duplicates++;
-          continue; // Skip duplicate
-        }
-
-        stmt.execute([
-          type,
-          level,
-          event['message'] ?? '',
-          event['timestamp'] ?? DateTime.now().toIso8601String(),
-          event['stackTrace'], // Can be null
-          event['metadata'] != null ? jsonEncode(event['metadata']) : null,
-          event['device'] != null ? jsonEncode(event['device']) : null,
-          DateTime.now().toIso8601String(),
-          event['userId'], // Can be null
-          event['userName'], // Can be null
-          event['userEmail'], // Can be null
-          event['sessionId'], // Can be null
-        ]);
-        
-        _recentLogs[hash] = now;
-        saved++;
-      }
-    }
-    stmt.dispose();
-
-    print('Saved $saved logs, dropped $duplicates duplicates');
-    return Response.ok(
-      jsonEncode({
-        'status': 'success',
-        'saved': saved,
-        'duplicates': duplicates,
-        'total': events.length,
-      }),
-    );
-  } catch (e) {
-    print('Error processing logs: $e');
-    return Response.internalServerError(body: 'Error processing logs');
-  }
-}
-
-// ===== User Analytics Handlers =====
-
 // Get all unique users
-Response _getUsersHandler(Request req) {
-  try {
-    final results = _db.select('''
-      SELECT DISTINCT user_id, user_name, user_email, MAX(received_at) as last_seen, COUNT(*) as log_count
-      FROM logs
-      WHERE user_id IS NOT NULL
-      GROUP BY user_id
-      ORDER BY last_seen DESC
-    ''');
-
-    final users = results
-        .map(
-          (row) => {
-            'userId': row['user_id'],
-            'userName': row['user_name'],
-            'userEmail': row['user_email'],
-            'lastSeen': row['last_seen'],
-            'logCount': row['log_count'],
-          },
-        )
-        .toList();
-
-    return Response.ok(jsonEncode(users));
-  } catch (e) {
-    print('Error fetching users: $e');
-    return Response.internalServerError(body: 'Error fetching users');
-  }
-}
 
 // Get logs for a specific user
 Response _getUserLogsHandler(Request req, String userId) {
@@ -307,6 +537,7 @@ Response _getUserLogsHandler(Request req, String userId) {
             'userName': row['user_name'],
             'userEmail': row['user_email'],
             'sessionId': row['session_id'],
+            'projectId': row['project_id'],
           },
         )
         .toList();
@@ -471,6 +702,7 @@ Response _getSessionLogsHandler(Request req, String sessionId) {
             'stackTrace': row['stack_trace'],
             'userId': row['user_id'],
             'sessionId': row['session_id'],
+            'projectId': row['project_id'],
           },
         )
         .toList();
@@ -483,215 +715,142 @@ Response _getSessionLogsHandler(Request req, String sessionId) {
   }
 }
 
-// Generate hash for log event deduplication
-String _hashLogEvent(Map<String, dynamic> event) {
-  final key = '${event['message']}_${event['level']}_${event['stackTrace']}';
-  return key.hashCode.toString();
-}
-
-// Start periodic cleanup timer
-void _startCleanupTimer() {
-  Timer.periodic(const Duration(minutes: 1), (_) {
-    final now = DateTime.now();
-
-    // Clean request timestamps
-    _requestTimestamps.removeWhere((ip, timestamps) {
-      timestamps.removeWhere((t) => now.difference(t).inMinutes >= 1);
-      return timestamps.isEmpty;
-    });
-
-    // Clean recent logs cache
-    _recentLogs.removeWhere(
-      (hash, time) => now.difference(time).inSeconds > dedupeWindowSeconds,
-    );
-
-    if (_requestTimestamps.isNotEmpty || _recentLogs.isNotEmpty) {
-      print(
-        'Cleanup: ${_requestTimestamps.length} IPs tracked, ${_recentLogs.length} cached log hashes',
-      );
-    }
-  });
-}
-
-// Manual CORS Middleware
-Middleware corsHeaders() {
-  return (Handler handler) {
-    return (Request request) async {
-      if (request.method == 'OPTIONS') {
-        return Response.ok('', headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token, x-api-key',
-        });
-      }
-      final response = await handler(request);
-      return response.change(headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token, x-api-key',
-      });
-    };
-  };
-}
-
 // Analytics Handlers
 
 Response _getAnalyticsSummaryHandler(Request req) {
   try {
-    final params = req.url.queryParameters;
-    final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
+    final userId = req.headers['x-user-id'];
+    if (userId == null) return Response.forbidden('Missing user context');
+
+    final projectId = req.url.queryParameters['projectId'];
+    if (projectId == null)
+      return Response.badRequest(body: 'Missing projectId');
+
+    // Verify ownership
+    final projectCheck = _db.select(
+      'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+      [projectId, userId],
+    );
+    if (projectCheck.isEmpty) return Response.forbidden('Access denied');
+
     final now = DateTime.now();
-    final startTime = now.subtract(Duration(hours: hours));
-    final previousStartTime = startTime.subtract(Duration(hours: hours));
+    final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+    
+    final todayLogsResult = _db.select(
+      'SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND timestamp >= ?',
+      [projectId, todayStart],
+    );
+    final todayLogs = todayLogsResult.first['count'] as int;
 
-    // Total logs in current period
-    final currentLogs =
-        _db.select('SELECT COUNT(*) as count FROM logs WHERE timestamp >= ?', [
-              startTime.toIso8601String(),
-            ]).first['count']
-            as int;
+    final todayErrorsResult = _db.select(
+      "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND timestamp >= ? AND level IN ('error', 'fatal')",
+      [projectId, todayStart],
+    );
+    final todayErrors = todayErrorsResult.first['count'] as int;
 
-    // Total logs in previous period (for trend)
-    final previousLogs =
-        _db.select(
-              'SELECT COUNT(*) as count FROM logs WHERE timestamp >= ? AND timestamp < ?',
-              [
-                previousStartTime.toIso8601String(),
-                startTime.toIso8601String(),
-              ],
-            ).first['count']
-            as int;
-
-    // Error count
-    final errorCount =
-        _db.select(
-              'SELECT COUNT(*) as count FROM logs WHERE level IN (?, ?) AND timestamp >= ?',
-              ['error', 'fatal', startTime.toIso8601String()],
-            ).first['count']
-            as int;
-
-    // Error rate
-    final errorRate = currentLogs > 0 ? (errorCount / currentLogs * 100) : 0.0;
-
-    // Active sessions
-    final activeSessions =
-        _db.select(
-              'SELECT COUNT(DISTINCT session_id) as count FROM logs WHERE timestamp >= ?',
-              [startTime.toIso8601String()],
-            ).first['count']
-            as int;
-
-    // Active users
-    final activeUsers =
-        _db.select(
-              'SELECT COUNT(DISTINCT user_id) as count FROM logs WHERE timestamp >= ? AND user_id IS NOT NULL',
-              [startTime.toIso8601String()],
-            ).first['count']
-            as int;
-
-    // Calculate trend
-    final logsTrend = previousLogs > 0
-        ? ((currentLogs - previousLogs) / previousLogs * 100).round()
-        : 0;
+    final activeUsersResult = _db.select(
+      'SELECT COUNT(DISTINCT user_id) as count FROM logs WHERE project_id = ? AND timestamp >= ? AND user_id IS NOT NULL',
+      [projectId, todayStart],
+    );
+    final activeUsers = activeUsersResult.first['count'] as int;
 
     return Response.ok(
       jsonEncode({
-        'totalLogs': currentLogs,
-        'errorCount': errorCount,
-        'errorRate': errorRate.toStringAsFixed(2),
-        'activeSessions': activeSessions,
+        'todayLogs': todayLogs,
+        'todayErrors': todayErrors,
         'activeUsers': activeUsers,
-        'logsTrend': logsTrend, // positive = increase, negative = decrease
       }),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'content-type': 'application/json'},
     );
   } catch (e) {
-    return Response.internalServerError(body: 'Error: $e');
+    print('Error fetching analytics summary: $e');
+    return Response.internalServerError(
+      body: 'Error fetching analytics summary',
+    );
   }
 }
 
 Response _getLogsTimelineHandler(Request req) {
   try {
-    final params = req.url.queryParameters;
-    final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
-    final now = DateTime.now();
-    final startTime = now.subtract(Duration(hours: hours));
+    final userId = req.headers['x-user-id'];
+    if (userId == null) return Response.forbidden('Missing user context');
 
-    // Group by hour for 24h, by 4 hours for 7d, by day for 30d
-    final intervalHours = hours <= 24
-        ? 1
-        : hours <= 168
-        ? 4
-        : 24;
+    final projectId = req.url.queryParameters['projectId'];
+    if (projectId == null)
+      return Response.badRequest(body: 'Missing projectId');
+
+    // Verify ownership
+    final projectCheck = _db.select(
+      'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+      [projectId, userId],
+    );
+    if (projectCheck.isEmpty) return Response.forbidden('Access denied');
+
+    // Group by hour for the last 24 hours
+    final now = DateTime.now();
+    final twentyFourHoursAgo = now
+        .subtract(Duration(hours: 24))
+        .toIso8601String();
 
     final results = _db.select(
       '''
       SELECT 
-        strftime('%Y-%m-%dT%H:00:00', timestamp) as time_bucket,
-        level,
+        strftime('%Y-%m-%dT%H:00:00', timestamp) as hour,
         COUNT(*) as count
-      FROM logs
-      WHERE timestamp >= ?
-      GROUP BY time_bucket, level
-      ORDER BY time_bucket ASC
-    ''',
-      [startTime.toIso8601String()],
+      FROM logs 
+      WHERE project_id = ? AND timestamp >= ?
+      GROUP BY hour
+      ORDER BY hour ASC
+      ''',
+      [projectId, twentyFourHoursAgo],
     );
 
-    // Group by time bucket
-    final Map<String, Map<String, int>> timeline = {};
-    for (final row in results) {
-      final bucket = row['time_bucket'] as String;
-      final level = row['level'] as String;
-      final count = row['count'] as int;
-
-      if (!timeline.containsKey(bucket)) {
-        timeline[bucket] = {};
-      }
-      timeline[bucket]![level] = count;
-    }
-
-    final timelineData = timeline.entries.map((entry) {
-      return {'timestamp': entry.key, 'counts': entry.value};
+    final timeline = results
+        .map((row) => {'time': row['hour'], 'count': row['count'],
     }).toList();
 
     return Response.ok(
-      jsonEncode(timelineData),
-      headers: {'Content-Type': 'application/json'},
+      jsonEncode(timeline),
+      headers: {'content-type': 'application/json'},
     );
   } catch (e) {
-    return Response.internalServerError(body: 'Error: $e');
+    print('Error fetching timeline: $e');
+    return Response.internalServerError(body: 'Error fetching timeline');
   }
 }
 
 Response _getLogLevelsHandler(Request req) {
   try {
-    final params = req.url.queryParameters;
-    final hours = int.tryParse(params['hours'] ?? '24') ?? 24;
-    final now = DateTime.now();
-    final startTime = now.subtract(Duration(hours: hours));
+    final userId = req.headers['x-user-id'];
+    if (userId == null) return Response.forbidden('Missing user context');
+
+    final projectId = req.url.queryParameters['projectId'];
+    if (projectId == null)
+      return Response.badRequest(body: 'Missing projectId');
+
+    // Verify ownership
+    final projectCheck = _db.select(
+      'SELECT id FROM projects WHERE id = ? AND user_id = ?',
+      [projectId, userId],
+    );
+    if (projectCheck.isEmpty) return Response.forbidden('Access denied');
 
     final results = _db.select(
-      '''
-      SELECT level, COUNT(*) as count
-      FROM logs
-      WHERE timestamp >= ?
-      GROUP BY level
-      ORDER BY count DESC
-    ''',
-      [startTime.toIso8601String()],
+      'SELECT level, COUNT(*) as count FROM logs WHERE project_id = ? GROUP BY level',
+      [projectId]
     );
 
-    final distribution = results.map((row) {
-      return {'level': row['level'], 'count': row['count']};
+    final levels = results
+        .map((row) => {'level': row['level'], 'count': row['count'],
     }).toList();
 
     return Response.ok(
-      jsonEncode(distribution),
-      headers: {'Content-Type': 'application/json'},
+      jsonEncode(levels),
+      headers: {'content-type': 'application/json'},
     );
   } catch (e) {
-    return Response.internalServerError(body: 'Error: $e');
+    print('Error fetching log levels: $e');
+    return Response.internalServerError(body: 'Error fetching log levels');
   }
 }
 
@@ -779,14 +938,109 @@ Response _getActiveUsersHandler(Request req) {
   }
 }
 
+// ===== UTILS =====
+
+String _generateUuid() {
+  return DateTime.now().millisecondsSinceEpoch.toString() +
+      Random().nextInt(10000).toString();
+}
+
+String _generateApiKey() {
+  final bytes = List<int>.generate(32, (_) => Random().nextInt(255));
+  return base64Url.encode(bytes);
+}
+
+// Generate hash for log event deduplication
+String _hashLogEvent(Map<String, dynamic> event) {
+  final key = '${event['message']}_${event['level']}_${event['stackTrace']}';
+  return key.hashCode.toString();
+}
+
+// Start periodic cleanup timer
+void startCleanupTimer() {
+  Timer.periodic(const Duration(minutes: 1), (_) {
+    final now = DateTime.now();
+
+    // Clean request timestamps
+    _requestTimestamps.removeWhere((_, timestamps) {
+      timestamps.removeWhere((t) => now.difference(t).inMinutes >= 1);
+      return timestamps.isEmpty;
+    });
+
+    // Clean recent logs cache
+    _recentLogs.removeWhere(
+      (hash, time) => now.difference(time).inSeconds > dedupeWindowSeconds,
+    );
+
+    if (_requestTimestamps.isNotEmpty || _recentLogs.isNotEmpty) {
+      print(
+        'Cleanup: ${_requestTimestamps.length} IPs tracked, ${_recentLogs.length} cached log hashes',
+      );
+    }
+  });
+}
+
+// Manual CORS Middleware
+Middleware corsHeaders() {
+  return (Handler handler) {
+    return (Request request) async {
+      if (request.method == 'OPTIONS') {
+        return Response.ok(
+          '',
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers':
+                'Origin, Content-Type, X-Auth-Token, x-api-key, x-user-id',
+          },
+        );
+      }
+      final response = await handler(request);
+      return response.change(
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers':
+              'Origin, Content-Type, X-Auth-Token, x-api-key, x-user-id',
+        },
+      );
+    };
+  };
+}
+
 void main(List<String> args) async {
   // Initialize Database
   _db = sqlite3.open('telling.db');
 
+  // 1. Users Table
+  _db.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE,
+      password_hash TEXT,
+      name TEXT,
+      created_at TEXT
+    )
+  ''');
+
+  // 2. Projects Table
+  _db.execute('''
+    CREATE TABLE IF NOT EXISTS projects (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      name TEXT,
+      api_key TEXT UNIQUE,
+      created_at TEXT,
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+  ''');
+
+  // 3. Logs Table (Updated)
   // Create table if not exists
   _db.execute('''
     CREATE TABLE IF NOT EXISTS logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id TEXT,
       type TEXT,
       level TEXT,
       message TEXT,
@@ -798,11 +1052,14 @@ void main(List<String> args) async {
       user_id TEXT,
       user_name TEXT,
       user_email TEXT,
-      session_id TEXT
+      session_id TEXT,
+      FOREIGN KEY(project_id) REFERENCES projects(id)
     );
   ''');
   
   // Migrate existing table if columns don't exist
+  // These ALTER TABLE statements are now redundant if the CREATE TABLE IF NOT EXISTS
+  // for logs already includes them, but keeping them for robustness against older schemas.
   try {
     _db.execute('ALTER TABLE logs ADD COLUMN user_id TEXT');
     print('Added user_id column');
@@ -834,11 +1091,11 @@ void main(List<String> args) async {
   print('Database initialized: telling.db');
 
   // Use any available host or container IP (usually `0.0.0.0`).
-  final ip = InternetAddress.anyIPv4;
+
 
   // Configure a pipeline that logs requests and adds CORS headers.
   // Start cleanup timer for rate limiting caches
-  _startCleanupTimer();
+  startCleanupTimer();
   print(
     'Rate limiting enabled: $maxRequestsPerMinute req/min, ${dedupeWindowSeconds}s deduplication',
   );

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../models/log_model/log_model.dart';
 import '../repositories/logs_repository.dart';
+import 'auth_provider.dart';
+import 'project_provider.dart';
 
 // Repository provider
 final logsRepositoryProvider = Provider<LogsRepository>((ref) {
@@ -27,6 +29,9 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
   
   @override
   Future<List<LogModel>> build() async {
+    // Watch project provider to refetch when project changes
+    ref.watch(projectProvider);
+    
     // Start auto-polling
     _startPolling();
     
@@ -52,11 +57,20 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
   }
 
   Future<List<LogModel>> _fetchLogs() async {
+    final authState = ref.read(authProvider);
+    final projectState = ref.read(projectProvider);
+
+    if (authState.user == null || projectState.selectedProject == null) {
+      return [];
+    }
+
     final repository = ref.read(logsRepositoryProvider);
     final logs = await repository.fetchLogs(
       page: _page,
       limit: _limit,
       userId: _userId,
+      authenticatedUserId: authState.user!.id,
+      projectId: projectState.selectedProject!.id,
     );
 
     // Update hasMore flag
@@ -153,7 +167,12 @@ final sessionsProvider = FutureProvider<List<Map<String, dynamic>>>((
   final repository = ref.watch(logsRepositoryProvider);
   // Re-fetch when polling interval triggers (optional, but good for live updates)
   ref.watch(pollingIntervalProvider);
-  return repository.fetchSessions();
+  
+  // Watch project changes
+  final projectState = ref.watch(projectProvider);
+  if (projectState.selectedProject == null) return [];
+
+  return repository.fetchSessions(limit: 50, offset: 0);
 });
 
 // Session logs provider

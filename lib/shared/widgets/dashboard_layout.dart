@@ -4,6 +4,7 @@ import '../../core/utils/responsive.dart';
 import 'military_decorations.dart';
 import 'sidebar_nav.dart';
 import 'bottom_nav.dart';
+import '../../features/projects/widgets/project_selector.dart';
 
 class DashboardLayout extends StatelessWidget {
   final Widget child;
@@ -52,6 +53,13 @@ class DashboardLayout extends StatelessWidget {
                   SafeArea(
                     child: Column(
                       children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [const ProjectSelector()],
+                          ),
+                        ),
                         if (header != null) header!,
                         Expanded(child: child),
                       ],

@@ -1,25 +1,59 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
+import '../../features/auth/login_screen.dart';
+import '../../features/auth/register_screen.dart';
 import '../../features/overview/overview_screen.dart';
 import '../../features/logs/logs_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
 import '../../features/users/users_screen.dart';
 import '../../features/users/user_details_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/projects/project_settings_screen.dart';
+import '../../features/projects/projects_screen.dart';
 import '../../shared/widgets/dashboard_layout.dart';
+import '../providers/auth_provider.dart';
+import '../providers/project_provider.dart';
 
-class AppRouter {
-  static final _rootNavigatorKey = GlobalKey<NavigatorState>();
-  static final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authProvider);
+  final projectState = ref.watch(projectProvider);
 
-  static final router = GoRouter(
-    navigatorKey: _rootNavigatorKey,
+  return GoRouter(
     initialLocation: '/',
     observers: [Telling.instance.goRouterScreenTracker],
+    redirect: (context, state) {
+      final isLoggedIn = authState.isAuthenticated;
+      final hasSelectedProject = projectState.selectedProject != null;
+      final isLoggingIn =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/register';
+      final isOnProjectsScreen = state.matchedLocation == '/projects';
+
+      // Not logged in? Go to login
+      if (!isLoggedIn && !isLoggingIn) return '/login';
+
+      // Logged in but on auth screens? Go to projects
+      if (isLoggedIn && isLoggingIn) return '/projects';
+
+      // Logged in but no project selected and not on projects screen? Force project selection
+      if (isLoggedIn && !hasSelectedProject && !isOnProjectsScreen)
+        return '/projects';
+
+      return null;
+    },
     routes: [
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      // Projects Selection Screen (No Dashboard Layout)
+      GoRoute(
+        path: '/projects',
+        builder: (context, state) => const ProjectsScreen(),
+      ),
       ShellRoute(
-        navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) {
           return DashboardLayout(
             currentRoute: state.matchedLocation,
@@ -67,8 +101,14 @@ class AppRouter {
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const SettingsScreen()),
           ),
+          GoRoute(
+            path: '/projects/settings',
+            name: 'project_settings',
+            pageBuilder: (context, state) =>
+                NoTransitionPage(child: const ProjectSettingsScreen()),
+          ),
         ],
       ),
     ],
   );
-}
+});

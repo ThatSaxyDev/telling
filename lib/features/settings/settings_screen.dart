@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/app_button.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/providers/project_provider.dart';
+import './widgets/api_key_display.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 600;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -31,6 +37,84 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 32),
+
+          // Account Section
+          MilitaryHoverContainer(
+            baseColor: AppColors.surfaceDark,
+            showGrid: false,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.account_circle,
+                        color: AppColors.secondary,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'ACCOUNT',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  AppButton(
+                    text: 'LOGOUT',
+                    icon: Icons.logout,
+                    onPressed: () {
+                      ref.read(authProvider.notifier).logout();
+                      ref.read(projectProvider.notifier).reset();
+                      context.go('/login');
+                    },
+                    backgroundColor: AppColors.error.withOpacity(0.1),
+                    borderColor: AppColors.error,
+                    foregroundColor: AppColors.error,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // API Key Section
+          MilitaryHoverContainer(
+            baseColor: AppColors.surfaceDark,
+            showGrid: false,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.key, color: AppColors.secondary),
+                      const SizedBox(width: 12),
+                      Text(
+                        'API KEY',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const ApiKeyDisplay(),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
 
           // Log Generator Section
           MilitaryHoverContainer(
@@ -78,7 +162,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'Debug signal initiated',
                             level: LogLevel.debug,
-                            type: LogType.event, // Event type for app events
+                            type: LogType.event,
                           );
                         },
                       ),
@@ -102,8 +186,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'Resource usage high',
                             level: LogLevel.warning,
-                            type: LogType
-                                .performance, // Performance type for resource warnings
+                            type: LogType.performance,
                             metadata: {'cpu_usage': '85%', 'memory': '1.2GB'},
                           );
                         },
@@ -119,8 +202,7 @@ class SettingsScreen extends StatelessWidget {
                             Telling.instance.log(
                               'Connection failed',
                               level: LogLevel.error,
-                              type: LogType
-                                  .exception, // Exception type for caught errors
+                              type: LogType.exception,
                               error: e,
                               stackTrace: stack,
                               metadata: {
@@ -138,7 +220,7 @@ class SettingsScreen extends StatelessWidget {
                           Telling.instance.log(
                             'CRITICAL SYSTEM FAILURE',
                             level: LogLevel.fatal,
-                            type: LogType.crash, // Crash type for fatal errors
+                            type: LogType.crash,
                             metadata: {'code': '0xDEADBEEF'},
                           );
                         },
@@ -195,9 +277,7 @@ class SettingsScreen extends StatelessWidget {
                         label: 'FORCE CRASH',
                         color: AppColors.error,
                         icon: Icons.flash_on,
-                        // isOutlined: true,
                         onPressed: () {
-                          // This will be caught by the global error handler if enabled
                           throw StateError(
                             'Forced application crash for testing',
                           );

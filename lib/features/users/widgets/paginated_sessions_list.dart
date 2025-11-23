@@ -230,7 +230,7 @@ class _SessionCard extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.slate,
                 fontSize: 10,
-                fontFamily: 'monospace',
+                fontFamily: 'Urbanist',
               ),
             ),
           ],
