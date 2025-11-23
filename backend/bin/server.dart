@@ -85,13 +85,15 @@ void main(List<String> args) async {
   );
 
   // Create the server handler with CORS and Auth middleware
+  // Create the server handler with CORS, Auth, and Logging middleware
   final handler = Pipeline()
+      .addMiddleware(logRequests())
       .addMiddleware(corsHeaders())
       .addMiddleware(authMiddleware())
       .addHandler(_router.call);
 
   // Start the server
-  final port = int.parse(Platform.environment['PORT'] ?? '8080');
+  final port = int.tryParse(Platform.environment['PORT'] ?? '8080') ?? 8080;
   final server = await serve(handler, InternetAddress.anyIPv4, port);
   print('Serving at http://${server.address.host}:${server.port}');
 }
