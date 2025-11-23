@@ -11,7 +11,6 @@ void main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Initialize SDK anonymously (user context set after login)
       await Telling.instance.init(
         'xVlOMY2rP03dYrSoutSiGe_rRPM64Q7sKjxSlhZeHJg=',
       );
