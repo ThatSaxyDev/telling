@@ -117,7 +117,7 @@ class SettingsScreen extends ConsumerWidget {
           if (kDebugMode) const SizedBox(height: 24),
 
           // Log Generator Section
-          if (!kDebugMode)
+          if (kDebugMode)
             MilitaryHoverContainer(
               baseColor: AppColors.surfaceDark,
               showGrid: false,
