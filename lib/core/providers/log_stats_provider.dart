@@ -94,6 +94,7 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
 }
 
 // Provider for log statistics
-final logStatsProvider = AsyncNotifierProvider<LogStatsNotifier, LogStats>(() {
+final logStatsProvider =
+    AsyncNotifierProvider.autoDispose<LogStatsNotifier, LogStats>(() {
   return LogStatsNotifier();
 });

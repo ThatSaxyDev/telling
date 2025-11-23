@@ -139,14 +139,15 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
 }
 
 // Provider for logs with auto-polling
-final logsProvider = AsyncNotifierProvider<LogsNotifier, List<LogModel>>(() {
+final logsProvider =
+    AsyncNotifierProvider.autoDispose<LogsNotifier, List<LogModel>>(() {
   return LogsNotifier();
 });
 
 // Polling interval provider (configurable)
 class PollingIntervalNotifier extends Notifier<Duration> {
   @override
-  Duration build() => const Duration(seconds: 2);
+  Duration build() => const Duration(seconds: 30);
   void set(Duration duration) => state = duration;
 }
 
