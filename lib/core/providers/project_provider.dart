@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/project.dart';
 import 'auth_provider.dart';
 import '../services/api_client.dart';
+import '../config/api_config.dart';
 
 class ProjectState {
   final List<Project> projects;
@@ -33,7 +34,7 @@ class ProjectState {
 }
 
 class ProjectNotifier extends Notifier<ProjectState> {
-  static const _baseUrl = 'http://localhost:8080/api/v1/projects';
+  static const _baseUrl = ApiConfig.projectsPath;
 
   @override
   ProjectState build() {

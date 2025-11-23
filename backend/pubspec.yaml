@@ -7,10 +7,12 @@ environment:
   sdk: ^3.9.2
 
 dependencies:
+  crypto: ^3.0.7
   dart_jsonwebtoken: ^3.3.1
   shelf: ^1.4.2
   shelf_router: ^1.1.2
   sqlite3: ^2.9.4
+  sqlite_async: ^0.13.0
 
 dev_dependencies:
   http: ^1.2.2

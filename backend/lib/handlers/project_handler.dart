@@ -7,11 +7,13 @@ import '../utils/helpers.dart';
 class ProjectHandler {
   final _db = DatabaseService().db;
 
-  Response getUserProjectsHandler(Request req) {
+  Future<Response> getUserProjectsHandler(Request req) async {
     final userId = req.context['userId'] as String?;
     if (userId == null) return Response.forbidden('Missing user context');
 
-    final results = _db.select('SELECT * FROM projects WHERE user_id = ?', [
+    final results = await _db.getAll(
+      'SELECT * FROM projects WHERE user_id = ?',
+      [
       userId,
     ]);
 
@@ -34,7 +36,7 @@ class ProjectHandler {
     if (userId == null) return Response.forbidden('Missing user context');
 
     // Check project limit (Max 3)
-    final countResult = _db.select(
+    final countResult = await _db.getAll(
       'SELECT COUNT(*) as count FROM projects WHERE user_id = ?',
       [userId],
     );
@@ -52,7 +54,7 @@ class ProjectHandler {
     final apiKey = generateApiKey();
     final createdAt = DateTime.now().toIso8601String();
 
-    _db.execute(
+    await _db.execute(
       'INSERT INTO projects (id, user_id, name, api_key, created_at) VALUES (?, ?, ?, ?, ?)',
       [projectId, userId, name, apiKey, createdAt],
     );
@@ -72,7 +74,7 @@ class ProjectHandler {
     if (userId == null) return Response.forbidden('Missing user context');
 
     // Verify ownership
-    final project = _db.select(
+    final project = await _db.getAll(
       'SELECT id FROM projects WHERE id = ? AND user_id = ?',
       [projectId, userId],
     );
@@ -80,20 +82,23 @@ class ProjectHandler {
     if (project.isEmpty) return Response.forbidden('Access denied');
 
     // Delete logs first (if no cascade)
-    _db.execute('DELETE FROM logs WHERE project_id = ?', [projectId]);
+    await _db.execute('DELETE FROM logs WHERE project_id = ?', [projectId]);
 
     // Delete project
-    _db.execute('DELETE FROM projects WHERE id = ?', [projectId]);
+    await _db.execute('DELETE FROM projects WHERE id = ?', [projectId]);
 
     return Response.ok(jsonEncode({'success': true}));
   }
 
-  Response regenerateApiKeyHandler(Request req, String projectId) {
+  Future<Response> regenerateApiKeyHandler(
+    Request req,
+    String projectId,
+  ) async {
     final userId = req.context['userId'] as String?;
     if (userId == null) return Response.forbidden('Missing user context');
 
     // Verify ownership
-    final project = _db.select(
+    final project = await _db.getAll(
       'SELECT id FROM projects WHERE id = ? AND user_id = ?',
       [projectId, userId],
     );
@@ -101,7 +106,7 @@ class ProjectHandler {
     if (project.isEmpty) return Response.forbidden('Access denied');
 
     final newKey = generateApiKey();
-    _db.execute('UPDATE projects SET api_key = ? WHERE id = ?', [
+    await _db.execute('UPDATE projects SET api_key = ? WHERE id = ?', [
       newKey,
       projectId,
     ]);

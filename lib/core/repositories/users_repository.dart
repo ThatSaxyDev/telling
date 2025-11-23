@@ -2,21 +2,20 @@ import 'dart:convert';
 import '../services/api_client.dart';
 import '../models/user.dart';
 import '../models/log_entry.dart';
+import '../config/api_config.dart';
 
 class UsersRepository {
-  final ApiClient _client;
   final String baseUrl;
+  final ApiClient _client;
 
-  UsersRepository(
-    this._client, {
-    this.baseUrl = 'http://localhost:8080/api/v1',
+  UsersRepository(this._client, {this.baseUrl = ApiConfig.baseUrl,
   });
 
   Future<List<User>> getUsers({
     required String projectId,
   }) async {
     try {
-      // Note: x-user-id is no longer needed as it's extracted from the JWT token
+  
       final response = await _client.get(
         Uri.parse('$baseUrl/users?projectId=$projectId'),
       );

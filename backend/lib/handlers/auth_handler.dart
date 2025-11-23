@@ -31,7 +31,9 @@ class AuthHandler {
       }
 
       // Check if user exists
-      final existing = _db.select('SELECT id FROM users WHERE email = ?', [
+      final existing = await _db.getAll(
+        'SELECT id FROM users WHERE email = ?',
+        [
         email,
       ]);
       if (existing.isNotEmpty) {
@@ -43,7 +45,7 @@ class AuthHandler {
       final passwordHash = sha256.convert(utf8.encode(password)).toString();
       final userId = generateUuid();
 
-      _db.execute(
+      await _db.execute(
         'INSERT INTO users (id, email, password_hash, name, created_at) VALUES (?, ?, ?, ?, ?)',
         [userId, email, passwordHash, name, DateTime.now().toIso8601String()],
       );
@@ -51,7 +53,7 @@ class AuthHandler {
       // Create default project
       // final projectId = generateUuid();
       // final apiKey = generateApiKey();
-      // _db.execute(
+      // await _db.execute(
       //   'INSERT INTO projects (id, user_id, name, api_key, created_at) VALUES (?, ?, ?, ?, ?)',
       //   [
       //     projectId,
@@ -88,7 +90,7 @@ class AuthHandler {
       }
 
       final passwordHash = sha256.convert(utf8.encode(password)).toString();
-      final results = _db.select(
+      final results = await _db.getAll(
         'SELECT id, name FROM users WHERE email = ? AND password_hash = ?',
         [email, passwordHash],
       );

@@ -1,13 +1,14 @@
 import 'dart:convert';
 import '../services/api_client.dart';
 import '../models/log_model/log_model.dart';
+import '../config/api_config.dart'; // Added this import
 
 class LogsRepository {
   final String baseUrl;
-  final ApiClient _client;
+  final ApiClient _client; // Kept original type, as instruction was about URLs
 
   LogsRepository(this._client, {
-    this.baseUrl = 'http://localhost:8080/api/v1',
+    this.baseUrl = ApiConfig.baseUrl, // Changed this line
   });
 
   /// Fetch logs from the API with pagination and optional user filter

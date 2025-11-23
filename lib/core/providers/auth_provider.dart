@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../models/auth_user.dart';
+import '../config/api_config.dart';
 
 class AuthState {
   final AuthUser? user;
@@ -42,7 +43,7 @@ class AuthNotifier extends Notifier<AuthState> {
     return AuthState();
   }
 
-  static const _baseUrl = 'http://localhost:8080/api/v1/auth';
+  static const _baseUrl = ApiConfig.authPath;
 
   Future<void> _checkSession() async {
     final prefs = await SharedPreferences.getInstance();

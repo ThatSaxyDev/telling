@@ -74,8 +74,8 @@ void startCleanupTimer() {
 
 void main(List<String> args) async {
   // Initialize Database
-  final dbPath = Platform.environment['DB_PATH'] ?? 'telling.db';
-  DatabaseService().init(dbPath);
+  final dbPath = Platform.environment['DB_PATH'] ?? 'dramatic-alb.db';
+  await DatabaseService().init(dbPath);
   
   print('Database initialized: $dbPath');
 

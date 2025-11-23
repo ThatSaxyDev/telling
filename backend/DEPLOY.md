@@ -1,32 +1,34 @@
 # Deployment Guide for Telling Backend
 
-## 1. Initial Deployment
-Run the deploy command to create your project on Globe:
+## 1. Deploy to Globe
+Run the deploy command:
 ```bash
+cd backend
 globe deploy
 ```
-*   Follow the prompts to create a new project (e.g., name it `telling-backend`).
-*   **Note:** This first deployment will use a temporary database. Any data created now will be lost until we set up the volume.
 
-## 2. Set Up Persistence (Globe Volume)
-Since the Globe CLI doesn't support volume management yet, you must do this in the dashboard.
+Follow the prompts to create your project (e.g., name it `telling-backend`).
 
-1.  **Open Dashboard:** Go to [https://globe.dev/dashboard](https://globe.dev/dashboard) and open your new project.
-2.  **Create Volume:**
-    *   Navigate to **Settings** > **Volumes** (or similar storage section).
-    *   Create a new volume.
-    *   **Mount Path:** `/data`
-    *   **Name:** `telling-data` (or any name you prefer).
-3.  **Verify Environment Variable:**
-    *   I have created a `globe.yaml` that sets `DB_PATH` to `/data/telling.db`.
-    *   Check **Settings** > **Environment Variables** in the dashboard to ensure `DB_PATH` is set to `/data/telling.db`. If not, add it manually.
+## 2. Database Persistence
+Your backend uses SQLite with the `sqlite_async` package.
 
-## 3. Redeploy
-Once the volume is mounted and the environment variable is set:
-```bash
-globe deploy
-```
-Now your database will be stored in `/data/telling.db`, which lives on the persistent volume. Your users and logs will survive restarts and redeployments!
+> [!IMPORTANT]
+> **Data Persistence**: By default, the database file will be stored in the container's filesystem. Data will persist across restarts but will be reset on redeployment. 
+>
+> To enable permanent persistence, add a **Volume** in the Globe Dashboard:
+> 1. Go to your project Settings → Volumes
+> 2. Create a volume mounted to `/data`
+> 3. The `DB_PATH` environment variable (already set in `globe.yaml`) will use `/data/telling.db`
+
+## 3. Environment Variables
+The `globe.yaml` file already configures:
+- `DB_PATH=/data/telling.db` (uses volume if mounted, otherwise uses container filesystem)
+
+## 4. Future: PostgreSQL Migration
+For production scale, consider migrating to PostgreSQL:
+1. Get a connection string from Supabase or Neon
+2. Set `DATABASE_URL` in Globe secrets
+3. Update code to use `postgres` package
 
 ## 4. Future: Switching to Postgres
 When you are ready to scale, we can switch to a hosted PostgreSQL database.

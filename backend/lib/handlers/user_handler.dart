@@ -5,7 +5,7 @@ import '../db/database.dart';
 class UserHandler {
   final _db = DatabaseService().db;
 
-  Response getActiveUsersHandler(Request req) {
+  Future<Response> getActiveUsersHandler(Request req) async {
     try {
       // Validate user context
       final userId = req.context['userId'] as String?;
@@ -18,7 +18,7 @@ class UserHandler {
       }
 
       // Verify project ownership
-      final project = _db.select(
+      final project = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, userId],
       );
@@ -29,7 +29,7 @@ class UserHandler {
       final now = DateTime.now();
       final startTime = now.subtract(Duration(hours: hours));
 
-      final results = _db.select(
+      final results = await _db.getAll(
         '''
         SELECT 
           user_id,
@@ -65,7 +65,7 @@ class UserHandler {
     }
   }
 
-  Response getUserLogsHandler(Request req, String userId) {
+  Future<Response> getUserLogsHandler(Request req, String userId) async {
     // Note: userId here is the target user ID (the one whose logs we want),
     // NOT the authenticated admin user ID.
     // We need to verify that the authenticated admin owns the project that these logs belong to.
@@ -92,7 +92,7 @@ class UserHandler {
       }
 
       // Verify ownership
-      final project = _db.select(
+      final project = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, authUserId],
       );
@@ -102,7 +102,7 @@ class UserHandler {
           int.tryParse(req.url.queryParameters['limit'] ?? '100') ?? 100;
       final offset = int.tryParse(req.url.queryParameters['offset'] ?? '0') ?? 0;
 
-      final results = _db.select(
+      final results = await _db.getAll(
         '''
         SELECT * FROM logs
         WHERE user_id = ? AND project_id = ?
@@ -141,7 +141,7 @@ class UserHandler {
     }
   }
 
-  Response getUserStatsHandler(Request req, String userId) {
+  Future<Response> getUserStatsHandler(Request req, String userId) async {
     try {
       final authUserId = req.context['userId'] as String?;
       if (authUserId == null) return Response.forbidden('Missing user context');
@@ -151,31 +151,31 @@ class UserHandler {
         return Response.badRequest(body: 'Missing projectId');
 
       // Verify ownership
-      final project = _db.select(
+      final project = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, authUserId],
       );
       if (project.isEmpty) return Response.forbidden('Access denied');
 
-      final totalLogs = _db.select(
+      final totalLogs = (await _db.getAll(
         'SELECT COUNT(*) as count FROM logs WHERE user_id = ? AND project_id = ?',
         [userId, projectId],
-      ).first['count'];
+      )).first['count'];
 
-      final errorCount = _db.select(
+      final errorCount = (await _db.getAll(
         'SELECT COUNT(*) as count FROM logs WHERE user_id = ? AND project_id = ? AND (level = "error" OR level = "fatal")',
         [userId, projectId],
-      ).first['count'];
+      )).first['count'];
 
-      final sessionCount = _db.select(
+      final sessionCount = (await _db.getAll(
         'SELECT COUNT(DISTINCT session_id) as count FROM logs WHERE user_id = ? AND project_id = ? AND session_id IS NOT NULL',
         [userId, projectId],
-      ).first['count'];
+      )).first['count'];
 
-      final lastActive = _db.select(
+      final lastActive = (await _db.getAll(
         'SELECT MAX(received_at) as last_seen FROM logs WHERE user_id = ? AND project_id = ?',
         [userId, projectId],
-      ).first['last_seen'];
+      )).first['last_seen'];
 
       return Response.ok(
         jsonEncode({
@@ -191,7 +191,7 @@ class UserHandler {
     }
   }
 
-  Response getUserSessionsHandler(Request req, String userId) {
+  Future<Response> getUserSessionsHandler(Request req, String userId) async {
     try {
       final authUserId = req.context['userId'] as String?;
       if (authUserId == null) return Response.forbidden('Missing user context');
@@ -201,14 +201,14 @@ class UserHandler {
         return Response.badRequest(body: 'Missing projectId');
 
       // Verify ownership
-      final project = _db.select(
+      final project = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, authUserId],
       );
       if (project.isEmpty) return Response.forbidden('Access denied');
 
       // Get all session start events for this user
-      final results = _db.select(
+      final results = await _db.getAll(
         '''
         SELECT session_id, MIN(timestamp) as start_time, MAX(timestamp) as end_time, COUNT(*) as event_count
         FROM logs
@@ -241,7 +241,7 @@ class UserHandler {
     }
   }
 
-  Response getSessionsHandler(Request req) {
+  Future<Response> getSessionsHandler(Request req) async {
     try {
       final authUserId = req.context['userId'] as String?;
       if (authUserId == null) return Response.forbidden('Missing user context');
@@ -251,7 +251,7 @@ class UserHandler {
         return Response.badRequest(body: 'Missing projectId');
 
       // Verify ownership
-      final project = _db.select(
+      final project = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, authUserId],
       );
@@ -260,7 +260,7 @@ class UserHandler {
       final limit = int.tryParse(req.url.queryParameters['limit'] ?? '50') ?? 50;
       final offset = int.tryParse(req.url.queryParameters['offset'] ?? '0') ?? 0;
 
-      final results = _db.select(
+      final results = await _db.getAll(
         '''
         SELECT 
           session_id, 
@@ -301,7 +301,7 @@ class UserHandler {
     }
   }
 
-  Response getSessionLogsHandler(Request req, String sessionId) {
+  Future<Response> getSessionLogsHandler(Request req, String sessionId) async {
     print('Fetching logs for session: $sessionId');
     try {
       final authUserId = req.context['userId'] as String?;
@@ -312,13 +312,13 @@ class UserHandler {
         return Response.badRequest(body: 'Missing projectId');
 
       // Verify ownership
-      final project = _db.select(
+      final project = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, authUserId],
       );
       if (project.isEmpty) return Response.forbidden('Access denied');
 
-      final results = _db.select(
+      final results = await _db.getAll(
         '''
         SELECT * FROM logs
         WHERE session_id = ? AND project_id = ?

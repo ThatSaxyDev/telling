@@ -5,7 +5,7 @@ import '../db/database.dart';
 class AnalyticsHandler {
   final _db = DatabaseService().db;
 
-  Response getStatsHandler(Request req) {
+  Future<Response> getStatsHandler(Request req) async {
     try {
       final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
@@ -15,37 +15,37 @@ class AnalyticsHandler {
         return Response.badRequest(body: 'Missing projectId');
 
       // Verify ownership
-      final projectCheck = _db.select(
+      final projectCheck = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, userId],
       );
       if (projectCheck.isEmpty) return Response.forbidden('Access denied');
 
-      final totalResult = _db.select(
+      final totalResult = await _db.getAll(
         'SELECT COUNT(*) as count FROM logs WHERE project_id = ?',
         [projectId],
       );
       final total = totalResult.first['count'] as int;
 
-      final errorResult = _db.select(
+      final errorResult = await _db.getAll(
         "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND level IN ('error', 'fatal')",
         [projectId],
       );
       final errorCount = errorResult.first['count'] as int;
 
-      final warningResult = _db.select(
+      final warningResult = await _db.getAll(
         "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND level = 'warning'",
         [projectId],
       );
       final warningCount = warningResult.first['count'] as int;
 
-      final eventResult = _db.select(
+      final eventResult = await _db.getAll(
         "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND type IN ('event', 'analytics')",
         [projectId],
       );
       final eventCount = eventResult.first['count'] as int;
 
-      final performanceResult = _db.select(
+      final performanceResult = await _db.getAll(
         "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND type = 'performance'",
         [projectId],
       );
@@ -69,7 +69,7 @@ class AnalyticsHandler {
     }
   }
 
-  Response getAnalyticsSummaryHandler(Request req) {
+  Future<Response> getAnalyticsSummaryHandler(Request req) async {
     try {
       final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
@@ -79,7 +79,7 @@ class AnalyticsHandler {
         return Response.badRequest(body: 'Missing projectId');
 
       // Verify ownership
-      final projectCheck = _db.select(
+      final projectCheck = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, userId],
       );
@@ -88,19 +88,19 @@ class AnalyticsHandler {
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
 
-      final todayLogsResult = _db.select(
+      final todayLogsResult = await _db.getAll(
         'SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND timestamp >= ?',
         [projectId, todayStart],
       );
       final todayLogs = todayLogsResult.first['count'] as int;
 
-      final todayErrorsResult = _db.select(
+      final todayErrorsResult = await _db.getAll(
         "SELECT COUNT(*) as count FROM logs WHERE project_id = ? AND timestamp >= ? AND level IN ('error', 'fatal')",
         [projectId, todayStart],
       );
       final todayErrors = todayErrorsResult.first['count'] as int;
 
-      final activeUsersResult = _db.select(
+      final activeUsersResult = await _db.getAll(
         'SELECT COUNT(DISTINCT user_id) as count FROM logs WHERE project_id = ? AND timestamp >= ? AND user_id IS NOT NULL',
         [projectId, todayStart],
       );
@@ -122,7 +122,7 @@ class AnalyticsHandler {
     }
   }
 
-  Response getLogsTimelineHandler(Request req) {
+  Future<Response> getLogsTimelineHandler(Request req) async {
     try {
       final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
@@ -132,7 +132,7 @@ class AnalyticsHandler {
         return Response.badRequest(body: 'Missing projectId');
 
       // Verify ownership
-      final projectCheck = _db.select(
+      final projectCheck = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, userId],
       );
@@ -144,7 +144,7 @@ class AnalyticsHandler {
           .subtract(Duration(hours: 24))
           .toIso8601String();
 
-      final results = _db.select(
+      final results = await _db.getAll(
         '''
         SELECT 
           strftime('%Y-%m-%dT%H:00:00', timestamp) as hour,
@@ -171,7 +171,7 @@ class AnalyticsHandler {
     }
   }
 
-  Response getLogLevelsHandler(Request req) {
+  Future<Response> getLogLevelsHandler(Request req) async {
     try {
       final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
@@ -181,13 +181,13 @@ class AnalyticsHandler {
         return Response.badRequest(body: 'Missing projectId');
 
       // Verify ownership
-      final projectCheck = _db.select(
+      final projectCheck = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, userId],
       );
       if (projectCheck.isEmpty) return Response.forbidden('Access denied');
 
-      final results = _db.select(
+      final results = await _db.getAll(
         'SELECT level, COUNT(*) as count FROM logs WHERE project_id = ? GROUP BY level',
         [projectId],
       );
@@ -206,7 +206,7 @@ class AnalyticsHandler {
     }
   }
 
-  Response getTopErrorsHandler(Request req) {
+  Future<Response> getTopErrorsHandler(Request req) async {
     try {
       final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
@@ -225,7 +225,7 @@ class AnalyticsHandler {
       }
 
       // Verify ownership
-      final projectCheck = _db.select(
+      final projectCheck = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, userId],
       );
@@ -236,7 +236,7 @@ class AnalyticsHandler {
       final now = DateTime.now();
       final startTime = now.subtract(Duration(hours: hours));
 
-      final results = _db.select(
+      final results = await _db.getAll(
         '''
         SELECT 
           message,

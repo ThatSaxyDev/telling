@@ -3,13 +3,14 @@ import '../models/analytics_models.dart';
 import '../repositories/analytics_repository.dart';
 import './project_provider.dart';
 import '../services/api_client.dart';
+import '../config/api_config.dart'; // Added import for ApiConfig
 
 // Repository provider
 final analyticsRepositoryProvider = Provider<AnalyticsRepository>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   return AnalyticsRepository(
     apiClient,
-    baseUrl: 'http://localhost:8080/api/v1',
+    baseUrl: ApiConfig.baseUrl, // Replaced hardcoded URL with ApiConfig.baseUrl
   );
 });
 

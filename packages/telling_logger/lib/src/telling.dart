@@ -17,7 +17,8 @@ class Telling {
   static Telling get instance => _instance;
 
   String? _apiKey;
-  String _baseUrl = 'http://localhost:8080/api/v1/logs'; // Placeholder
+  String _baseUrl =
+      'https://tellingserver-qsbx0dw-thatsaxydev.globeapp.dev/api/v1/logs';
   bool _initialized = false;
   DeviceMetadata? _deviceMetadata;
   static const String _storageKey = 'telling_logs_buffer';

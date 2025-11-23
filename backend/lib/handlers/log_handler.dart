@@ -16,7 +16,7 @@ class LogHandler {
         return Response.forbidden('Missing API Key');
       }
 
-      final projectResult = _db.select(
+      final projectResult = await _db.getAll(
         'SELECT id FROM projects WHERE api_key = ?',
         [apiKey],
       );
@@ -28,12 +28,10 @@ class LogHandler {
       final payload = await req.readAsString();
       final List<dynamic> events = jsonDecode(payload);
 
-      final stmt = _db.prepare(
-        'INSERT INTO logs (project_id, type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name, user_email, session_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      );
-
       int saved = 0;
       int duplicates = 0;
+      
+      final batchArgs = <List<Object?>>[];
 
       for (var event in events) {
         if (event is Map<String, dynamic>) {
@@ -70,7 +68,7 @@ class LogHandler {
             continue;
           }
 
-          stmt.execute([
+          batchArgs.add([
             projectId, // Link to project
             type,
             level,
@@ -90,7 +88,13 @@ class LogHandler {
           saved++;
         }
       }
-      stmt.dispose();
+      
+      if (batchArgs.isNotEmpty) {
+        await _db.executeBatch(
+          'INSERT INTO logs (project_id, type, level, message, timestamp, stack_trace, metadata, device, received_at, user_id, user_name, user_email, session_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          batchArgs,
+        );
+      }
 
       return Response.ok(
         jsonEncode({
@@ -105,7 +109,7 @@ class LogHandler {
     }
   }
 
-  Response getLogsHandler(Request req) {
+  Future<Response> getLogsHandler(Request req) async {
     try {
       final userId = req.context['userId'] as String?;
       if (userId == null) return Response.forbidden('Missing user context');
@@ -118,7 +122,7 @@ class LogHandler {
       }
 
       // Verify project ownership
-      final projectCheck = _db.select(
+      final projectCheck = await _db.getAll(
         'SELECT id FROM projects WHERE id = ? AND user_id = ?',
         [projectId, userId],
       );
@@ -142,7 +146,7 @@ class LogHandler {
       query += ' ORDER BY id DESC LIMIT ? OFFSET ?';
       queryParams.addAll([limit, offset]);
 
-      final results = _db.select(query, queryParams);
+      final results = await _db.getAll(query, queryParams);
 
       final logs = results.map((row) {
         return {
