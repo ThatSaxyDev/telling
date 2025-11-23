@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
@@ -46,7 +45,7 @@ class SettingsScreen extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+                border: Border.all(color: AppColors.slate.withAlpha(77)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +74,7 @@ class SettingsScreen extends ConsumerWidget {
                       ref.read(projectProvider.notifier).reset();
                       context.go('/login');
                     },
-                    backgroundColor: AppColors.error.withOpacity(0.1),
+                    backgroundColor: AppColors.error.withAlpha(26),
                     borderColor: AppColors.error,
                     foregroundColor: AppColors.error,
                   ),
@@ -92,7 +91,7 @@ class SettingsScreen extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+                border: Border.all(color: AppColors.slate.withAlpha(77)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +124,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.slate.withAlpha(77)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,7 +310,7 @@ class SettingsScreen extends ConsumerWidget {
       icon: icon,
       onPressed: onPressed,
       isOutlined: isOutlined,
-      backgroundColor: isOutlined ? Colors.transparent : color.withOpacity(0.1),
+      backgroundColor: isOutlined ? Colors.transparent : color.withAlpha(26),
       borderColor: color,
       foregroundColor: color,
     );

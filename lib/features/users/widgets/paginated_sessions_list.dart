@@ -211,7 +211,7 @@ class _SessionCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.1),
+                    color: AppColors.secondary.withAlpha(26),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

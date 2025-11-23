@@ -77,7 +77,7 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceDark,
                       border: Border.all(
-                        color: AppColors.slate.withOpacity(0.3),
+                        color: AppColors.slate.withAlpha(77),
                       ),
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -119,13 +119,13 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(4),
                                 borderSide: BorderSide(
-                                  color: AppColors.slate.withOpacity(0.3),
+                                  color: AppColors.slate.withAlpha(77),
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(4),
                                 borderSide: BorderSide(
-                                  color: AppColors.slate.withOpacity(0.3),
+                                  color: AppColors.slate.withAlpha(77),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
@@ -139,7 +139,7 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
                         ),
 
                         Divider(
-                          color: AppColors.slate.withOpacity(0.3),
+                          color: AppColors.slate.withAlpha(77),
                           height: 1,
                         ),
 
@@ -200,7 +200,7 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        color: isSelected ? AppColors.primary.withOpacity(0.1) : null,
+        color: isSelected ? AppColors.primary.withAlpha(26) : null,
         child: Row(
           children: [
             if (isSelected)
@@ -249,7 +249,7 @@ class _SearchableUserDropdownState extends State<SearchableUserDropdown> {
             border: Border.all(
               color: _isOpen 
                   ? AppColors.primary 
-                  : AppColors.slate.withOpacity(0.3),
+                  : AppColors.slate.withAlpha(77),
             ),
             borderRadius: BorderRadius.circular(4),
           ),

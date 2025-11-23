@@ -54,7 +54,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                     decoration: BoxDecoration(
                       color: AppColors.backgroundDark,
                       border: Border.all(
-                        color: AppColors.slate.withOpacity(0.3),
+                        color: AppColors.slate.withAlpha(77),
                       ),
                     ),
                     child: Text(
@@ -81,7 +81,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                             _isVisible = !_isVisible;
                           });
                         },
-                        backgroundColor: AppColors.slate.withOpacity(0.1),
+                        backgroundColor: AppColors.slate.withAlpha(26),
                         borderColor: AppColors.slate,
                         foregroundColor: AppColors.slate,
                       ),
@@ -104,7 +104,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                             ),
                           );
                         },
-                        backgroundColor: AppColors.secondary.withOpacity(0.1),
+                        backgroundColor: AppColors.secondary.withAlpha(26),
                         borderColor: AppColors.secondary,
                         foregroundColor: AppColors.secondary,
                       ),
@@ -121,7 +121,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                     decoration: BoxDecoration(
                       color: AppColors.backgroundDark,
                       border: Border.all(
-                        color: AppColors.slate.withOpacity(0.3),
+                        color: AppColors.slate.withAlpha(77),
                       ),
                     ),
                     child: Text(
@@ -144,7 +144,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                       _isVisible = !_isVisible;
                     });
                   },
-                  backgroundColor: AppColors.slate.withOpacity(0.1),
+                  backgroundColor: AppColors.slate.withAlpha(26),
                   borderColor: AppColors.slate,
                   foregroundColor: AppColors.slate,
                 ),
@@ -165,7 +165,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                       ),
                     );
                   },
-                  backgroundColor: AppColors.secondary.withOpacity(0.1),
+                  backgroundColor: AppColors.secondary.withAlpha(26),
                   borderColor: AppColors.secondary,
                   foregroundColor: AppColors.secondary,
                 ),

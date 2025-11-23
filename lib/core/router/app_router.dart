@@ -44,8 +44,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (isLoggedIn && isLoggingIn) return '/projects';
 
       // Logged in but no project selected and not on projects screen? Force project selection
-      if (isLoggedIn && !hasSelectedProject && !isOnProjectsScreen)
+      if (isLoggedIn && !hasSelectedProject && !isOnProjectsScreen) {
         return '/projects';
+      }
 
       return null;
     },

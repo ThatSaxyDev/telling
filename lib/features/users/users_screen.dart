@@ -85,7 +85,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
           decoration: BoxDecoration(
             color: AppColors.surfaceDark,
             border: Border(
-              bottom: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+              bottom: BorderSide(color: AppColors.slate.withAlpha(77)),
             ),
           ),
           child: Column(
@@ -142,13 +142,13 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: BorderSide(
-                      color: AppColors.slate.withOpacity(0.3),
+                      color: AppColors.slate.withAlpha(77),
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: BorderSide(
-                      color: AppColors.slate.withOpacity(0.3),
+                      color: AppColors.slate.withAlpha(77),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -294,7 +294,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: AppColors.white.withOpacity(0.1), width: 1),
+          top: BorderSide(color: AppColors.white.withAlpha(26), width: 1),
         ),
       ),
       child: Row(
@@ -321,7 +321,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.white.withOpacity(0.2)),
+              border: Border.all(color: AppColors.white.withAlpha(51)),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -375,8 +375,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.secondary.withOpacity(0.1),
-                border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                color: AppColors.secondary.withAlpha(26),
+                border: Border.all(color: AppColors.secondary.withAlpha(77)),
               ),
               child: const Icon(
                 Icons.person_outline,
@@ -435,7 +435,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                           child: Icon(
                             Icons.copy,
                             size: 14,
-                            color: AppColors.slate.withOpacity(0.7),
+                            color: AppColors.slate.withAlpha(179),
                           ),
                         ),
                       ),

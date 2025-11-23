@@ -136,7 +136,7 @@ class _SidebarNavState extends State<SidebarNav> {
           ),
           decoration: BoxDecoration(
             color: isActive
-                ? AppColors.primary.withOpacity(0.05)
+                ? AppColors.primary.withAlpha(13)
                 : Colors.transparent,
             border: Border(
               left: BorderSide(
@@ -153,7 +153,7 @@ class _SidebarNavState extends State<SidebarNav> {
                     item.icon,
                     color: isActive
                         ? AppColors.white
-                        : AppColors.slate.withOpacity(0.8),
+                        : AppColors.slate.withAlpha(204),
                     size: 24,
                   ),
                 )
@@ -162,7 +162,7 @@ class _SidebarNavState extends State<SidebarNav> {
                   item.icon,
                   color: isActive
                       ? AppColors.white
-                      : AppColors.slate.withOpacity(0.8),
+                      : AppColors.slate.withAlpha(204),
                   size: 24,
                 ),
                 const SizedBox(width: 16),
@@ -172,7 +172,7 @@ class _SidebarNavState extends State<SidebarNav> {
                     style: AppTextStyles.labelMedium.copyWith(
                       color: isActive
                           ? AppColors.white
-                          : AppColors.slate.withOpacity(0.8),
+                          : AppColors.slate.withAlpha(204),
                       fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
                     ),
                   ),

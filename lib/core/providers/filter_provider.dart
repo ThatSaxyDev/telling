@@ -28,7 +28,7 @@ class FilterNotifier extends Notifier<FilterState> {
 
   Future<void> _saveToStorage() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      // final prefs = await SharedPreferences.getInstance();
       // We can implement JSON serialization later
       // For now, just keep state in memory
     } catch (e) {

@@ -55,7 +55,7 @@ class ProjectsScreen extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Container(
                     height: 1,
-                    color: AppColors.primary.withOpacity(0.5),
+                    color: AppColors.primary.withAlpha(128),
                   ),
                   const SizedBox(height: 32),
 
@@ -66,7 +66,7 @@ class ProjectsScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.error),
-                        color: AppColors.error.withOpacity(0.1),
+                        color: AppColors.error.withAlpha(26),
                       ),
                       child: Row(
                         children: [
@@ -123,11 +123,11 @@ class ProjectsScreen extends ConsumerWidget {
   Widget _buildProjectCard(BuildContext context, WidgetRef ref, dynamic project) {
     return MilitaryHoverContainer(
       baseColor: AppColors.surfaceDark,
-      hoverColor: AppColors.primary.withOpacity(0.1),
+      hoverColor: AppColors.primary.withAlpha(26),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+          border: Border.all(color: AppColors.slate.withAlpha(77)),
           color: AppColors.surfaceDark,
         ),
         child: Column(
@@ -185,13 +185,13 @@ class ProjectsScreen extends ConsumerWidget {
           decoration: BoxDecoration(
             border: Border.all(
               color: isLimitReached 
-                  ? AppColors.slate.withOpacity(0.2) 
-                  : AppColors.slate.withOpacity(0.5),
+                  ? AppColors.slate.withAlpha(51) 
+                  : AppColors.slate.withAlpha(128),
               style: BorderStyle.solid,
             ),
             color: isLimitReached 
-                ? AppColors.backgroundDark.withOpacity(0.5) 
-                : AppColors.surfaceDark.withOpacity(0.3),
+                ? AppColors.backgroundDark.withAlpha(128) 
+                : AppColors.surfaceDark.withAlpha(77),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -199,13 +199,13 @@ class ProjectsScreen extends ConsumerWidget {
               Icon(
                 Icons.add,
                 size: 32,
-                color: isLimitReached ? AppColors.slate.withOpacity(0.3) : AppColors.slate,
+                color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
               ),
               const SizedBox(height: 12),
               Text(
                 isLimitReached ? 'LIMIT REACHED (3/3)' : 'INITIATE NEW PROJECT',
                 style: AppTextStyles.labelSmall.copyWith(
-                  color: isLimitReached ? AppColors.slate.withOpacity(0.3) : AppColors.slate,
+                  color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
                   letterSpacing: 1,
                 ),
               ),
@@ -223,7 +223,7 @@ class ProjectsScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+          side: BorderSide(color: AppColors.slate.withAlpha(77)),
         ),
         title: const Text(
           'INITIATE NEW PROJECT',

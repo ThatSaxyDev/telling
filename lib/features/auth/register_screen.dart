@@ -75,8 +75,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               width: 400,
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark.withOpacity(0.9),
-                border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+                color: AppColors.surfaceDark.withAlpha(230),
+                border: Border.all(color: AppColors.slate.withAlpha(77)),
               ),
               child: Form(
                 key: _formKey,
@@ -100,7 +100,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         padding: const EdgeInsets.all(12),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
+                          color: AppColors.error.withAlpha(26),
                           border: Border.all(color: AppColors.error),
                         ),
                         child: Row(
@@ -282,14 +282,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   )
                 : null,
             filled: true,
-            fillColor: AppColors.primary.withOpacity(0.3),
+            fillColor: AppColors.primary.withAlpha(77),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.zero,
-              borderSide: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+              borderSide: BorderSide(color: AppColors.slate.withAlpha(77)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.zero,
-              borderSide: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+              borderSide: BorderSide(color: AppColors.slate.withAlpha(77)),
             ),
             focusedBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.zero,

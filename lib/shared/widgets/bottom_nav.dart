@@ -80,7 +80,7 @@ class BottomNav extends StatelessWidget {
           height: 80,
           decoration: BoxDecoration(
             color: isActive
-                ? AppColors.primary.withOpacity(0.15)
+                ? AppColors.primary.withAlpha(38)
                 : Colors.transparent,
             border: Border(
               top: BorderSide(
@@ -93,7 +93,7 @@ class BottomNav extends StatelessWidget {
             icon,
             color: isActive
                 ? AppColors.secondary
-                : AppColors.slate.withOpacity(0.8),
+                : AppColors.slate.withAlpha(204),
             size: 28,
           ),
         ),

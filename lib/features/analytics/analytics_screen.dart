@@ -47,9 +47,9 @@ class AnalyticsScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark.withOpacity(0.9),
+                color: AppColors.surfaceDark.withAlpha(230),
                 border: Border(
-                  bottom: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+                  bottom: BorderSide(color: AppColors.slate.withAlpha(77)),
                 ),
               ),
               child: Column(
@@ -350,7 +350,7 @@ class _TimeRangeTab extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? AppColors.white
-                : AppColors.slate.withOpacity(0.3),
+                : AppColors.slate.withAlpha(77),
           ),
         ),
         child: Text(
@@ -394,11 +394,11 @@ class _MetricCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surfaceDark.withOpacity(0.8),
+          color: AppColors.surfaceDark.withAlpha(204),
           border: Border.all(
             color: isError
-                ? AppColors.error.withOpacity(0.3)
-                : AppColors.slate.withOpacity(0.3),
+                ? AppColors.error.withAlpha(77)
+                : AppColors.slate.withAlpha(77),
           ),
         ),
         child: Stack(
@@ -412,7 +412,7 @@ class _MetricCard extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Urbanist',
                   fontSize: 10,
-                  color: AppColors.slate.withOpacity(0.5),
+                  color: AppColors.slate.withAlpha(128),
                 ),
               ),
             ),
@@ -437,10 +437,10 @@ class _MetricCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: (trend! > 0 ? Colors.green : Colors.red)
-                              .withOpacity(0.1),
+                              .withAlpha(26),
                           border: Border.all(
                             color: (trend! > 0 ? Colors.green : Colors.red)
-                                .withOpacity(0.3),
+                                .withAlpha(77),
                           ),
                         ),
                         child: Row(
@@ -513,8 +513,8 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark.withOpacity(0.8),
-        border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+        color: AppColors.surfaceDark.withAlpha(204),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -523,9 +523,9 @@ class _SectionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.05),
+              color: AppColors.white.withAlpha(13),
               border: Border(
-                bottom: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+                bottom: BorderSide(color: AppColors.slate.withAlpha(77)),
               ),
             ),
             child: Row(
@@ -546,7 +546,7 @@ class _SectionCard extends StatelessWidget {
                 Container(
                   width: 8,
                   height: 8,
-                  color: AppColors.white.withOpacity(0.5),
+                  color: AppColors.white.withAlpha(128),
                 ),
               ],
             ),
@@ -596,7 +596,7 @@ class _LogsTimelineChart extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: AppColors.slate.withOpacity(0.1),
+                        color: AppColors.slate.withAlpha(26),
                         width: 1,
                       ),
                     ),
@@ -629,7 +629,7 @@ class _LogsTimelineChart extends StatelessWidget {
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
                         colors: [
-                          AppColors.white.withOpacity(0.1),
+                          AppColors.white.withAlpha(26),
                           AppColors.white,
                         ],
                       ),
@@ -733,8 +733,8 @@ class _LogLevelChart extends StatelessWidget {
                     Container(
                       height: 24,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        border: Border.all(color: color.withOpacity(0.2)),
+                        color: color.withAlpha(26),
+                        border: Border.all(color: color.withAlpha(51)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -742,7 +742,7 @@ class _LogLevelChart extends StatelessWidget {
                           10,
                           (i) => Container(
                             width: 1,
-                            color: color.withOpacity(0.2),
+                            color: color.withAlpha(51),
                           ),
                         ),
                       ),
@@ -753,7 +753,7 @@ class _LogLevelChart extends StatelessWidget {
                       widthFactor: percentage,
                       child: Container(
                         height: 24,
-                        color: color.withOpacity(0.8),
+                        color: color.withAlpha(204),
                       ),
                     ),
                   ],
@@ -812,7 +812,7 @@ class _TopErrorsList extends StatelessWidget {
       child: ListView.separated(
         itemCount: errors.length,
         separatorBuilder: (_, __) =>
-            Divider(color: AppColors.slate.withOpacity(0.2)),
+            Divider(color: AppColors.slate.withAlpha(51)),
         itemBuilder: (context, index) {
           final error = errors[index];
           return Padding(
@@ -862,7 +862,7 @@ class _TopErrorsList extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.error.withOpacity(0.5)),
+                    border: Border.all(color: AppColors.error.withAlpha(128)),
                   ),
                   child: Text(
                     'x${error.count}',
@@ -907,7 +907,7 @@ class _ActiveUsersList extends ConsumerWidget {
       child: ListView.separated(
         itemCount: users.length,
         separatorBuilder: (_, __) =>
-            Divider(color: AppColors.slate.withOpacity(0.2)),
+            Divider(color: AppColors.slate.withAlpha(51)),
         itemBuilder: (context, index) {
           final user = users[index];
           return GestureDetector(
@@ -920,7 +920,7 @@ class _ActiveUsersList extends ConsumerWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withOpacity(0.1),
+                      color: AppColors.secondary.withAlpha(26),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Center(
@@ -965,7 +965,7 @@ class _ActiveUsersList extends ConsumerWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.withOpacity(0.1),
+                      color: AppColors.secondary.withAlpha(26),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(

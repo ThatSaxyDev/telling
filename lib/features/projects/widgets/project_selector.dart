@@ -17,7 +17,7 @@ class ProjectSelector extends ConsumerWidget {
       offset: const Offset(0, 40),
       color: AppColors.surfaceDark,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+        side: BorderSide(color: AppColors.slate.withAlpha(77)),
       ),
       itemBuilder: (context) {
         return [
@@ -43,14 +43,14 @@ class ProjectSelector extends ConsumerWidget {
                 Icon(
                   Icons.add,
                   size: 14,
-                  color: isLimitReached ? AppColors.slate.withOpacity(0.3) : AppColors.slate,
+                  color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   isLimitReached ? 'LIMIT REACHED (3/3)' : 'NEW_PROJECT',
                   style: TextStyle(
                     fontFamily: 'Urbanist',
-                    color: isLimitReached ? AppColors.slate.withOpacity(0.3) : AppColors.slate,
+                    color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
                     fontSize: 12,
                   ),
                 ),
@@ -70,7 +70,7 @@ class ProjectSelector extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+          border: Border.all(color: AppColors.slate.withAlpha(77)),
           color: AppColors.backgroundDark,
         ),
         child: Row(
@@ -102,7 +102,7 @@ class ProjectSelector extends ConsumerWidget {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceDark,
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+          side: BorderSide(color: AppColors.slate.withAlpha(77)),
         ),
         title: const Text(
           'INITIATE_NEW_PROJECT',

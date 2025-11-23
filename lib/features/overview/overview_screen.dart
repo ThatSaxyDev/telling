@@ -171,12 +171,12 @@ class OverviewScreen extends ConsumerWidget {
 
         return MilitaryHoverContainer(
           baseColor: AppColors.surfaceDark,
-          hoverColor: AppColors.white.withOpacity(0.8),
+          hoverColor: AppColors.white.withAlpha(204),
           showGrid: false,
           child: Container(
             padding: EdgeInsets.all(padding),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+              border: Border.all(color: AppColors.slate.withAlpha(77)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +194,7 @@ class OverviewScreen extends ConsumerWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: color.withOpacity(0.5),
+                            color: color.withAlpha(128),
                             blurRadius: 8,
                             spreadRadius: 2,
                           ),

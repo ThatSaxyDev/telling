@@ -98,7 +98,7 @@ class UserDetailsScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
-                                    color: AppColors.primary.withOpacity(0.3),
+                                    color: AppColors.primary.withAlpha(77),
                                   ),
                                 ),
                               ),
@@ -108,7 +108,9 @@ class UserDetailsScreen extends ConsumerWidget {
                                 indicatorColor: AppColors.primary,
                                 labelColor: AppColors.white,
                                 unselectedLabelColor: AppColors.slate
-                                    .withOpacity(0.6),
+                                    .withAlpha(
+                                  153,
+                                ),
                                 labelStyle: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 1,
@@ -259,7 +261,7 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withAlpha(77)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
@@ -267,7 +269,7 @@ class _StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withAlpha(26),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Icon(icon, color: color, size: 20),

@@ -274,9 +274,9 @@ class _GridPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Colors.white.withOpacity(0.0),
-          Colors.white.withOpacity(0.3), // Was 1.0, now 0.3
-          Colors.white.withOpacity(0.0),
+          Colors.white.withAlpha(0),
+          Colors.white.withAlpha(77), // Was 255, now 77
+          Colors.white.withAlpha(0),
         ],
         stops: const [0.0, 0.5, 1.0],
       ).createShader(Rect.fromLTWH(x, startY, 1, pulseLength));
@@ -296,9 +296,9 @@ class _GridPainter extends CustomPainter {
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
         colors: [
-          Colors.white.withOpacity(0.0),
-          Colors.white.withOpacity(0.3), // Was 1.0, now 0.3
-          Colors.white.withOpacity(0.0),
+          Colors.white.withAlpha(0),
+          Colors.white.withAlpha(77), // Was 255, now 77
+          Colors.white.withAlpha(0),
         ],
         stops: const [0.0, 0.5, 1.0],
       ).createShader(Rect.fromLTWH(startX, y, pulseLength, 1));
@@ -606,7 +606,7 @@ class _GlitchTextState extends State<GlitchText>
             offset: Offset(_offset1X, _offset1Y),
             child: Text(
               widget.text,
-              style: widget.style.copyWith(color: Colors.cyan.withOpacity(0.7)),
+              style: widget.style.copyWith(color: Colors.cyan.withAlpha(179)),
             ),
           ),
 
@@ -616,7 +616,7 @@ class _GlitchTextState extends State<GlitchText>
             offset: Offset(_offset2X, _offset2Y),
             child: Text(
               widget.text,
-              style: widget.style.copyWith(color: Colors.red.withOpacity(0.7)),
+              style: widget.style.copyWith(color: Colors.red.withAlpha(179)),
             ),
           ),
 
@@ -761,7 +761,7 @@ class _MilitaryHoverContainerState extends State<MilitaryHoverContainer>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _colorAnim = ColorTween(
-      begin: widget.baseColor.withOpacity(0.5),
+      begin: widget.baseColor.withAlpha(128),
       end: widget.hoverColor,
     ).animate(_controller);
   }
@@ -821,11 +821,13 @@ class _MilitaryHoverContainerState extends State<MilitaryHoverContainer>
                   child: Container(
                     decoration: BoxDecoration(
                       color: _isHovered
-                          ? widget.hoverColor.withOpacity(0.08)
+                          ? widget.hoverColor.withAlpha(20)
                           : Colors.transparent,
                       border: Border.all(
                         color: (_colorAnim.value ?? widget.baseColor)
-                            .withOpacity(_isHovered ? 0.6 : 0.2),
+                            .withAlpha(
+                          _isHovered ? 153 : 51,
+                        ),
                         width: 1,
                       ),
                     ),

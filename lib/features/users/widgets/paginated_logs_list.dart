@@ -206,7 +206,7 @@ class _LogItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: levelColor.withOpacity(0.1),
+                  color: levelColor.withAlpha(26),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 child: Text(
@@ -241,7 +241,7 @@ class _LogItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withAlpha(77),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(

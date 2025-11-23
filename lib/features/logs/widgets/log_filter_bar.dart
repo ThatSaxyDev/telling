@@ -55,7 +55,7 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
         border: Border(
-          bottom: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+          bottom: BorderSide(color: AppColors.slate.withAlpha(77)),
         ),
       ),
       child: Column(
@@ -74,11 +74,11 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
               fillColor: AppColors.backgroundDark,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+                borderSide: BorderSide(color: AppColors.slate.withAlpha(77)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+                borderSide: BorderSide(color: AppColors.slate.withAlpha(77)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4),
@@ -175,7 +175,7 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
-        border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: DropdownButtonHideUnderline(
