@@ -46,6 +46,11 @@ class Telling {
   String? _currentScreen;
 
   Telling._internal();
+  
+  // Retry tracking for failed flushes
+  int _consecutiveFailures = 0;
+  static const int _maxConsecutiveFailures = 2;
+  bool _permanentFailure = false;
 
   /// Initialize the Telling SDK
   Future<void> init(
@@ -341,6 +346,16 @@ class Telling {
 
   Future<void> _flush() async {
     if (_buffer.isEmpty) return;
+    
+    // Skip if we've hit permanent failure (e.g., bad API key)
+    if (_permanentFailure) {
+      if (kDebugMode) {
+        print(
+          'Telling: Skipping flush due to permanent failure (check API key)',
+        );
+      }
+      return;
+    }
 
     // Deduplicate buffer by hash before sending
     final uniqueLogs = <String, LogEvent>{};
@@ -362,7 +377,9 @@ class Telling {
 
     try {
       // Batch sending
-      print('Telling: Sending ${eventsToSend.length} logs to $_baseUrl');
+      // if (kDebugMode) {
+      //   print('Telling: Sending ${eventsToSend.length} logs to $_baseUrl');
+      // }
       
       final response = await http.post(
         Uri.parse(_baseUrl),
@@ -373,20 +390,72 @@ class Telling {
         body: jsonEncode(eventsToSend.map((e) => e.toJson()).toList()),
       );
       
-      if (response.statusCode != 200) {
-        print('Telling: Failed to send logs. Status: ${response.statusCode}');
-        // Put back in buffer/storage to retry later
-        _buffer.addAll(eventsToSend);
+      if (response.statusCode == 200) {
+        // Success! Reset failure counter and clear from persistence
+        _consecutiveFailures = 0;
         _persistLogs();
+      } else if (response.statusCode == 403) {
+        // Forbidden - likely invalid API key
+        _consecutiveFailures++;
+
+        if (_consecutiveFailures >= _maxConsecutiveFailures) {
+          _permanentFailure = true;
+          _buffer.clear(); // Don't retry
+          _persistLogs();
+
+          print('━' * 60);
+          print('🚨 Telling SDK: INVALID API KEY');
+          print('━' * 60);
+          print('Your API key is not recognized by the backend.');
+          print('');
+          print('To fix this:');
+          print('1. Create a project in your Telling dashboard');
+          print('2. Copy the project API key');
+          print('3. Update Telling.instance.init() with the correct key');
+          print('');
+          print('Backend URL: $_baseUrl');
+          print('Current API key: ${_apiKey!.substring(0, 8)}...');
+          print('━' * 60);
+        } else {
+          print(
+            'Telling: Invalid API key (attempt $_consecutiveFailures/$_maxConsecutiveFailures)',
+          );
+          // Don't put back in buffer - discard on 403
+          _buffer.clear();
+          _persistLogs();
+        }
       } else {
-        // Success! Clear from persistence
+        // Other errors - retry with backoff
+        _consecutiveFailures++;
+
+        if (_consecutiveFailures >= _maxConsecutiveFailures) {
+          print(
+            'Telling: Giving up after $_maxConsecutiveFailures failures. Status: ${response.statusCode}',
+          );
+          _buffer.clear(); // Stop retrying
+        } else {
+          print(
+            'Telling: Failed to send logs (${response.statusCode}). Will retry ($_consecutiveFailures/$_maxConsecutiveFailures)',
+          );
+          _buffer.addAll(eventsToSend); // Retry
+        }
         _persistLogs();
       }
       
     } catch (e) {
-      print('Telling: Failed to send logs: $e');
-      // Restore buffer on failure
-      _buffer.addAll(eventsToSend);
+      _consecutiveFailures++;
+
+      if (_consecutiveFailures >= _maxConsecutiveFailures) {
+        print(
+          'Telling: Network error, giving up after $_consecutiveFailures attempts: $e',
+        );
+        _buffer.clear(); // Stop retrying
+      } else {
+        print(
+          'Telling: Network error, will retry ($_consecutiveFailures/$_maxConsecutiveFailures): $e',
+        );
+        _buffer.addAll(eventsToSend); // Retry
+      }
       _persistLogs();
     }
   }
