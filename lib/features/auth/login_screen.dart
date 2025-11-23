@@ -156,6 +156,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
+                                  color: AppColors.secondary,
                                 ),
                               )
                             : const Text(
