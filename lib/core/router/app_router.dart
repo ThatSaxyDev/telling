@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
+import '../../features/auth/landing_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/overview/overview_screen.dart';
@@ -23,7 +24,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   ref.listen(projectProvider, (_, __) => routerNotifier.value++);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/landing',
     observers: [Telling.instance.goRouterScreenTracker],
     refreshListenable: routerNotifier,
     redirect: (context, state) {
@@ -32,13 +33,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       final isLoggedIn = authState.isAuthenticated;
       final hasSelectedProject = projectState.selectedProject != null;
+      final isOnLanding = state.matchedLocation == '/landing';
       final isLoggingIn =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
       final isOnProjectsScreen = state.matchedLocation == '/projects';
 
-      // Not logged in? Go to login
-      if (!isLoggedIn && !isLoggingIn) return '/login';
+      // Logged in but on landing page? Go to projects
+      if (isLoggedIn && isOnLanding) return '/projects';
+
+      // Not logged in and not on any auth screen? Go to landing
+      if (!isLoggedIn && !isLoggingIn && !isOnLanding) return '/landing';
 
       // Logged in but on auth screens? Go to projects
       if (isLoggedIn && isLoggingIn) return '/projects';
@@ -51,6 +56,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/landing',
+        builder: (context, state) => const LandingScreen(),
+      ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
