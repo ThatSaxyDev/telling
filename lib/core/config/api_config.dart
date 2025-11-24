@@ -4,7 +4,7 @@
 class ApiConfig {
   // Base URL for the backend API
   static const String baseUrl =
-      'https://tellingserver-ii2opu6-thatsaxydev.globeapp.dev/api/v1';
+      'https://tellingserver-afkpyee-thatsaxydev.globeapp.dev/api/v1';
 
   // Specific endpoint paths
   static const String authPath = '$baseUrl/auth';
