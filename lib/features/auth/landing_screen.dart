@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:telling_logger/telling_logger.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/military_decorations.dart';
 
@@ -225,6 +226,7 @@ class _LandingScreenState extends State<LandingScreen>
                 ),
                 _buildMissionBrief(true),
                 _buildCTASection(true),
+                _buildFooter(true),
               ],
             ),
           ),
@@ -254,7 +256,8 @@ class _LandingScreenState extends State<LandingScreen>
               // CTA Section
               _buildWebCTASection(isMobile),
 
-              const SizedBox(height: 80),
+              _buildFooter(isMobile),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -279,6 +282,8 @@ class _LandingScreenState extends State<LandingScreen>
           _buildHeroHeading(isMobile),
           SizedBox(height: isMobile ? 16 : 24),
           _buildTagline(isMobile),
+          SizedBox(height: isMobile ? 24 : 32),
+          _buildFlutterBadge(isMobile),
           SizedBox(height: isMobile ? 60 : 100),
           // Scroll indicator
           if (!isMobile)
@@ -931,6 +936,104 @@ class _LandingScreenState extends State<LandingScreen>
         ),
       ],
     );
+  }
+  Widget _buildFlutterBadge(bool isMobile) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => _launchUrl('https://pub.dev/packages/telling_logger'),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 16 : 20,
+            vertical: isMobile ? 10 : 12,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFF02569B).withAlpha(26),
+            border: Border.all(color: const Color(0xFF02569B), width: 1.5),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.flutter_dash,
+                color: const Color(0xFF54C5F8),
+                size: isMobile ? 18 : 20,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'BUILT_FOR_FLUTTER',
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  color: const Color(0xFF54C5F8),
+                  fontSize: isMobile ? 12 : 13,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 1,
+                height: 12,
+                color: const Color(0xFF54C5F8).withAlpha(77),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'VIEW_ON_PUB.DEV',
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  color: AppColors.white,
+                  fontSize: isMobile ? 10 : 11,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Made with Flutter & 💙 by ',
+            style: TextStyle(
+              fontFamily: 'Urbanist',
+              color: AppColors.slate,
+              fontSize: isMobile ? 12 : 14,
+            ),
+          ),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => _launchUrl('https://kiishi.netlify.app/'),
+              child: Text(
+                'Kiishi',
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  color: AppColors.white,
+                  fontSize: isMobile ? 12 : 14,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _launchUrl(String urlString) async {
+    final url = Uri.parse(urlString);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    }
   }
 }
 
