@@ -42,15 +42,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         return;
       }
 
-      final success = await ref
+      final result = await ref
           .read(authProvider.notifier)
           .register(
             _nameController.text,
             _emailController.text,
             _passwordController.text,
           );
-      if (success && mounted) {
-        context.go('/'); // Navigate to dashboard on success
+      
+      if (result != null && mounted) {
+        context.go(
+          '/verify-otp',
+          extra: {'userId': result['userId'], 'email': _emailController.text},
+        );
       }
     }
   }

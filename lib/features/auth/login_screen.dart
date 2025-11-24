@@ -32,18 +32,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         'Action: Login Attempt',
         properties: {'email': _emailController.text},
       );
-      await ref
+      final userId = await ref
           .read(authProvider.notifier)
           .login(_emailController.text, _passwordController.text);
 
-      // Check if login was successful by checking auth state
-      if (mounted && ref.read(authProvider).isAuthenticated) {
+      if (mounted && userId != null) {
         Telling.instance.event(
-          'Action: Login Success',
+          'Action: Login Success (OTP Sent)',
           properties: {'email': _emailController.text},
         );
-        context.go('/projects');
-      } else {
+        context.go(
+          '/verify-otp',
+          extra: {'userId': userId, 'email': _emailController.text},
+        );
+      } else if (mounted) {
         Telling.instance.event(
           'Action: Login Failed',
           properties: {'email': _emailController.text},

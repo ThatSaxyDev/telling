@@ -60,7 +60,7 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> login(String email, String password) async {
+  Future<String?> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -71,23 +71,18 @@ class AuthNotifier extends Notifier<AuthState> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final user = AuthUser.fromJson(data['user']);
-        final token = data['token'];
-
-        await _persistSession(user, token);
-        state = state.copyWith(user: user, token: token, isLoading: false);
+        // Login now returns userId for OTP verification, not token
+        final userId = data['userId'];
         
-        // Set user context in Telling SDK after successful login
-        Telling.instance.setUser(
-          userId: user.id,
-          userName: user.name,
-          userEmail: user.email,
-        );
+        state = state.copyWith(isLoading: false);
+        return userId;
       } else {
         state = state.copyWith(isLoading: false, error: 'Invalid credentials');
+        return null;
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
     }
   }
 
@@ -101,12 +96,42 @@ class AuthNotifier extends Notifier<AuthState> {
     state = AuthState();
   }
 
-  Future<bool> register(String name, String email, String password) async {
+  Future<Map<String, dynamic>?> register(
+    String name,
+    String email,
+    String password,
+  ) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/register'),
         body: jsonEncode({'name': name, 'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Register now returns userId for OTP verification
+        state = state.copyWith(isLoading: false);
+        return data;
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Registration failed: ${response.body}',
+        );
+        return null;
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
+    }
+  }
+
+  Future<bool> verifyOtp(String userId, String otp) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/verify'),
+        body: jsonEncode({'userId': userId, 'otp': otp}),
       );
 
       if (response.statusCode == 200) {
@@ -117,7 +142,7 @@ class AuthNotifier extends Notifier<AuthState> {
         await _persistSession(user, token);
         state = AuthState(user: user, token: token, isLoading: false);
         
-        // Set user context in Telling SDK after successful registration
+        // Set user context in Telling SDK after successful verification
         Telling.instance.setUser(
           userId: user.id,
           userName: user.name,
@@ -128,12 +153,26 @@ class AuthNotifier extends Notifier<AuthState> {
       } else {
         state = state.copyWith(
           isLoading: false,
-          error: 'Registration failed: ${response.body}',
+          error: 'Verification failed: ${response.body}',
         );
         return false;
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> resendOtp(String userId) async {
+    // Don't set global loading state for resend to avoid UI flicker
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/resend-otp'),
+        body: jsonEncode({'userId': userId}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
       return false;
     }
   }

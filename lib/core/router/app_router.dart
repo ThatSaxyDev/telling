@@ -5,6 +5,7 @@ import 'package:telling_logger/telling_logger.dart';
 import '../../features/auth/landing_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
+import '../../features/auth/otp_verification_screen.dart';
 import '../../features/overview/overview_screen.dart';
 import '../../features/logs/logs_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
@@ -36,7 +37,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isOnLanding = state.matchedLocation == '/landing';
       final isLoggingIn =
           state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
+          state.matchedLocation == '/register' ||
+          state.matchedLocation == '/verify-otp';
       final isOnProjectsScreen = state.matchedLocation == '/projects';
 
       // Logged in but on landing page? Go to projects
@@ -64,6 +66,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/verify-otp',
+        builder: (context, state) {
+          final extras = state.extra as Map<String, dynamic>;
+          return OtpVerificationScreen(
+            userId: extras['userId'] as String,
+            email: extras['email'] as String,
+          );
+        },
       ),
       // Projects Selection Screen (No Dashboard Layout)
       GoRoute(
