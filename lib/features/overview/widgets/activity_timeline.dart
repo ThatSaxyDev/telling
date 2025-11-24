@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:telling/core/models/log_level/log_level.dart';
 import '../../../core/models/log_model/log_model.dart';
+import '../../../core/providers/activity_timeline_provider.dart';
 import '../../../core/providers/logs_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/project_provider.dart';
@@ -24,7 +25,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
   final ScrollController _scrollController = ScrollController();
 
   List<LogModel> _logs = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
   bool _isLoadingMore = false;
   bool _hasMore = true;
   int _currentPage = 1;
@@ -34,7 +35,27 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _loadInitialLogs();
+    
+    // Try to load from provider cache first, then fetch if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cachedData = ref.read(activityTimelineProvider);
+      cachedData.whenData((logs) {
+        if (mounted && logs.isNotEmpty) {
+          setState(() {
+            _logs = logs;
+            _hasMore = logs.length == 20;
+            _isLoading = false;
+          });
+        } else if (mounted) {
+          _loadInitialLogs();
+        }
+      });
+
+      // If no cache or error, load normally
+      if (!cachedData.hasValue || cachedData.value!.isEmpty) {
+        _loadInitialLogs();
+      }
+    });
   }
 
   @override

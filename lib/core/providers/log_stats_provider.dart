@@ -34,6 +34,15 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
 
   @override
   Future<LogStats> build() async {
+    // Keep provider alive for 2 minutes after last listener
+    // This prevents loading flicker when navigating between screens
+    final link = ref.keepAlive();
+
+    // Auto-cancel the keepAlive after 2 minutes
+    Timer(const Duration(minutes: 2), () {
+      link.close();
+    });
+    
     // Watch project provider to refetch when project changes
     ref.watch(projectProvider);
     
