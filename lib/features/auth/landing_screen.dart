@@ -65,6 +65,8 @@ class _LandingScreenState extends State<LandingScreen>
     final size = MediaQuery.of(context).size;
     final isMobile = ResponsiveBreakpoints.of(context).isMobile;
 
+    final useMobileLayout = isMobile || _isMobileApp;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
@@ -92,17 +94,17 @@ class _LandingScreenState extends State<LandingScreen>
 
           // Floating particles
           ...List.generate(
-            _isMobileApp ? 6 : 12,
+            useMobileLayout ? 6 : 12,
             (index) => _buildFloatingDecoration(index, size),
           ),
 
           // Main Content
-          _isMobileApp
+          useMobileLayout
               ? _buildMobileAppLayout(isMobile)
               : _buildWebLayout(isMobile),
 
-          // Top Navigation Bar (Web only) - Placed LAST to be on TOP
-          if (!_isMobileApp) _buildTopNavBar(isMobile),
+          // Top Navigation Bar (Desktop Web only) - Placed LAST to be on TOP
+          if (!useMobileLayout) _buildTopNavBar(isMobile),
         ],
       ),
     );
