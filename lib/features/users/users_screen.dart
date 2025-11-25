@@ -108,6 +108,19 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                       glitchAmount: 2.0,
                     ),
                   ),
+
+                  const Spacer(),
+                  AppButton(
+                    text: isMobile ? '' : 'REFRESH',
+                    icon: Icons.refresh,
+                    isOutlined: true,
+                    onPressed: () {
+                      ref.invalidate(usersListProvider);
+                    },
+                    width: isMobile ? 48 : null,
+                    height: isMobile ? 48 : null,
+                    padding: isMobile ? EdgeInsets.zero : null,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:telling/core/providers/activity_timeline_provider.dart';
+import 'package:telling/shared/widgets/app_button.dart';
 import '../../core/providers/log_stats_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -19,6 +21,7 @@ class OverviewScreen extends ConsumerWidget {
       builder: (context, constraints) {
         // Use width-based breakpoint for better reliability
         final isDesktop = constraints.maxWidth > 1024;
+        final isMobile = MediaQuery.of(context).size.width < 600;
         final style = constraints.maxWidth > 800
             ? AppTextStyles.headlineSmall
             : AppTextStyles.titleMedium;
@@ -35,6 +38,19 @@ class OverviewScreen extends ConsumerWidget {
                   style: style.copyWith(color: AppColors.white),
                   glitchAmount: 2.0,
                 ),
+              ),
+              const Spacer(),
+              AppButton(
+                text: isMobile ? '' : 'REFRESH',
+                icon: Icons.refresh,
+                isOutlined: true,
+                onPressed: () {
+                  ref.invalidate(logStatsProvider);
+                  ref.invalidate(activityTimelineProvider);
+                },
+                width: isMobile ? 48 : null,
+                height: isMobile ? 48 : null,
+                padding: isMobile ? EdgeInsets.zero : null,
               ),
             ],
           ),

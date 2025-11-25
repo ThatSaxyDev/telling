@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:telling/shared/widgets/app_button.dart';
 import '../../../core/providers/analytics_provider.dart';
 import '../../../core/models/analytics_models.dart';
 import '../../../core/theme/app_colors.dart';
@@ -77,6 +78,23 @@ class AnalyticsScreen extends ConsumerWidget {
                           glitchAmount: 2.0,
                         ),
                       ),
+
+                      const Spacer(),
+                      AppButton(
+                        text: isMobile ? '' : 'REFRESH',
+                        icon: Icons.refresh,
+                        isOutlined: true,
+                        onPressed: () {
+                          ref.invalidate(analyticsSummaryProvider);
+                          ref.invalidate(logsTimelineProvider);
+                          ref.invalidate(logLevelsProvider);
+                          ref.invalidate(topErrorsProvider);
+                          ref.invalidate(activeUsersProvider);
+                        },
+                        width: isMobile ? 48 : null,
+                        height: isMobile ? 48 : null,
+                        padding: isMobile ? EdgeInsets.zero : null,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -88,9 +106,8 @@ class AnalyticsScreen extends ConsumerWidget {
                         label: '24H',
                         hours: 24,
                         isSelected: timeRange == 24,
-                        onTap: () =>
-                            ref
-                                    .read(analyticsTimeRangeProvider.notifier)
+                        onTap: () => ref
+                            .read(analyticsTimeRangeProvider.notifier)
                             .set(24),
                       ),
                       const SizedBox(width: 12),
@@ -98,9 +115,8 @@ class AnalyticsScreen extends ConsumerWidget {
                         label: '07D',
                         hours: 168,
                         isSelected: timeRange == 168,
-                        onTap: () =>
-                            ref
-                                    .read(analyticsTimeRangeProvider.notifier)
+                        onTap: () => ref
+                            .read(analyticsTimeRangeProvider.notifier)
                             .set(168),
                       ),
                       const SizedBox(width: 12),
@@ -108,9 +124,8 @@ class AnalyticsScreen extends ConsumerWidget {
                         label: '30D',
                         hours: 720,
                         isSelected: timeRange == 720,
-                        onTap: () =>
-                            ref
-                                    .read(analyticsTimeRangeProvider.notifier)
+                        onTap: () => ref
+                            .read(analyticsTimeRangeProvider.notifier)
                             .set(720),
                       ),
                     ],
@@ -348,9 +363,7 @@ class _TimeRangeTab extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.white : Colors.transparent,
           border: Border.all(
-            color: isSelected
-                ? AppColors.white
-                : AppColors.slate.withAlpha(77),
+            color: isSelected ? AppColors.white : AppColors.slate.withAlpha(77),
           ),
         ),
         child: Text(
@@ -740,10 +753,8 @@ class _LogLevelChart extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: List.generate(
                           10,
-                          (i) => Container(
-                            width: 1,
-                            color: color.withAlpha(51),
-                          ),
+                          (i) =>
+                              Container(width: 1, color: color.withAlpha(51)),
                         ),
                       ),
                     ),
@@ -751,10 +762,7 @@ class _LogLevelChart extends StatelessWidget {
                     FractionallySizedBox(
                       alignment: Alignment.centerLeft,
                       widthFactor: percentage,
-                      child: Container(
-                        height: 24,
-                        color: color.withAlpha(204),
-                      ),
+                      child: Container(height: 24, color: color.withAlpha(204)),
                     ),
                   ],
                 ),
