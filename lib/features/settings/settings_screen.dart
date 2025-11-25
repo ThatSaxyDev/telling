@@ -10,6 +10,9 @@ import '../../shared/widgets/app_button.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/project_provider.dart';
 import './widgets/api_key_display.dart';
+import './widgets/profile_section.dart';
+import './widgets/password_reset_flow_widgets.dart';
+import '../../core/providers/user_profile_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -37,52 +40,6 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 32),
-
-          // Account Section
-          MilitaryHoverContainer(
-            baseColor: AppColors.surfaceDark,
-            showGrid: false,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.slate.withAlpha(77)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.account_circle,
-                        color: AppColors.secondary,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'ACCOUNT',
-                        style: AppTextStyles.titleMedium.copyWith(
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  AppButton(
-                    text: 'LOGOUT',
-                    icon: Icons.logout,
-                    onPressed: () {
-                      ref.read(authProvider.notifier).logout();
-                      ref.read(projectProvider.notifier).reset();
-                      context.go('/login');
-                    },
-                    backgroundColor: AppColors.error.withAlpha(26),
-                    borderColor: AppColors.error,
-                    foregroundColor: AppColors.error,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
 
           // API Key Section
           MilitaryHoverContainer(
@@ -114,6 +71,65 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          // Profile Section
+          const ProfileSection(),
+          const SizedBox(height: 24),
+
+          // Account Section
+          MilitaryHoverContainer(
+            baseColor: AppColors.surfaceDark,
+            showGrid: false,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.slate.withAlpha(77)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.account_circle,
+                        color: AppColors.secondary,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'ACCOUNT',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  AppButton(
+                    text: 'RESET PASSWORD',
+                    icon: Icons.lock_reset,
+                    onPressed: () => _initiatePasswordReset(context, ref),
+                    backgroundColor: AppColors.white.withAlpha(26),
+                    borderColor: AppColors.white,
+                    foregroundColor: AppColors.white,
+                  ),
+                  const SizedBox(height: 16),
+                  AppButton(
+                    text: 'LOGOUT',
+                    icon: Icons.logout,
+                    onPressed: () {
+                      ref.read(authProvider.notifier).logout();
+                      ref.read(projectProvider.notifier).reset();
+                      context.go('/login');
+                    },
+                    backgroundColor: AppColors.error.withAlpha(26),
+                    borderColor: AppColors.error,
+                    foregroundColor: AppColors.error,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           if (kDebugMode) const SizedBox(height: 24),
 
           // Log Generator Section
@@ -294,6 +310,74 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  static void _initiatePasswordReset(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    // Get user email from profile provider
+    final profileAsync = ref.read(userProfileProvider);
+
+    final profile = profileAsync.when(
+      data: (p) => p,
+      loading: () => null,
+      error: (_, __) => null,
+    );
+
+    if (profile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to load user profile',
+            style: TextStyle(fontFamily: 'Urbanist'),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    // Step 1: Email Confirmation
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => EmailConfirmationDialog(
+        email: profile.email,
+        onOtpSent: (userId) {
+          // Step 2: OTP Verification
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => OtpVerificationDialog(
+              userId: userId,
+              email: profile.email,
+              onVerified: (resetToken) {
+                // Step 3: New Password
+                showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) =>
+                      NewPasswordDialog(resetToken: resetToken),
+                ).then((success) {
+                  if (success == true && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'PASSWORD RESET SUCCESSFULLY',
+                          style: TextStyle(fontFamily: 'Urbanist'),
+                        ),
+                        backgroundColor: AppColors.secondary,
+                      ),
+                    );
+                  }
+                });
+              },
+            ),
+          );
+        },
       ),
     );
   }

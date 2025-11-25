@@ -137,6 +137,62 @@ class ProjectNotifier extends Notifier<ProjectState> {
     }
   }
 
+  Future<String?> regenerateApiKey(String projectId) async {
+    final authState = ref.read(authProvider);
+    if (!authState.isAuthenticated) return null;
+
+    final apiClient = ref.read(apiClientProvider);
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await apiClient.post(
+        Uri.parse('$_baseUrl/$projectId/regenerate-key'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newApiKey = data['apiKey'] as String;
+
+        // Update the selected project with the new API key
+        final updatedProjects = state.projects.map((p) {
+          if (p.id == projectId) {
+            return Project(
+              id: p.id,
+              name: p.name,
+              apiKey: newApiKey,
+              createdAt: p.createdAt,
+            );
+          }
+          return p;
+        }).toList();
+
+        Project? updatedSelected = state.selectedProject;
+        if (state.selectedProject?.id == projectId) {
+          updatedSelected = updatedProjects.firstWhere(
+            (p) => p.id == projectId,
+          );
+        }
+
+        state = state.copyWith(
+          projects: updatedProjects,
+          selectedProject: updatedSelected,
+          isLoading: false,
+        );
+
+        return newApiKey;
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Failed to regenerate API key',
+        );
+        return null;
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
+    }
+  }
+
   void selectProject(Project project) {
     state = state.copyWith(selectedProject: project);
   }

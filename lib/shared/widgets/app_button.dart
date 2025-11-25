@@ -140,18 +140,24 @@ class _AppButtonState extends State<AppButton> {
         ],
       );
     }
-    return Text(
-      widget.text.toUpperCase(),
-      style: AppTextStyles.labelLarge.copyWith(
-        color: widget.isOutlined
-            ? (_isHovered
-                  ? (widget.backgroundColor ?? AppColors.primary)
-                  : (widget.foregroundColor ?? AppColors.white))
-            : (_isHovered
-                  ? AppColors.white
-                  : (widget.foregroundColor ?? AppColors.primary)),
-        letterSpacing: 1.5,
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          widget.text.toUpperCase(),
+          style: AppTextStyles.labelLarge.copyWith(
+            color: widget.isOutlined
+                ? (_isHovered
+                      ? (widget.backgroundColor ?? AppColors.primary)
+                      : (widget.foregroundColor ?? AppColors.white))
+                : (_isHovered
+                      ? AppColors.white
+                      : (widget.foregroundColor ?? AppColors.primary)),
+            letterSpacing: 1.5,
+          ),
+        ),
+      ],
     );
   }
 }
