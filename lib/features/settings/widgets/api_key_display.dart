@@ -198,14 +198,10 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.backgroundDark,
-                      border: Border.all(
-                        color: AppColors.slate.withAlpha(77),
-                      ),
+                      border: Border.all(color: AppColors.slate.withAlpha(77)),
                     ),
                     child: Text(
-                      _isVisible
-                          ? project.apiKey
-                          : _obscureKey(project.apiKey),
+                      _isVisible ? project.apiKey : _obscureKey(project.apiKey),
                       style: TextStyle(
                         fontFamily: 'Urbanist',
                         color: AppColors.white,
@@ -245,7 +241,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                                 'API KEY COPIED TO CLIPBOARD',
                                 style: TextStyle(fontFamily: 'Urbanist'),
                               ),
-                              backgroundColor: AppColors.surfaceDark,
+                              backgroundColor: AppColors.white,
                               duration: Duration(seconds: 2),
                             ),
                           );
@@ -276,9 +272,7 @@ class _ApiKeyDisplayState extends ConsumerState<ApiKeyDisplay> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.backgroundDark,
-                      border: Border.all(
-                        color: AppColors.slate.withAlpha(77),
-                      ),
+                      border: Border.all(color: AppColors.slate.withAlpha(77)),
                     ),
                     child: Text(
                       _isVisible ? project.apiKey : _obscureKey(project.apiKey),

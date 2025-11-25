@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:telling/features/settings/widgets/password_reset_flow_widgets.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/military_decorations.dart';
@@ -185,6 +186,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           'REQUEST_CLEARANCE (REGISTER)',
                           style: TextStyle(
                             fontFamily: 'Urbanist',
+                            color: AppColors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          final value = _emailController.text.trim();
+                          final emailRegex = RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          );
+                          if (!emailRegex.hasMatch(value)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Please enter your valid email',
+                                  style: TextStyle(fontFamily: 'Urbanist'),
+                                ),
+                                backgroundColor: AppColors.white,
+                              ),
+                            );
+                            return;
+                          }
+
+                          Telling.instance.event(
+                            'Interaction: Forgot Password',
+                            properties: {'from': 'LoginScreen'},
+                          );
+
+                          _initiatePasswordReset(context, ref);
+                        },
+                        child: const Text(
+                          'FORGOT_PASSWORD?',
+                          style: TextStyle(
+                            fontFamily: 'Syne',
                             color: AppColors.slate,
                             fontSize: 12,
                           ),
@@ -267,6 +306,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           },
         ),
       ],
+    );
+  }
+
+  void _initiatePasswordReset(BuildContext context, WidgetRef ref) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => EmailConfirmationDialog(
+        email: _emailController.text.trim(),
+        onOtpSent: (userId) {
+          // Step 2: OTP Verification
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => OtpVerificationDialog(
+              userId: userId,
+              email: _emailController.text.trim(),
+              onVerified: (resetToken) {
+                // Step 3: New Password
+                showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) =>
+                      NewPasswordDialog(resetToken: resetToken),
+                ).then((success) {
+                  if (success == true && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'PASSWORD RESET SUCCESSFULLY',
+                          style: TextStyle(fontFamily: 'Urbanist'),
+                        ),
+                        backgroundColor: AppColors.secondary,
+                      ),
+                    );
+                  }
+                });
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:telling_logger/telling_logger.dart';
@@ -37,25 +38,21 @@ class _EmailConfirmationDialogState
     });
 
     try {
-      final authState = ref.read(authProvider);
       final response = await http.post(
         Uri.parse('${ApiConfig.authPath}/request-password-reset'),
-        headers: {
-          'Authorization': 'Bearer ${authState.token}',
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': widget.email}),
       );
 
       if (response.statusCode == 200 && mounted) {
         final data = jsonDecode(response.body);
         final userId = data['userId'] as String;
-        
+
         Telling.instance.event(
           'Action: Password Reset OTP Requested',
           properties: {'email': widget.email},
         );
-        
+
         Navigator.of(context).pop();
         widget.onOtpSent(userId);
       } else if (mounted) {
@@ -104,9 +101,7 @@ class _EmailConfirmationDialogState
             const SizedBox(height: 24),
             Text(
               'A ONE-TIME PASSWORD will be sent to:',
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.slate,
-              ),
+              style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate),
             ),
             const SizedBox(height: 8),
             Text(
@@ -126,7 +121,11 @@ class _EmailConfirmationDialogState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline, color: AppColors.error, size: 16),
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppColors.error,
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -155,7 +154,9 @@ class _EmailConfirmationDialogState
             const SizedBox(height: 12),
             Center(
               child: TextButton(
-                onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                onPressed: _isLoading
+                    ? null
+                    : () => Navigator.of(context).pop(),
                 child: Text(
                   'CANCEL',
                   style: AppTextStyles.labelSmall.copyWith(
@@ -213,21 +214,18 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
       final response = await http.post(
         Uri.parse('${ApiConfig.authPath}/verify-password-reset'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'userId': widget.userId,
-          'otp': _otpController.text,
-        }),
+        body: jsonEncode({'userId': widget.userId, 'otp': _otpController.text}),
       );
 
       if (response.statusCode == 200 && mounted) {
         final data = jsonDecode(response.body);
         final resetToken = data['resetToken'] as String;
-        
+
         Telling.instance.event(
           'Action: Password Reset OTP Verified',
           properties: {'userId': widget.userId},
         );
-        
+
         Navigator.of(context).pop();
         widget.onVerified(resetToken);
       } else if (mounted) {
@@ -303,7 +301,10 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.lock_clock_outlined, color: AppColors.secondary),
+                  const Icon(
+                    Icons.lock_clock_outlined,
+                    color: AppColors.secondary,
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     'VERIFY OTP',
@@ -331,7 +332,11 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: AppColors.error, size: 16),
+                      const Icon(
+                        Icons.error_outline,
+                        color: AppColors.error,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -356,6 +361,7 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
                 cursorColor: AppColors.secondary,
                 textAlign: TextAlign.center,
                 keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 6,
                 decoration: InputDecoration(
                   counterText: '',
@@ -365,11 +371,15 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
                   fillColor: AppColors.primary.withAlpha(77),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.zero,
-                    borderSide: BorderSide(color: AppColors.slate.withAlpha(77)),
+                    borderSide: BorderSide(
+                      color: AppColors.slate.withAlpha(77),
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.zero,
-                    borderSide: BorderSide(color: AppColors.slate.withAlpha(77)),
+                    borderSide: BorderSide(
+                      color: AppColors.slate.withAlpha(77),
+                    ),
                   ),
                   focusedBorder: const OutlineInputBorder(
                     borderRadius: BorderRadius.zero,
@@ -387,17 +397,17 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
                 },
               ),
               const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                text: _isLoading ? 'VERIFYING...' : 'VERIFY',
-                icon: _isLoading ? null : Icons.check,
-                onPressed: _isLoading ? null : _verifyOtp,
-                backgroundColor: AppColors.white.withAlpha(26),
-                borderColor: AppColors.white,
-                foregroundColor: AppColors.white,
+              SizedBox(
+                width: double.infinity,
+                child: AppButton(
+                  text: _isLoading ? 'VERIFYING...' : 'VERIFY',
+                  icon: _isLoading ? null : Icons.check,
+                  onPressed: _isLoading ? null : _verifyOtp,
+                  backgroundColor: AppColors.white.withAlpha(26),
+                  borderColor: AppColors.white,
+                  foregroundColor: AppColors.white,
+                ),
               ),
-            ),
               const SizedBox(height: 16),
               Center(
                 child: TextButton(
@@ -433,10 +443,7 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
 class NewPasswordDialog extends ConsumerStatefulWidget {
   final String resetToken;
 
-  const NewPasswordDialog({
-    super.key,
-    required this.resetToken,
-  });
+  const NewPasswordDialog({super.key, required this.resetToken});
 
   @override
   ConsumerState<NewPasswordDialog> createState() => _NewPasswordDialogState();
@@ -498,7 +505,7 @@ class _NewPasswordDialogState extends ConsumerState<NewPasswordDialog> {
 
       if (response.statusCode == 200 && mounted) {
         Telling.instance.event('Action: Password Reset Successfully');
-        
+
         Navigator.of(context).pop(true); // Return success
       } else if (mounted) {
         setState(() {
@@ -556,7 +563,11 @@ class _NewPasswordDialogState extends ConsumerState<NewPasswordDialog> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: AppColors.error, size: 16),
+                      const Icon(
+                        Icons.error_outline,
+                        color: AppColors.error,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -574,14 +585,16 @@ class _NewPasswordDialogState extends ConsumerState<NewPasswordDialog> {
                 label: 'NEW PASSWORD',
                 controller: _newPasswordController,
                 obscureText: _obscureNew,
-                onToggleVisibility: () => setState(() => _obscureNew = !_obscureNew),
+                onToggleVisibility: () =>
+                    setState(() => _obscureNew = !_obscureNew),
               ),
               const SizedBox(height: 16),
               _buildPasswordField(
                 label: 'CONFIRM PASSWORD',
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirm,
-                onToggleVisibility: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                onToggleVisibility: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
                 validator: (value) {
                   if (value != _newPasswordController.text) {
                     return 'PASSWORDS_DO_NOT_MATCH';
@@ -598,29 +611,31 @@ class _NewPasswordDialogState extends ConsumerState<NewPasswordDialog> {
                 ),
               ),
               const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                text: _isLoading ? 'RESETTING...' : 'RESET PASSWORD',
-                icon: _isLoading ? null : Icons.check_circle,
-                onPressed: _isLoading ? null : _resetPassword,
-                backgroundColor: AppColors.secondary.withAlpha(26),
-                borderColor: AppColors.secondary,
-                foregroundColor: AppColors.secondary,
+              SizedBox(
+                width: double.infinity,
+                child: AppButton(
+                  text: _isLoading ? 'RESETTING...' : 'RESET PASSWORD',
+                  icon: _isLoading ? null : Icons.check_circle,
+                  onPressed: _isLoading ? null : _resetPassword,
+                  backgroundColor: AppColors.secondary.withAlpha(26),
+                  borderColor: AppColors.secondary,
+                  foregroundColor: AppColors.secondary,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: TextButton(
-                onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-                child: Text(
-                  'CANCEL',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.slate,
+              const SizedBox(height: 12),
+              Center(
+                child: TextButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  child: Text(
+                    'CANCEL',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.slate,
+                    ),
                   ),
                 ),
               ),
-            ),
             ],
           ),
         ),
@@ -659,7 +674,9 @@ class _NewPasswordDialogState extends ConsumerState<NewPasswordDialog> {
             fillColor: AppColors.primary.withAlpha(77),
             suffixIcon: IconButton(
               icon: Icon(
-                obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                obscureText
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
                 color: AppColors.slate,
                 size: 18,
               ),

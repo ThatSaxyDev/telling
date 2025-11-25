@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
@@ -37,7 +38,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         'Action: Verify OTP Attempt',
         properties: {'userId': widget.userId},
       );
-      
+
       final success = await ref
           .read(authProvider.notifier)
           .verifyOtp(widget.userId, _otpController.text);
@@ -256,6 +257,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
           cursorColor: AppColors.secondary,
           textAlign: TextAlign.center,
           keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           maxLength: 6,
           decoration: InputDecoration(
             counterText: '',
