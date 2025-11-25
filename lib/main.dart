@@ -13,6 +13,7 @@ void main() async {
 
       await Telling.instance.init(
         'rPoGEz5wqU18LnY3aDDVV9sJpMzpCRyb1siMQwQSJ7Y=',
+        enableDebugLogs: false,
       );
 
       Telling.instance.enableCrashReporting();
