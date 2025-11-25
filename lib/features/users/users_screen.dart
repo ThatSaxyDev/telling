@@ -359,7 +359,10 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     final dateFormat = DateFormat('MMM d, HH:mm:ss');
 
     return MilitaryHoverContainer(
-      onTap: () => context.go('/users/${user.userId}'),
+      onTap: () {
+        ref.invalidate(userStatsProvider(user.userId));
+        context.go('/users/${user.userId}');
+      },
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
