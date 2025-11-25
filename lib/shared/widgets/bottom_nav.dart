@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/providers/activity_timeline_provider.dart';
+import '../../core/providers/analytics_provider.dart';
+import '../../core/providers/filtered_logs_provider.dart';
+import '../../core/providers/log_stats_provider.dart';
+import '../../core/providers/logs_provider.dart';
+import '../../core/providers/users_provider.dart';
 import '../../core/theme/app_colors.dart';
 
-class BottomNav extends StatelessWidget {
+class BottomNav extends ConsumerWidget {
   final String currentRoute;
   
   const BottomNav({
@@ -11,7 +18,7 @@ class BottomNav extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
@@ -30,30 +37,35 @@ class BottomNav extends StatelessWidget {
             children: [
               _buildNavItem(
                 context,
+                ref,
                 icon: Icons.radar,
                 route: '/',
                 isActive: currentRoute == '/',
               ),
               _buildNavItem(
                 context,
+                ref,
                 icon: Icons.list_alt,
                 route: '/logs',
                 isActive: currentRoute == '/logs',
               ),
               _buildNavItem(
                 context,
+                ref,
                 icon: Icons.people_alt,
                 route: '/users',
                 isActive: currentRoute == '/users',
               ),
               _buildNavItem(
                 context,
+                ref,
                 icon: Icons.analytics,
                 route: '/analytics',
                 isActive: currentRoute == '/analytics',
               ),
               _buildNavItem(
                 context,
+                ref,
                 icon: Icons.settings,
                 route: '/settings',
                 isActive: currentRoute == '/settings',
@@ -66,7 +78,8 @@ class BottomNav extends StatelessWidget {
   }
 
   Widget _buildNavItem(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     required IconData icon,
     required String route,
     required bool isActive,
@@ -74,7 +87,29 @@ class BottomNav extends StatelessWidget {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () => context.go(route),
+        onTap: () {
+          switch (route) {
+            case '/':
+              ref.invalidate(logStatsProvider);
+              ref.invalidate(activityTimelineProvider);
+              break;
+            case '/logs':
+              ref.invalidate(logsProvider);
+              ref.invalidate(filteredLogsProvider);
+              break;
+            case '/users':
+              ref.invalidate(usersListProvider);
+              break;
+            case '/analytics':
+              ref.invalidate(analyticsSummaryProvider);
+              ref.invalidate(logsTimelineProvider);
+              ref.invalidate(logLevelsProvider);
+              ref.invalidate(topErrorsProvider);
+              ref.invalidate(activeUsersProvider);
+              break;
+          }
+          context.go(route);
+        },
         child: Container(
           width: 80,
           height: 80,
