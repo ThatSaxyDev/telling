@@ -809,7 +809,7 @@ class _LogsTimelineChartState extends State<_LogsTimelineChart> {
 
               // Stacked Bars
               Padding(
-                padding: const EdgeInsets.only(left: 43, bottom: 30),
+                padding: const EdgeInsets.only(left: 43),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: widget.data.length,
@@ -860,26 +860,41 @@ class _LogsTimelineChartState extends State<_LogsTimelineChart> {
     }
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Show placeholder if no segments but has data
-        if (segments.isEmpty && totalCount > 0)
-          Container(
-            width: 24, height: 2, color: AppColors.slate.withAlpha(77))
-        else if (segments.isNotEmpty)
-          ...segments,
-        const SizedBox(height: 8),
+        // Bar Area (matches grid height)
         SizedBox(
+          height: 250,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // Show placeholder if no segments but has data
+              if (segments.isEmpty && totalCount > 0)
+                Container(
+                  width: 24,
+                  height: 2,
+                  color: AppColors.slate.withAlpha(77),
+                )
+              else if (segments.isNotEmpty)
+                ...segments,
+            ],
+          ),
+        ),
+
+        // Label Area (matches bottom padding of grid)
+        SizedBox(
+          height: 30,
           width: 40,
-          child: Text(
-            _formatTimestamp(point.timestamp),
-            style: const TextStyle(
-              color: AppColors.slate,
-              fontSize: 9,
-              fontFamily: 'Urbanist',
+          child: Center(
+            child: Text(
+              _formatTimestamp(point.timestamp),
+              style: const TextStyle(
+                color: AppColors.slate,
+                fontSize: 9,
+                fontFamily: 'Urbanist',
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
           ),
         ),
       ],

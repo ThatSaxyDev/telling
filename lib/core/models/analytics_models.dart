@@ -39,18 +39,23 @@ class LogTimelinePoint {
   });
 
   factory LogTimelinePoint.fromJson(Map<String, dynamic> json) {
-    // Handle actual backend format: {time: "...", count: 123}
+    // Handle actual backend format: {time: "...", count: 123, level: "info"}
     if (json.containsKey('time') && json.containsKey('count')) {
+      final timestamp = json['time'] != null
+          ? DateTime.parse(json['time'])
+          : DateTime.now();
+
+      final count = (json['count'] ?? 0) as int;
+      final level = json['level'] as String?;
+
       return LogTimelinePoint(
-        timestamp: json['time'] != null
-            ? DateTime.parse(json['time'])
-            : DateTime.now(),
-        // Backend returns single count, we'll put it under 'total' key
-        // This will show as a single bar until backend returns level breakdown
-        counts: {'total': (json['count'] ?? 0) as int},
+        timestamp: timestamp,
+        counts: {
+          if (level != null) level.toLowerCase(): count else 'total': count,
+        },
       );
     }
-
+    
     // Handle expected format: {timestamp: "...", counts: {level: count}}
     return LogTimelinePoint(
       timestamp: json['timestamp'] != null

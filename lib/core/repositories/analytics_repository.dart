@@ -36,7 +36,36 @@ class AnalyticsRepository {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => LogTimelinePoint.fromJson(json)).toList();
+      final rawPoints = data
+          .map((json) => LogTimelinePoint.fromJson(json))
+          .toList();
+
+      // Aggregate points by timestamp
+      final Map<DateTime, Map<String, int>> aggregated = {};
+
+      for (final point in rawPoints) {
+        // Normalize timestamp to remove seconds/milliseconds if needed,
+        // but usually backend returns hourly buckets like "2025-11-25T13:00:00"
+        final timestamp = point.timestamp;
+
+        if (!aggregated.containsKey(timestamp)) {
+          aggregated[timestamp] = {};
+        }
+
+        point.counts.forEach((level, count) {
+          aggregated[timestamp]![level] =
+              (aggregated[timestamp]![level] ?? 0) + count;
+        });
+      }
+
+      // Convert back to list and sort
+      final List<LogTimelinePoint> result = aggregated.entries.map((entry) {
+        return LogTimelinePoint(timestamp: entry.key, counts: entry.value);
+      }).toList();
+
+      result.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+      return result;
     } else {
       throw Exception('Failed to load logs timeline');
     }
