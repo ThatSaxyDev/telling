@@ -30,7 +30,7 @@ class AnalyticsRepository {
   }) async {
     final response = await _client.get(
       Uri.parse(
-        '$baseUrl/analytics/timeline?projectId=$projectId&hours=$hours',
+        '$baseUrl/analytics/timeline-by-level?projectId=$projectId&hours=$hours',
       ),
     );
 
