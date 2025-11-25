@@ -11,7 +11,7 @@ final usersRepositoryProvider = Provider<UsersRepository>((ref) {
   return UsersRepository(apiClient);
 });
 
-final usersListProvider = FutureProvider.autoDispose<List<User>>((ref) async {
+final usersListProvider = FutureProvider<List<User>>((ref) async {
   final repository = ref.watch(usersRepositoryProvider);
   final projectState = ref.watch(projectProvider);
 

@@ -27,7 +27,7 @@ final analyticsTimeRangeProvider =
     );
 
 // Analytics summary provider
-final analyticsSummaryProvider = FutureProvider.autoDispose<AnalyticsSummary>((ref) async {
+final analyticsSummaryProvider = FutureProvider<AnalyticsSummary>((ref) async {
   final repository = ref.watch(analyticsRepositoryProvider);
   final hours = ref.watch(analyticsTimeRangeProvider);
   final projectState = ref.watch(projectProvider);
@@ -45,7 +45,9 @@ final analyticsSummaryProvider = FutureProvider.autoDispose<AnalyticsSummary>((r
 });
 
 // Logs timeline provider
-final logsTimelineProvider = FutureProvider.autoDispose<List<LogTimelinePoint>>((ref) async {
+final logsTimelineProvider = FutureProvider<List<LogTimelinePoint>>((
+  ref,
+) async {
   final repository = ref.watch(analyticsRepositoryProvider);
     final hours = ref.watch(analyticsTimeRangeProvider);
     final projectState = ref.watch(projectProvider);
@@ -61,7 +63,7 @@ final logsTimelineProvider = FutureProvider.autoDispose<List<LogTimelinePoint>>(
 });
 
 // Log levels distribution provider
-final logLevelsProvider = FutureProvider.autoDispose<List<LogLevelStat>>((ref) async {
+final logLevelsProvider = FutureProvider<List<LogLevelStat>>((ref) async {
   final repository = ref.watch(analyticsRepositoryProvider);
   final hours = ref.watch(analyticsTimeRangeProvider);
   final projectState = ref.watch(projectProvider);
@@ -79,7 +81,7 @@ final logLevelsProvider = FutureProvider.autoDispose<List<LogLevelStat>>((ref) a
 });
 
 // Top errors provider
-final topErrorsProvider = FutureProvider.autoDispose<List<TopErrorItem>>((ref) async {
+final topErrorsProvider = FutureProvider<List<TopErrorItem>>((ref) async {
   final repository = ref.watch(analyticsRepositoryProvider);
   final hours = ref.watch(analyticsTimeRangeProvider);
   final projectState = ref.watch(projectProvider);
@@ -98,7 +100,7 @@ final topErrorsProvider = FutureProvider.autoDispose<List<TopErrorItem>>((ref) a
 });
 
 // Active users provider
-final activeUsersProvider = FutureProvider.autoDispose<List<ActiveUserStat>>((ref) async {
+final activeUsersProvider = FutureProvider<List<ActiveUserStat>>((ref) async {
   final repository = ref.watch(analyticsRepositoryProvider);
   final hours = ref.watch(analyticsTimeRangeProvider);
   final projectState = ref.watch(projectProvider);

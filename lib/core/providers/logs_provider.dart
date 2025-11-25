@@ -33,12 +33,12 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
     // Keep provider alive for 2 minutes after last listener
     // This prevents loading flicker when navigating between screens
     // while still allowing disposal after extended inactivity
-    final link = ref.keepAlive();
+    // final link = ref.keepAlive();
 
-    // Auto-cancel the keepAlive after 2 minutes
-    Timer(const Duration(minutes: 2), () {
-      link.close();
-    });
+    // // Auto-cancel the keepAlive after 2 minutes
+    // Timer(const Duration(minutes: 2), () {
+    //   link.close();
+    // });
     
     // Watch project provider to refetch when project changes
     ref.watch(projectProvider);
@@ -150,7 +150,7 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
 
 // Provider for logs with auto-polling
 final logsProvider =
-    AsyncNotifierProvider.autoDispose<LogsNotifier, List<LogModel>>(() {
+    AsyncNotifierProvider<LogsNotifier, List<LogModel>>(() {
   return LogsNotifier();
 });
 

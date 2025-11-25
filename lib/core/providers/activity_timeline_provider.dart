@@ -6,15 +6,15 @@ import 'project_provider.dart';
 import 'logs_provider.dart';
 
 /// Provider for activity timeline logs (recent activity on overview)
-final activityTimelineProvider = FutureProvider.autoDispose<List<LogModel>>((ref) async {
+final activityTimelineProvider = FutureProvider<List<LogModel>>((ref) async {
   // Keep provider alive for 2 minutes after last listener
   // This prevents loading flicker when navigating to/from overview
-  final link = ref.keepAlive();
+  // final link = ref.keepAlive();
   
-  // Auto-cancel the keepAlive after 2 minutes
-  Timer(const Duration(minutes: 2), () {
-    link.close();
-  });
+  // // Auto-cancel the keepAlive after 2 minutes
+  // Timer(const Duration(minutes: 2), () {
+  //   link.close();
+  // });
   
   final authState = ref.watch(authProvider);
   final projectState = ref.watch(projectProvider);
