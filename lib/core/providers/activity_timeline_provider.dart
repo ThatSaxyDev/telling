@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:async';
 import '../models/log_model/log_model.dart';
 import 'auth_provider.dart';
 import 'project_provider.dart';

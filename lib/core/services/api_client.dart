@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:telling_logger/telling_logger.dart';
+import '../exceptions/api_exceptions.dart';
 import '../providers/auth_provider.dart';
 
 class ApiClient {
@@ -54,6 +56,25 @@ class ApiClient {
       _printInDebug('Headers: ${response.headers}');
       _printInDebug('Body: ${response.body}');
       _printInDebug('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Check for rate limiting (HTTP 429)
+      if (response.statusCode == 429) {
+        try {
+          final data = jsonDecode(response.body);
+          throw RateLimitException(
+            message:
+                data['message'] ?? 'Too many requests. Please try again later.',
+            retryAfterSeconds: data['retryAfter'] ?? 60,
+          );
+        } catch (e) {
+          if (e is RateLimitException) rethrow;
+          // If JSON parsing fails, throw generic rate limit exception
+          throw RateLimitException(
+            message: 'Too many requests. Please try again later.',
+            retryAfterSeconds: 60,
+          );
+        }
+      }
 
       if (response.statusCode >= 400) {
         Telling.instance.log(

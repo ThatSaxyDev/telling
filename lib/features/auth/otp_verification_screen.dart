@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/text_formatters.dart';
 import '../../shared/widgets/military_decorations.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
@@ -256,9 +257,13 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
           ),
           cursorColor: AppColors.secondary,
           textAlign: TextAlign.center,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          maxLength: 6,
+          keyboardType: TextInputType.text,
+          textCapitalization: TextCapitalization.characters,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+            UpperCaseTextFormatter(),
+          ],
+          maxLength: 8,
           decoration: InputDecoration(
             counterText: '',
             prefixIcon: Icon(icon, color: AppColors.slate, size: 18),
@@ -281,8 +286,11 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
             if (value == null || value.isEmpty) {
               return 'REQUIRED_FIELD';
             }
-            if (value.length != 6) {
-              return 'INVALID_CODE_LENGTH';
+            if (value.length != 8) {
+              return 'CODE_MUST_BE_8_CHARACTERS';
+            }
+            if (!RegExp(r'^[A-Z0-9]{8}$').hasMatch(value.toUpperCase())) {
+              return 'CODE_MUST_BE_ALPHANUMERIC';
             }
             return null;
           },

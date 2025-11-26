@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:telling_logger/telling_logger.dart';
 import '../../../core/config/api_config.dart';
+import '../../../core/exceptions/api_exceptions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/error_formatter.dart';
+import '../../../core/utils/text_formatters.dart';
 import '../../../shared/widgets/app_button.dart';
 
 /// Step 1: Email Confirmation Dialog
@@ -58,6 +60,13 @@ class _EmailConfirmationDialogState
       } else if (mounted) {
         setState(() {
           _error = 'Failed to send OTP';
+          _isLoading = false;
+        });
+      }
+    } on RateLimitException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = '${e.message} Retry in ${e.retryAfterFormatted}.';
           _isLoading = false;
         });
       }
@@ -234,6 +243,56 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
           _isLoading = false;
         });
       }
+    } on RateLimitException catch (e) {
+      if (mounted) {
+        // Check if account is locked
+        if (e.message.toLowerCase().contains('locked')) {
+          // Show lockout dialog
+          Navigator.of(context).pop(); // Close OTP dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              backgroundColor: AppColors.surfaceDark,
+              title: Row(
+                children: const [
+                  Icon(Icons.lock_outline, color: AppColors.error),
+                  SizedBox(width: 12),
+                  Text(
+                    'ACCOUNT LOCKED',
+                    style: TextStyle(
+                      fontFamily: 'Urbanist',
+                      color: AppColors.error,
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                '${e.message}\n\nThis is a security measure to protect your account.',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.white,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'OK',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          setState(() {
+            _error = '${e.message} Retry in ${e.retryAfterFormatted}.';
+            _isLoading = false;
+          });
+        }
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -360,12 +419,16 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
                 ),
                 cursorColor: AppColors.secondary,
                 textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                maxLength: 6,
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                  UpperCaseTextFormatter(),
+                ],
+                maxLength: 8,
                 decoration: InputDecoration(
                   counterText: '',
-                  hintText: '000000',
+                  hintText: 'A3X7K9P2',
                   hintStyle: TextStyle(color: AppColors.slate.withAlpha(128)),
                   filled: true,
                   fillColor: AppColors.primary.withAlpha(77),
@@ -390,8 +453,11 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
                   if (value == null || value.isEmpty) {
                     return 'REQUIRED_FIELD';
                   }
-                  if (value.length != 6) {
-                    return 'CODE_MUST_BE_6_DIGITS';
+                  if (value.length != 8) {
+                    return 'CODE_MUST_BE_8_CHARACTERS';
+                  }
+                  if (!RegExp(r'^[A-Z0-9]{8}$').hasMatch(value.toUpperCase())) {
+                    return 'CODE_MUST_BE_ALPHANUMERIC';
                   }
                   return null;
                 },
