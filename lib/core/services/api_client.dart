@@ -7,17 +7,18 @@ import '../exceptions/api_exceptions.dart';
 import '../providers/auth_provider.dart';
 
 class ApiClient {
-  final String? _token;
   final http.Client _client;
+  final Ref _ref;
 
-  ApiClient(this._token) : _client = http.Client();
+  ApiClient(this._ref) : _client = http.Client();
 
   Map<String, String> get _headers {
     final headers = <String, String>{
       'Content-Type': 'application/json',
     };
-    if (_token != null) {
-      headers['Authorization'] = 'Bearer $_token';
+    final token = _ref.read(authProvider).token;
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
     }
     return headers;
   }
@@ -74,6 +75,24 @@ class ApiClient {
             retryAfterSeconds: 60,
           );
         }
+      }
+
+      // Check for unauthorized (HTTP 401) - invalid/expired token
+      if (response.statusCode == 401) {
+        _printInDebug(
+          '⚠️ 401 Unauthorized - Token invalid/expired, logging out...',
+        );
+
+        // Trigger logout
+        try {
+          _ref.read(authProvider.notifier).logout();
+        } catch (e) {
+          _printInDebug('⚠️ Failed to trigger logout: $e');
+        }
+
+        throw UnauthorizedException(
+          message: 'Session expired. Please login again.',
+        );
       }
 
       if (response.statusCode >= 400) {
@@ -165,6 +184,5 @@ class ApiClient {
 }
 
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final authState = ref.watch(authProvider);
-  return ApiClient(authState.token);
+  return ApiClient(ref);
 });

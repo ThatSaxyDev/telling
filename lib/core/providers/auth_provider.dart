@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../models/auth_user.dart';
 import '../config/api_config.dart';
+import '../services/api_client.dart';
+import '../exceptions/api_exceptions.dart';
 
 class AuthState {
   final AuthUser? user;
@@ -64,7 +65,8 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await http.post(
+      final apiClient = ref.read(apiClientProvider);
+      final response = await apiClient.post(
         Uri.parse('$_baseUrl/login'),
         body: jsonEncode({'email': email, 'password': password}),
       );
@@ -76,27 +78,16 @@ class AuthNotifier extends Notifier<AuthState> {
         
         state = state.copyWith(isLoading: false);
         return userId;
-      } else if (response.statusCode == 429) {
-        // Handle rate limiting
-        try {
-          final data = jsonDecode(response.body);
-          final retryAfter = data['retryAfter'] ?? 60;
-          final message = data['message'] ?? 'Too many login attempts';
-          state = state.copyWith(
-            isLoading: false,
-            error: '$message Retry in ${_formatRetryTime(retryAfter)}.',
-          );
-        } catch (_) {
-          state = state.copyWith(
-            isLoading: false,
-            error: 'Too many login attempts. Please try again later.',
-          );
-        }
-        return null;
       } else {
         state = state.copyWith(isLoading: false, error: 'Invalid credentials');
         return null;
       }
+    } on RateLimitException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: '${e.message} Retry in ${e.retryAfterFormatted}.',
+      );
+      return null;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return null;
@@ -120,7 +111,8 @@ class AuthNotifier extends Notifier<AuthState> {
   ) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await http.post(
+      final apiClient = ref.read(apiClientProvider);
+      final response = await apiClient.post(
         Uri.parse('$_baseUrl/register'),
         body: jsonEncode({'name': name, 'email': email, 'password': password}),
       );
@@ -130,23 +122,6 @@ class AuthNotifier extends Notifier<AuthState> {
         // Register now returns userId for OTP verification
         state = state.copyWith(isLoading: false);
         return data;
-      } else if (response.statusCode == 429) {
-        // Handle rate limiting
-        try {
-          final data = jsonDecode(response.body);
-          final retryAfter = data['retryAfter'] ?? 60;
-          final message = data['message'] ?? 'Too many registration attempts';
-          state = state.copyWith(
-            isLoading: false,
-            error: '$message Retry in ${_formatRetryTime(retryAfter)}.',
-          );
-        } catch (_) {
-          state = state.copyWith(
-            isLoading: false,
-            error: 'Too many registration attempts. Please try again later.',
-          );
-        }
-        return null;
       } else {
         state = state.copyWith(
           isLoading: false,
@@ -154,6 +129,12 @@ class AuthNotifier extends Notifier<AuthState> {
         );
         return null;
       }
+    } on RateLimitException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: '${e.message} Retry in ${e.retryAfterFormatted}.',
+      );
+      return null;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return null;
@@ -163,7 +144,8 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<bool> verifyOtp(String userId, String otp) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await http.post(
+      final apiClient = ref.read(apiClientProvider);
+      final response = await apiClient.post(
         Uri.parse('$_baseUrl/verify'),
         body: jsonEncode({'userId': userId, 'otp': otp}),
       );
@@ -184,23 +166,6 @@ class AuthNotifier extends Notifier<AuthState> {
         );
         
         return true;
-      } else if (response.statusCode == 429) {
-        // Handle rate limiting
-        try {
-          final data = jsonDecode(response.body);
-          final retryAfter = data['retryAfter'] ?? 1800; // Default 30 minutes
-          final message = data['message'] ?? 'Too many OTP attempts';
-          state = state.copyWith(
-            isLoading: false,
-            error: '$message Retry in ${_formatRetryTime(retryAfter)}.',
-          );
-        } catch (_) {
-          state = state.copyWith(
-            isLoading: false,
-            error: 'Too many OTP attempts. Please try again later.',
-          );
-        }
-        return false;
       } else {
         state = state.copyWith(
           isLoading: false,
@@ -208,6 +173,12 @@ class AuthNotifier extends Notifier<AuthState> {
         );
         return false;
       }
+    } on RateLimitException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: '${e.message} Retry in ${e.retryAfterFormatted}.',
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;
@@ -217,7 +188,8 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<bool> resendOtp(String userId) async {
     // Don't set global loading state for resend to avoid UI flicker
     try {
-      final response = await http.post(
+      final apiClient = ref.read(apiClientProvider);
+      final response = await apiClient.post(
         Uri.parse('$_baseUrl/resend-otp'),
         body: jsonEncode({'userId': userId}),
       );
@@ -226,14 +198,6 @@ class AuthNotifier extends Notifier<AuthState> {
     } catch (e) {
       return false;
     }
-  }
-
-  String _formatRetryTime(int seconds) {
-    if (seconds < 60) {
-      return '$seconds seconds';
-    }
-    final minutes = (seconds / 60).ceil();
-    return '$minutes minute${minutes > 1 ? 's' : ''}';
   }
 
   Future<void> _persistSession(AuthUser user, String token) async {

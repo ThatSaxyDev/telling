@@ -34,3 +34,15 @@ class RateLimitException implements Exception {
   @override
   String toString() => message;
 }
+
+/// Exception thrown when authentication token is invalid or expired (HTTP 401)
+class UnauthorizedException implements Exception {
+  final String message;
+
+  UnauthorizedException({
+    this.message = 'Session expired. Please login again.',
+  });
+
+  @override
+  String toString() => message;
+}
