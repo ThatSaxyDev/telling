@@ -248,6 +248,15 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         ),
         const SizedBox(height: 8),
         TextFormField(
+          // contextMenuBuilder: (context, editableTextState) {
+          //   final items = editableTextState.contextMenuButtonItems
+          //       .where((item) => item.type != ContextMenuButtonType.paste)
+          //       .toList();
+          //   return AdaptiveTextSelectionToolbar.buttonItems(
+          //     anchors: editableTextState.contextMenuAnchors,
+          //     buttonItems: items,
+          //   );
+          // },
           controller: controller,
           style: const TextStyle(
             fontFamily: 'Urbanist',
