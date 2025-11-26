@@ -5,6 +5,7 @@ import 'package:telling/shared/widgets/app_button.dart';
 import '../../core/providers/log_stats_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/error_formatter.dart';
 import '../../core/utils/number_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
@@ -63,7 +64,7 @@ class OverviewScreen extends ConsumerWidget {
             ),
             error: (error, stack) => Center(
               child: Text(
-                'Error loading stats: $error',
+                ErrorFormatter.format(error),
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.error,
                 ),

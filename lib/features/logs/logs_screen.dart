@@ -8,6 +8,7 @@ import '../../core/providers/logs_provider.dart';
 import '../../core/providers/filtered_logs_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/error_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
@@ -291,7 +292,7 @@ class LogsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              error.toString(),
+              ErrorFormatter.format(error),
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
               textAlign: TextAlign.center,
             ),

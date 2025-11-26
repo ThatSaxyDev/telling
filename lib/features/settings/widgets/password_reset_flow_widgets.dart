@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:telling_logger/telling_logger.dart';
 import '../../../core/config/api_config.dart';
-import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/error_formatter.dart';
 import '../../../shared/widgets/app_button.dart';
 
 /// Step 1: Email Confirmation Dialog
@@ -64,7 +64,7 @@ class _EmailConfirmationDialogState
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = ErrorFormatter.format(e);
           _isLoading = false;
         });
       }
@@ -237,7 +237,7 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = ErrorFormatter.format(e);
           _isLoading = false;
         });
       }
@@ -516,7 +516,7 @@ class _NewPasswordDialogState extends ConsumerState<NewPasswordDialog> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = ErrorFormatter.format(e);
           _isLoading = false;
         });
       }

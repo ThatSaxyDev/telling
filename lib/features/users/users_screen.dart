@@ -8,6 +8,7 @@ import 'package:telling/core/theme/app_text_styles.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../../core/providers/users_provider.dart';
 import '../../core/models/user.dart';
+import '../../core/utils/error_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
@@ -203,7 +204,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    err.toString(),
+                    ErrorFormatter.format(err),
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.slate,
                     ),
