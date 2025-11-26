@@ -411,6 +411,7 @@ class _OtpVerificationDialogState extends ConsumerState<OtpVerificationDialog> {
               ],
               TextFormField(
                 controller: _otpController,
+                enableInteractiveSelection: false,
                 style: const TextStyle(
                   fontFamily: 'Urbanist',
                   color: AppColors.white,
