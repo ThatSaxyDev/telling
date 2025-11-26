@@ -203,31 +203,35 @@ class _LandingScreenState extends State<LandingScreen>
         opacity: _heroFade,
         child: SlideTransition(
           position: _heroSlide,
-          child: Container(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height,
-              maxHeight: MediaQuery.of(context).size.height,
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 24 : 32,
-              vertical: isMobile ? 32 : 40,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
-                  children: [
-                    _buildClassificationBadge(true),
-                    const SizedBox(height: 32),
-                    _buildHeroHeading(true),
-                    const SizedBox(height: 12),
-                    _buildTagline(true),
-                  ],
-                ),
-                _buildMissionBrief(true),
-                _buildCTASection(true),
-                _buildFooter(true),
-              ],
+          child: SafeArea(
+            child: Container(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height,
+                maxHeight: MediaQuery.of(context).size.height,
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 20 : 32,
+                vertical: isMobile ? 16 : 40,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      _buildClassificationBadge(true),
+                      const SizedBox(height: 20),
+                      _buildHeroHeading(true),
+                      const SizedBox(height: 8),
+                      _buildTagline(true),
+                      const SizedBox(height: 12),
+                      _buildFlutterBadge(true),
+                    ],
+                  ),
+                  _buildMissionBrief(true),
+                  _buildCTASection(true),
+                  _buildFooter(true),
+                ],
+              ),
             ),
           ),
         ),
@@ -944,8 +948,8 @@ class _LandingScreenState extends State<LandingScreen>
         onTap: () => _launchUrl('https://pub.dev/packages/telling_logger'),
         child: Container(
           padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 16 : 20,
-            vertical: isMobile ? 10 : 12,
+            horizontal: isMobile ? 10 : 20,
+            vertical: isMobile ? 8 : 12,
           ),
           decoration: BoxDecoration(
             color: const Color(0xFF02569B).withAlpha(26),
@@ -958,35 +962,37 @@ class _LandingScreenState extends State<LandingScreen>
               Icon(
                 Icons.flutter_dash,
                 color: const Color(0xFF54C5F8),
-                size: isMobile ? 18 : 20,
+                size: isMobile ? 16 : 20,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: isMobile ? 8 : 12),
               Text(
-                'BUILT_FOR_FLUTTER',
+                isMobile ? 'PUB.DEV' : 'BUILT_FOR_FLUTTER',
                 style: TextStyle(
                   fontFamily: 'Urbanist',
                   color: const Color(0xFF54C5F8),
-                  fontSize: isMobile ? 12 : 13,
-                  letterSpacing: 2,
+                  fontSize: isMobile ? 11 : 13,
+                  letterSpacing: isMobile ? 1.5 : 2,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(width: 12),
-              Container(
-                width: 1,
-                height: 12,
-                color: const Color(0xFF54C5F8).withAlpha(77),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'VIEW_ON_PUB.DEV',
-                style: TextStyle(
-                  fontFamily: 'Urbanist',
-                  color: AppColors.white,
-                  fontSize: isMobile ? 10 : 11,
-                  letterSpacing: 1.5,
+              if (!isMobile) ...[
+                const SizedBox(width: 12),
+                Container(
+                  width: 1,
+                  height: 12,
+                  color: const Color(0xFF54C5F8).withAlpha(77),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Text(
+                  'VIEW_ON_PUB.DEV',
+                  style: TextStyle(
+                    fontFamily: 'Urbanist',
+                    color: AppColors.white,
+                    fontSize: 11,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -1011,7 +1017,7 @@ class _LandingScreenState extends State<LandingScreen>
           MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              onTap: () => _launchUrl('https://kiishi.netlify.app/'),
+              onTap: () => _launchUrl('https://kiishi.space/'),
               child: Text(
                 'Kiishi',
                 style: TextStyle(
