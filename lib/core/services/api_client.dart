@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:telling_logger/telling_logger.dart';
@@ -19,15 +20,40 @@ class ApiClient {
     return headers;
   }
 
+  void _printInDebug(String message) {
+    if (kDebugMode) {
+      debugPrint('🔵 API CLIENT: $message');
+    }
+  }
+
   Future<http.Response> _send(
     Future<http.Response> Function() requestFn,
     String method,
-    Uri url,
-  ) async {
+    Uri url, {
+    Object? body,
+    Map<String, String>? additionalHeaders,
+  }) async {
     final startTime = DateTime.now();
+    
+    // Print request details
+    _printInDebug('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    _printInDebug('📤 REQUEST: $method ${url.toString()}');
+    _printInDebug('Headers: ${{..._headers, ...?additionalHeaders}}');
+    if (body != null) {
+      _printInDebug('Body: $body');
+    }
+    
     try {
       final response = await requestFn();
       final duration = DateTime.now().difference(startTime);
+      
+      // Print response details
+      _printInDebug(
+        '📥 RESPONSE: ${response.statusCode} (${duration.inMilliseconds}ms)',
+      );
+      _printInDebug('Headers: ${response.headers}');
+      _printInDebug('Body: ${response.body}');
+      _printInDebug('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       if (response.statusCode >= 400) {
         Telling.instance.log(
@@ -69,6 +95,7 @@ class ApiClient {
       () => _client.get(url, headers: {..._headers, ...?headers}),
       'GET',
       url,
+      additionalHeaders: headers,
     );
   }
 
@@ -81,6 +108,8 @@ class ApiClient {
       () => _client.post(url, headers: {..._headers, ...?headers}, body: body),
       'POST',
       url,
+      body: body,
+      additionalHeaders: headers,
     );
   }
 
@@ -93,6 +122,8 @@ class ApiClient {
       () => _client.put(url, headers: {..._headers, ...?headers}, body: body),
       'PUT',
       url,
+      body: body,
+      additionalHeaders: headers,
     );
   }
 
@@ -106,6 +137,8 @@ class ApiClient {
           _client.delete(url, headers: {..._headers, ...?headers}, body: body),
       'DELETE',
       url,
+      body: body,
+      additionalHeaders: headers,
     );
   }
 }
