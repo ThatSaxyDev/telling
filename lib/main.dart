@@ -12,7 +12,7 @@ void main() async {
       WidgetsFlutterBinding.ensureInitialized();
 
       await Telling.instance.init(
-        'rPoGEz5wqU18LnY3aDDVV9sJpMzpCRyb1siMQwQSJ7Y=',
+        'JKkqECvjKQCstnhjkmsvp0BWqJyBlEHzYdBOetN13z0=',
         enableDebugLogs: false,
       );
 
