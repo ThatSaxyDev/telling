@@ -230,6 +230,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => context.go('/'),
+                        child: const Text(
+                          'ABORT_MISSION (HOME)',
+                          style: TextStyle(
+                            fontFamily: 'Urbanist',
+                            color: AppColors.slate,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
