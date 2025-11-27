@@ -117,3 +117,25 @@ final activeUsersProvider = FutureProvider<List<ActiveUserStat>>((ref) async {
     limit: 10,
   );
 });
+
+// Performance metrics provider
+final performanceMetricsProvider = FutureProvider<PerformanceMetrics>((
+  ref,
+) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final hours = ref.watch(analyticsTimeRangeProvider);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+  final apiKey = projectState.selectedProject?.apiKey;
+
+  if (projectId == null || apiKey == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getPerformanceMetrics(
+    projectId: projectId,
+    apiKey: apiKey,
+    hours: hours,
+  );
+});

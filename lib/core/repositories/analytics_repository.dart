@@ -124,4 +124,28 @@ class AnalyticsRepository {
       throw Exception('Failed to load active users');
     }
   }
+
+  Future<PerformanceMetrics> getPerformanceMetrics({
+    required String projectId,
+    required String apiKey,
+    int hours = 24,
+    String? metric,
+  }) async {
+    final queryParams = {
+      'projectId': projectId,
+      'hours': hours.toString(),
+      if (metric != null) 'metric': metric,
+    };
+    final uri = Uri.parse(
+      '$baseUrl/analytics/performance/overview',
+    ).replace(queryParameters: queryParams);
+
+    final response = await _client.get(uri, headers: {'x-api-key': apiKey});
+
+    if (response.statusCode == 200) {
+      return PerformanceMetrics.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load performance metrics');
+    }
+  }
 }

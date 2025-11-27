@@ -140,3 +140,48 @@ class ActiveUserStat {
     );
   }
 }
+
+class PerformanceMetricStats {
+  final double avg;
+  final double p50;
+  final double p90;
+  final double p95;
+  final double p99;
+  final int samples;
+
+  PerformanceMetricStats({
+    required this.avg,
+    required this.p50,
+    required this.p90,
+    required this.p95,
+    required this.p99,
+    required this.samples,
+  });
+
+  factory PerformanceMetricStats.fromJson(Map<String, dynamic> json) {
+    return PerformanceMetricStats(
+      avg: (json['avg'] ?? 0).toDouble(),
+      p50: (json['p50'] ?? 0).toDouble(),
+      p90: (json['p90'] ?? 0).toDouble(),
+      p95: (json['p95'] ?? 0).toDouble(),
+      p99: (json['p99'] ?? 0).toDouble(),
+      samples: json['samples'] ?? 0,
+    );
+  }
+}
+
+class PerformanceMetrics {
+  final Map<String, PerformanceMetricStats> metrics;
+
+  PerformanceMetrics({required this.metrics});
+
+  factory PerformanceMetrics.fromJson(Map<String, dynamic> json) {
+    final metrics = <String, PerformanceMetricStats>{};
+    if (json['metrics'] != null) {
+      (json['metrics'] as Map<String, dynamic>).forEach((key, value) {
+        metrics[key] = PerformanceMetricStats.fromJson(value);
+      });
+    }
+    return PerformanceMetrics(metrics: metrics);
+  }
+}

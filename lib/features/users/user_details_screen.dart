@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/providers/users_provider.dart';
+import '../../core/providers/user_properties_provider.dart';
 import '../../core/models/user.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -18,6 +19,7 @@ class UserDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final usersAsync = ref.watch(usersListProvider);
     final statsAsync = ref.watch(userStatsProvider(userId));
+    final propertiesAsync = ref.watch(userPropertiesProvider(userId));
     // final sessionsAsync = ref.watch(userSessionsProvider(userId));
     // final logsAsync = ref.watch(userLogsProvider(userId));
 
@@ -90,7 +92,7 @@ class UserDetailsScreen extends ConsumerWidget {
               Expanded(
                 child: isSmallScreen
                     ? DefaultTabController(
-                        length: 2,
+                        length: 3,
                         child: Column(
                           children: [
                             Container(
@@ -118,6 +120,7 @@ class UserDetailsScreen extends ConsumerWidget {
                                 tabs: const [
                                   Tab(text: 'SESSION HISTORY'),
                                   Tab(text: 'RECENT ACTIVITY'),
+                                  Tab(text: 'PROPERTIES'),
                                 ],
                               ),
                             ),
@@ -130,6 +133,10 @@ class UserDetailsScreen extends ConsumerWidget {
                                     userName: currentUser?.userName,
                                   ),
                                   PaginatedLogsList(userId: userId),
+                                  _UserPropertiesCard(
+                                    userId: userId,
+                                    propertiesAsync: propertiesAsync,
+                                  ),
                                 ],
                               ),
                             ),
@@ -159,7 +166,7 @@ class UserDetailsScreen extends ConsumerWidget {
 
                           const SizedBox(width: 24),
 
-                          // Recent Logs
+                          // Recent Logs and Properties
                           Expanded(
                             flex: 3,
                             child: Column(
@@ -168,7 +175,17 @@ class UserDetailsScreen extends ConsumerWidget {
                                 _buildSectionHeader(context, 'RECENT ACTIVITY'),
                                 const SizedBox(height: 16),
                                 Expanded(
+                                  flex: 2,
                                   child: PaginatedLogsList(userId: userId),
+                                ),
+                                const SizedBox(height: 24),
+                                _buildSectionHeader(context, 'PROPERTIES'),
+                                const SizedBox(height: 16),
+                                Expanded(
+                                  child: _UserPropertiesCard(
+                                    userId: userId,
+                                    propertiesAsync: propertiesAsync,
+                                  ),
                                 ),
                               ],
                             ),
@@ -302,6 +319,96 @@ class _StatCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _UserPropertiesCard extends ConsumerWidget {
+  final String userId;
+  final AsyncValue propertiesAsync;
+
+  const _UserPropertiesCard({
+    required this.userId,
+    required this.propertiesAsync,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: propertiesAsync.when(
+        data: (properties) {
+          if (properties.properties.isEmpty) {
+            return const Center(
+              child: Text(
+                'NO PROPERTIES SET',
+                style: TextStyle(
+                  color: AppColors.slate,
+                  fontFamily: 'Urbanist',
+                  fontSize: 12,
+                ),
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: properties.properties.entries.map<Widget>((entry) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          entry.key.toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.slate,
+                            fontFamily: 'Urbanist',
+                            fontSize: 10,
+                            letterSpacing: 1,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          entry.value.toString(),
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontFamily: 'Urbanist',
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(
+          child: Text(
+            'Failed to load properties',
+            style: const TextStyle(
+              color: AppColors.error,
+              fontFamily: 'Urbanist',
+              fontSize: 12,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -22,6 +22,7 @@ class AnalyticsScreen extends ConsumerWidget {
     final levelsAsync = ref.watch(logLevelsProvider);
     final errorsAsync = ref.watch(topErrorsProvider);
     final usersAsync = ref.watch(activeUsersProvider);
+    // final performanceAsync = ref.watch(performanceMetricsProvider);
 
     final isMobile = MediaQuery.of(context).size.width < 900;
 
@@ -91,6 +92,7 @@ class AnalyticsScreen extends ConsumerWidget {
                           ref.invalidate(logLevelsProvider);
                           ref.invalidate(topErrorsProvider);
                           ref.invalidate(activeUsersProvider);
+                          // ref.invalidate(performanceMetricsProvider);
                         },
                         width: isMobile ? 48 : null,
                         height: isMobile ? 48 : null,
@@ -192,6 +194,10 @@ class AnalyticsScreen extends ConsumerWidget {
                     ),
 
                     const SizedBox(height: 32),
+
+                    // Performance Metrics Section
+                    // _buildPerformanceMetricsSection(performanceAsync, isMobile),
+                    // const SizedBox(height: 32),
 
                     // Charts Row
                     isMobile
@@ -339,6 +345,65 @@ class AnalyticsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  /*
+  Widget _buildPerformanceMetricsSection(
+    AsyncValue performanceAsync,
+    bool isMobile,
+  ) {
+    return _SectionCard(
+      title: 'PERFORMANCE_METRICS_OVERVIEW',
+      icon: Icons.speed,
+      child: performanceAsync.when(
+        loading: () => const SizedBox(
+          height: 200,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (err, stack) => SizedBox(
+          height: 200,
+          child: Center(
+            child: Text(
+              ErrorFormatter.format(err),
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        ),
+        data: (metrics) {
+          if (metrics.metrics.isEmpty) {
+            return const SizedBox(
+              height: 200,
+              child: Center(
+                child: Text(
+                  'NO PERFORMANCE DATA',
+                  style: TextStyle(
+                    color: AppColors.slate,
+                    fontFamily: 'Urbanist',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: isMobile ? 1 : 3,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: isMobile ? 3.0 : 2.0,
+            children: metrics.metrics.entries.map((entry) {
+              return _PerformanceMetricCard(
+                metricName: entry.key,
+                stats: entry.value,
+              );
+            }).toList(),
+          );
+        },
+      ),
+    );
+  }
+  */
 }
 
 // Time Range Tab Widget
@@ -1753,3 +1818,126 @@ class _ActiveUsersList extends ConsumerWidget {
     );
   }
 }
+// Add this at the end of analytics_screen.dart, after the _ActiveUsersList class
+
+/*
+class _PerformanceMetricCard extends StatelessWidget {
+  final String metricName;
+  final PerformanceMetricStats stats;
+
+  const _PerformanceMetricCard({required this.metricName, required this.stats});
+
+  String _formatMetricName(String name) {
+    // Convert snake_case or camelCase to TITLE CASE
+    return name
+        .replaceAll('_', ' ')
+        .replaceAllMapped(
+          RegExp(r'([a-z])([A-Z])'),
+          (match) => '${match.group(1)} ${match.group(2)}',
+        )
+        .toUpperCase();
+  }
+
+  String _formatValue(double value) {
+    // Format based on metric type
+    if (metricName.contains('time') || metricName.contains('ms')) {
+      return '${value.toStringAsFixed(0)}ms';
+    } else if (metricName.contains('fps')) {
+      return value.toStringAsFixed(1);
+    } else if (metricName.contains('memory') || metricName.contains('mb')) {
+      return '${value.toStringAsFixed(1)}MB';
+    }
+    return value.toStringAsFixed(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark,
+        border: Border.all(color: AppColors.secondary.withAlpha(77)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.insights, color: AppColors.secondary, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _formatMetricName(metricName),
+                  style: const TextStyle(
+                    color: AppColors.slate,
+                    fontSize: 10,
+                    fontFamily: 'Urbanist',
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _StatColumn(label: 'AVG', value: _formatValue(stats.avg)),
+              _StatColumn(label: 'P50', value: _formatValue(stats.p50)),
+              _StatColumn(label: 'P95', value: _formatValue(stats.p95)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${stats.samples} samples',
+            style: TextStyle(
+              color: AppColors.slate.withAlpha(179),
+              fontSize: 9,
+              fontFamily: 'Urbanist',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatColumn extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _StatColumn({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.slate,
+            fontSize: 9,
+            fontFamily: 'Urbanist',
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 14,
+            fontFamily: 'Urbanist',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+}
+*/
