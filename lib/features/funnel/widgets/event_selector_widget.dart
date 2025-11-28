@@ -251,7 +251,9 @@ class _EventSelectorWidgetState extends ConsumerState<EventSelectorWidget> {
                     child: eventsAsync.when(
                       loading: () => const SizedBox(
                         height: 150,
-                        child: Center(child: MilitaryLoader(label: 'LOADING...')),
+                        child: Center(
+                          child: MilitaryLoader(label: 'LOADING...'),
+                        ),
                       ),
                       error: (err, stack) => Padding(
                         padding: const EdgeInsets.all(16),
@@ -262,8 +264,10 @@ class _EventSelectorWidgetState extends ConsumerState<EventSelectorWidget> {
                       ),
                       data: (events) {
                         final filteredEvents = events
-                            .where((event) =>
-                                event.toLowerCase().contains(_searchQuery))
+                            .where(
+                              (event) =>
+                                  event.toLowerCase().contains(_searchQuery),
+                            )
                             .where((event) => !selectedSteps.contains(event))
                             .toList();
 
@@ -367,10 +371,19 @@ class _StepChip extends StatelessWidget {
       child: Row(
         children: [
           // Drag Handle
-          Icon(
-            Icons.drag_indicator,
-            color: AppColors.slate.withAlpha(179),
-            size: 16,
+          // Icon(
+          //   Icons.drag_indicator,
+          //   color: AppColors.slate.withAlpha(179),
+          //   size: 16,
+          // ),
+          // Remove Button
+          GestureDetector(
+            onTap: onRemove,
+            child: Icon(
+              Icons.close,
+              color: AppColors.error.withAlpha(204),
+              size: 18,
+            ),
           ),
           const SizedBox(width: 12),
           // Step Number
@@ -406,14 +419,14 @@ class _StepChip extends StatelessWidget {
             ),
           ),
           // Remove Button
-          GestureDetector(
-            onTap: onRemove,
-            child: Icon(
-              Icons.close,
-              color: AppColors.error.withAlpha(204),
-              size: 18,
-            ),
-          ),
+          // GestureDetector(
+          //   onTap: onRemove,
+          //   child: Icon(
+          //     Icons.close,
+          //     color: AppColors.error.withAlpha(204),
+          //     size: 18,
+          //   ),
+          // ),
         ],
       ),
     );
