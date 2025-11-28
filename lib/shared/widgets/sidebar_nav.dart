@@ -28,7 +28,12 @@ class _SidebarNavState extends ConsumerState<SidebarNav> {
     NavItem(icon: Icons.list_alt, label: 'LOGS EXPLORER', route: '/logs'),
     NavItem(icon: Icons.people_alt, label: 'USERS', route: '/users'),
     NavItem(icon: Icons.analytics, label: 'ANALYTICS', route: '/analytics'),
-    NavItem(icon: Icons.filter_alt, label: 'FUNNEL', route: '/funnel'),
+    NavItem(icon: Icons.filter_alt, label: 'FUNNELYTICS', route: '/funnel'),
+    NavItem(
+      icon: Icons.filter_list,
+      label: 'FUNNELYTICS_2',
+      route: '/funnelytics-2',
+    ),
     NavItem(icon: Icons.settings, label: 'SETTINGS', route: '/settings'),
   ];
 
@@ -155,6 +160,10 @@ class _SidebarNavState extends ConsumerState<SidebarNav> {
             case '/funnel':
               ref.invalidate(funnelDataProvider);
               ref.invalidate(availableEventsProvider);
+              break;
+            case '/funnelytics-2':
+              ref.invalidate(namedFunnelDataProvider);
+              ref.invalidate(availableFunnelNamesProvider);
               break;
           }
           context.go(item.route);

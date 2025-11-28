@@ -10,6 +10,7 @@ import '../../features/overview/overview_screen.dart';
 import '../../features/logs/logs_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
 import '../../features/funnel/funnel_screen.dart';
+import '../../features/funnel/named_funnel_screen.dart';
 import '../../features/users/users_screen.dart';
 import '../../features/users/user_details_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -130,6 +131,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'funnel',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const FunnelScreen()),
+          ),
+          GoRoute(
+            path: '/funnelytics-2',
+            name: 'funnelytics-2',
+            pageBuilder: (context, state) =>
+                NoTransitionPage(child: const NamedFunnelScreen()),
           ),
           GoRoute(
             path: '/settings',

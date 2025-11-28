@@ -224,3 +224,25 @@ class FunnelData {
     );
   }
 }
+
+class NamedFunnelData {
+  final String funnelName;
+  final List<FunnelStep> steps;
+  final double overallConversion;
+
+  NamedFunnelData({
+    required this.funnelName,
+    required this.steps,
+    required this.overallConversion,
+  });
+
+  factory NamedFunnelData.fromJson(Map<String, dynamic> json) {
+    return NamedFunnelData(
+      funnelName: json['funnelName'] ?? '',
+      steps: (json['steps'] as List? ?? [])
+          .map((e) => FunnelStep.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      overallConversion: (json['overallConversion'] ?? 0).toDouble(),
+    );
+  }
+}

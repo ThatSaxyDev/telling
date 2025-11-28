@@ -119,7 +119,7 @@ class _FunnelStepRow extends StatelessWidget {
   Widget build(BuildContext context) {
     // Calculate width based on count relative to max
     // Cap max width at 70% of available width to leave room for labels
-    final widthRatio = step.count / maxCount;
+    final widthRatio = maxCount > 0 ? step.count / maxCount : 0.0;
     final barWidth = (maxWidth * 0.7) * widthRatio;
 
     return Column(
@@ -228,7 +228,7 @@ class _FunnelStepRow extends StatelessWidget {
             ],
           ),
         ),
-        
+
         // Connector spacing with Conversion Rate
         if (!isLast &&
             nextStep != null &&

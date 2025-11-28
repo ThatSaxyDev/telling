@@ -192,4 +192,52 @@ class AnalyticsRepository {
       throw Exception('Failed to load available events');
     }
   }
+
+  // Named Funnel Methods
+  Future<List<String>> getAvailableFunnelNames({
+    required String projectId,
+  }) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/analytics/funnels?projectId=$projectId'),
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => e.toString()).toList();
+    } else {
+      // Enhanced error logging
+      print('Error fetching funnel names:');
+      print('Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      throw Exception(
+        'Failed to load available funnel names (${response.statusCode}): ${response.body}',
+      );
+    }
+  }
+
+  Future<NamedFunnelData> getNamedFunnelData({
+    required String projectId,
+    required String funnelName,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final queryParams = {
+      'projectId': projectId,
+      'funnelName': funnelName,
+      if (startDate != null) 'startDate': startDate.toIso8601String(),
+      if (endDate != null) 'endDate': endDate.toIso8601String(),
+    };
+
+    final uri = Uri.parse(
+      '$baseUrl/analytics/funnel-analysis',
+    ).replace(queryParameters: queryParams);
+
+    final response = await _client.get(uri);
+
+    if (response.statusCode == 200) {
+      return NamedFunnelData.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load named funnel data');
+    }
+  }
 }

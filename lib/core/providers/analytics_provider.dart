@@ -230,3 +230,80 @@ final funnelDataProvider = FutureProvider.autoDispose<FunnelData?>((ref) async {
     endDate: dateRange.$2,
   );
 });
+
+// Named Funnel Providers
+
+// Selected funnel name notifier
+class SelectedFunnelNameNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void setFunnelName(String? name) => state = name;
+  void clear() => state = null;
+}
+
+final selectedFunnelNameProvider =
+    NotifierProvider<SelectedFunnelNameNotifier, String?>(
+      SelectedFunnelNameNotifier.new,
+    );
+
+// Named funnel date range notifier
+class NamedFunnelDateRangeNotifier extends Notifier<(DateTime?, DateTime?)> {
+  @override
+  (DateTime?, DateTime?) build() => (null, null);
+
+  void setDateRange(DateTime? startDate, DateTime? endDate) {
+    state = (startDate, endDate);
+  }
+
+  void clearDateRange() => state = (null, null);
+}
+
+final namedFunnelDateRangeProvider =
+    NotifierProvider<NamedFunnelDateRangeNotifier, (DateTime?, DateTime?)>(
+      NamedFunnelDateRangeNotifier.new,
+    );
+
+// Available funnel names provider
+final availableFunnelNamesProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getAvailableFunnelNames(projectId: projectId);
+});
+
+// Named funnel data provider
+final namedFunnelDataProvider = FutureProvider.autoDispose<NamedFunnelData?>((
+  ref,
+) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final projectState = ref.watch(projectProvider);
+  final funnelName = ref.watch(selectedFunnelNameProvider);
+  final dateRange = ref.watch(namedFunnelDateRangeProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  // Don't fetch if no funnel is selected
+  if (funnelName == null || funnelName.isEmpty) {
+    return null;
+  }
+
+  return repository.getNamedFunnelData(
+    projectId: projectId,
+    funnelName: funnelName,
+    startDate: dateRange.$1,
+    endDate: dateRange.$2,
+  );
+});
