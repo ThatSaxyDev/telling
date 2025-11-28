@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui' as ui;
 import '../../../core/models/analytics_models.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -16,286 +15,270 @@ class FunnelChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (funnelData.steps.isEmpty) return const SizedBox();
+
+    final maxCount = funnelData.steps.first.count;
+
     return Column(
       children: [
         // Overall Conversion Rate Card
-        Container(
-          padding: const EdgeInsets.all(24),
-          margin: const EdgeInsets.only(bottom: 24),
-          decoration: BoxDecoration(
-            color: AppColors.white.withAlpha(26),
-            border: Border.all(color: AppColors.white.withAlpha(77)),
-          ),
-          child: Column(
-            children: [
-              const Text(
-                'OVERALL CONVERSION RATE',
-                style: TextStyle(
-                  color: AppColors.slate,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
-                  fontFamily: 'Urbanist',
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '${funnelData.overallConversion.toStringAsFixed(1)}%',
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Urbanist',
-                  letterSpacing: -2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (funnelData.steps.isNotEmpty)
-                Text(
-                  '${NumberFormat('#,###').format(funnelData.steps.last.count)} of ${NumberFormat('#,###').format(funnelData.steps.first.count)} users',
-                  style: TextStyle(
-                    color: AppColors.slate.withAlpha(179),
-                    fontSize: 13,
-                    fontFamily: 'Urbanist',
-                  ),
-                ),
-            ],
-          ),
-        ),
+        _buildOverallConversionCard(),
 
-        // Funnel Visualization
-        SizedBox(
-          height: isMobile ? 500 : 600,
-          child: CustomPaint(
-            painter: _FunnelPainter(funnelData: funnelData),
-            child: Container(),
-          ),
+        const SizedBox(height: 24),
+
+        // Funnel List
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
+              children: List.generate(funnelData.steps.length, (index) {
+                final step = funnelData.steps[index];
+                final nextStep = index < funnelData.steps.length - 1
+                    ? funnelData.steps[index + 1]
+                    : null;
+
+                return _FunnelStepRow(
+                  step: step,
+                  nextStep: nextStep,
+                  maxCount: maxCount,
+                  maxWidth: constraints.maxWidth,
+                  isFirst: index == 0,
+                  isLast: index == funnelData.steps.length - 1,
+                );
+              }),
+            );
+          },
         ),
       ],
     );
   }
+
+  Widget _buildOverallConversionCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.white.withAlpha(26),
+        border: Border.all(color: AppColors.white.withAlpha(77)),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'OVERALL CONVERSION RATE',
+            style: TextStyle(
+              color: AppColors.slate,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2.0,
+              fontFamily: 'Urbanist',
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${funnelData.overallConversion.toStringAsFixed(1)}%',
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Urbanist',
+              letterSpacing: -2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (funnelData.steps.isNotEmpty)
+            Text(
+              '${NumberFormat('#,###').format(funnelData.steps.last.count)} of ${NumberFormat('#,###').format(funnelData.steps.first.count)} users',
+              style: TextStyle(
+                color: AppColors.slate.withAlpha(179),
+                fontSize: 13,
+                fontFamily: 'Urbanist',
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
-class _FunnelPainter extends CustomPainter {
-  final FunnelData funnelData;
+class _FunnelStepRow extends StatelessWidget {
+  final FunnelStep step;
+  final FunnelStep? nextStep;
+  final int maxCount;
+  final double maxWidth;
+  final bool isFirst;
+  final bool isLast;
 
-  _FunnelPainter({required this.funnelData});
+  const _FunnelStepRow({
+    required this.step,
+    required this.nextStep,
+    required this.maxCount,
+    required this.maxWidth,
+    required this.isFirst,
+    required this.isLast,
+  });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    if (funnelData.steps.isEmpty) return;
+  Widget build(BuildContext context) {
+    // Calculate width based on count relative to max
+    // Cap max width at 70% of available width to leave room for labels
+    final widthRatio = step.count / maxCount;
+    final barWidth = (maxWidth * 0.7) * widthRatio;
 
-    final maxCount = funnelData.steps.first.count.toDouble();
-    final stepHeight = size.height / funnelData.steps.length;
-    
-    for (int i = 0; i < funnelData.steps.length; i++) {
-      final step = funnelData.steps[i];
-      final yStart = i * stepHeight;
-      final widthRatio = step.count / maxCount;
-      final barWidth = size.width * 0.6 * widthRatio;
-      final xCenter = size.width / 2;
+    return Column(
+      children: [
+        SizedBox(
+          height: 60, // Fixed height for each step
+          child: Row(
+            children: [
+              // Left Label (Step Info)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start, // Aligned to start (left)
+                    children: [
+                      Text(
+                        'STEP ${step.stepNumber}',
+                        style: const TextStyle(
+                          color: AppColors.slate,
+                          fontSize: 12, // Increased from 10
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                          fontFamily: 'Urbanist',
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        step.name,
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 14, // Increased from 12
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Urbanist',
+                        ),
+                        textAlign: TextAlign.left, // Aligned to left
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
-      // Draw funnel bar (trapezoid)
-      final barPaint = Paint()
-        ..style = PaintingStyle.fill
-        ..shader = LinearGradient(
-          colors: [
-            AppColors.white.withAlpha(128),
-            AppColors.slate.withAlpha(77),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ).createShader(
-          Rect.fromLTWH(xCenter - barWidth / 2, yStart, barWidth, stepHeight - 20),
-        );
+              // Center Bar (Rectangle)
+              TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOutQuart,
+                tween: Tween(begin: 0.0, end: 1.0),
+                builder: (context, value, child) {
+                  return Container(
+                    width: barWidth * value,
+                    height: 44, // Slightly taller bars to match text
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.white.withAlpha(128),
+                          AppColors.slate.withAlpha(77),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      border: Border.all(
+                        color: AppColors.white.withAlpha(128),
+                        width: 1.5,
+                      ),
+                    ),
+                  );
+                },
+              ),
 
-      // Using Rect for brutalist look (no rounded corners)
-      final barRect = Rect.fromLTWH(
-        xCenter - barWidth / 2,
-        yStart + 10,
-        barWidth,
-        stepHeight - 30,
-      );
-
-      canvas.drawRect(barRect, barPaint);
-
-      // Draw border
-      final borderPaint = Paint()
-        ..style = PaintingStyle.stroke
-        ..color = AppColors.white.withAlpha(128)
-        ..strokeWidth = 1.5;
-
-      canvas.drawRect(barRect, borderPaint);
-
-      // Draw step info
-      _drawStepInfo(
-        canvas,
-        size,
-        step,
-        xCenter,
-        yStart,
-        stepHeight,
-        barWidth,
-      );
-
-      // Draw conversion connector (if not first step)
-      if (i > 0 && step.conversionFromPrevious != null) {
-        _drawConversionConnector(
-          canvas,
-          size,
-          step.conversionFromPrevious!,
-          xCenter,
-          yStart,
-        );
-      }
-    }
-  }
-
-  void _drawStepInfo(
-    Canvas canvas,
-    Size size,
-    FunnelStep step,
-    double xCenter,
-    double yStart,
-    double stepHeight,
-    double barWidth,
-  ) {
-    // Step number and name (left side)
-    final stepNumberPainter = TextPainter(
-      text: TextSpan(
-        text: '${step.stepNumber}',
-        style: const TextStyle(
-          color: AppColors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Urbanist',
-        ),
-      ),
-      textDirection: ui.TextDirection.ltr,
-    );
-    stepNumberPainter.layout();
-    stepNumberPainter.paint(
-      canvas,
-      Offset(20, yStart + stepHeight / 2 - stepNumberPainter.height / 2),
-    );
-
-    final stepNamePainter = TextPainter(
-      text: TextSpan(
-        text: step.name,
-        style: const TextStyle(
-          color: AppColors.white,
-          fontSize: 12,
-          fontFamily: 'Urbanist',
-        ),
-      ),
-      textDirection: ui.TextDirection.ltr,
-      maxLines: 2,
-      ellipsis: '...',
-    );
-    stepNamePainter.layout(maxWidth: xCenter - barWidth / 2 - 60);
-    stepNamePainter.paint(
-      canvas,
-      Offset(
-        50,
-        yStart + stepHeight / 2 - stepNamePainter.height / 2,
-      ),
-    );
-
-    // Count (right side)
-    final countPainter = TextPainter(
-      text: TextSpan(
-        text: NumberFormat('#,###').format(step.count),
-        style: const TextStyle(
-          color: AppColors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Urbanist',
-        ),
-      ),
-      textDirection: ui.TextDirection.ltr,
-    );
-    countPainter.layout();
-    countPainter.paint(
-      canvas,
-      Offset(
-        xCenter + barWidth / 2 + 20,
-        yStart + stepHeight / 2 - countPainter.height / 2 - 8,
-      ),
-    );
-
-    // Percentage (if available)
-    if (step.conversionFromPrevious != null) {
-      final percentPainter = TextPainter(
-        text: TextSpan(
-          text: '${step.conversionFromPrevious!.toStringAsFixed(1)}%',
-          style: TextStyle(
-            color: AppColors.slate.withAlpha(179),
-            fontSize: 11,
-            fontFamily: 'Urbanist',
+              // Right Label (Count)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        NumberFormat('#,###').format(step.count),
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 18, // Increased from 16
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Urbanist',
+                        ),
+                      ),
+                      Text(
+                        step.count == 1
+                            ? 'USER'
+                            : 'USERS', // Fixed pluralization
+                        style: TextStyle(
+                          color: AppColors.slate.withAlpha(128),
+                          fontSize: 12, // Increased from 10
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                          fontFamily: 'Urbanist',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        textDirection: ui.TextDirection.ltr,
-      );
-      percentPainter.layout();
-      percentPainter.paint(
-        canvas,
-        Offset(
-          xCenter + barWidth / 2 + 20,
-          yStart + stepHeight / 2 + 8,
-        ),
-      );
-    }
-  }
-
-  void _drawConversionConnector(
-    Canvas canvas,
-    Size size,
-    double conversion,
-    double xCenter,
-    double yStart,
-  ) {
-    // Draw a small indicator showing drop-off
-    final dropOffPaint = Paint()
-      ..color = conversion < 50
-          ? AppColors.error.withAlpha(128)
-          : conversion < 75
-              ? Colors.orange.withAlpha(128)
-              : Colors.green.withAlpha(128)
-      ..style = PaintingStyle.fill;
-
-    final dropOffRect = Rect.fromCenter(
-      center: Offset(xCenter, yStart - 5),
-      width: 60,
-      height: 20,
-    );
-
-    canvas.drawRect(dropOffRect, dropOffPaint);
-
-    // Draw conversion percentage in connector
-    final conversionPainter = TextPainter(
-      text: TextSpan(
-        text: '${conversion.toStringAsFixed(0)}%',
-        style: const TextStyle(
-          color: AppColors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Urbanist',
-        ),
-      ),
-      textDirection: ui.TextDirection.ltr,
-    );
-    conversionPainter.layout();
-    conversionPainter.paint(
-      canvas,
-      Offset(
-        xCenter - conversionPainter.width / 2,
-        yStart - 5 - conversionPainter.height / 2,
-      ),
+        
+        // Connector spacing with Conversion Rate
+        if (!isLast &&
+            nextStep != null &&
+            nextStep!.conversionFromPrevious != null)
+          SizedBox(
+            height: 36, // Increased height for larger label
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.backgroundDark,
+                  border: Border.all(
+                    color: _getConversionColor(
+                      nextStep!.conversionFromPrevious!,
+                    ).withAlpha(128),
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${nextStep!.conversionFromPrevious!.toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    color: _getConversionColor(
+                      nextStep!.conversionFromPrevious!,
+                    ),
+                    fontSize: 12, // Increased from 10
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Urbanist',
+                  ),
+                ),
+              ),
+            ),
+          )
+        else if (!isLast)
+          // Fallback if no next step data (shouldn't happen in valid funnel)
+          SizedBox(
+            height: 20,
+            child: Center(
+              child: Container(width: 1, color: AppColors.slate.withAlpha(51)),
+            ),
+          ),
+      ],
     );
   }
 
-  @override
-  bool shouldRepaint(covariant _FunnelPainter oldDelegate) {
-    return oldDelegate.funnelData != funnelData;
+  Color _getConversionColor(double conversion) {
+    if (conversion >= 75) return Colors.green;
+    if (conversion >= 50) return Colors.orange;
+    return AppColors.error;
   }
 }
