@@ -109,16 +109,15 @@ class _FunnelPainter extends CustomPainter {
           Rect.fromLTWH(xCenter - barWidth / 2, yStart, barWidth, stepHeight - 20),
         );
 
-      final barRect = RRect.fromRectAndCorners(
-        Rect.fromLTWH(
-          xCenter - barWidth / 2,
-          yStart + 10,
-          barWidth,
-          stepHeight - 30,
-        ),
+      // Using Rect for brutalist look (no rounded corners)
+      final barRect = Rect.fromLTWH(
+        xCenter - barWidth / 2,
+        yStart + 10,
+        barWidth,
+        stepHeight - 30,
       );
 
-      canvas.drawRRect(barRect, barPaint);
+      canvas.drawRect(barRect, barPaint);
 
       // Draw border
       final borderPaint = Paint()
@@ -126,7 +125,7 @@ class _FunnelPainter extends CustomPainter {
         ..color = AppColors.white.withAlpha(128)
         ..strokeWidth = 1.5;
 
-      canvas.drawRRect(barRect, borderPaint);
+      canvas.drawRect(barRect, borderPaint);
 
       // Draw step info
       _drawStepInfo(

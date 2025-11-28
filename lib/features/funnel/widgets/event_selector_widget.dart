@@ -98,18 +98,41 @@ class _EventSelectorWidgetState extends ConsumerState<EventSelectorWidget> {
                       ),
                       const Spacer(),
                       if (selectedSteps.isNotEmpty)
-                        GestureDetector(
+                        InkWell(
                           onTap: () {
                             ref.read(funnelStepsProvider.notifier).clearSteps();
                           },
-                          child: Text(
-                            'CLEAR ALL',
-                            style: TextStyle(
-                              color: AppColors.error.withAlpha(204),
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              fontFamily: 'Urbanist',
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppColors.error.withAlpha(128),
+                              ),
+                              color: AppColors.error.withAlpha(26),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.close,
+                                  size: 12,
+                                  color: AppColors.error.withAlpha(204),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'CLEAR ALL',
+                                  style: TextStyle(
+                                    color: AppColors.error.withAlpha(204),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.2,
+                                    fontFamily: 'Urbanist',
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

@@ -116,6 +116,8 @@ class FunnelScreen extends ConsumerWidget {
                     // Funnel Visualization or Empty State
                     if (selectedSteps.isEmpty)
                       _buildEmptyState()
+                    else if (selectedSteps.length < 2)
+                      _buildInsufficientStepsState()
                     else
                       _buildFunnelSection(funnelAsync, isMobile),
                   ],
@@ -158,6 +160,48 @@ class FunnelScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               'Select events above to build your conversion funnel',
+              style: TextStyle(
+                color: AppColors.slate.withAlpha(179),
+                fontSize: 14,
+                fontFamily: 'Urbanist',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInsufficientStepsState() {
+    return Container(
+      padding: const EdgeInsets.all(48),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withAlpha(204),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_circle_outline,
+              size: 64,
+              color: AppColors.slate.withAlpha(128),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'ADD MORE STEPS',
+              style: TextStyle(
+                color: AppColors.slate,
+                fontFamily: 'Urbanist',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                letterSpacing: 2.0,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'A funnel requires at least 2 events to analyze conversion',
               style: TextStyle(
                 color: AppColors.slate.withAlpha(179),
                 fontSize: 14,
@@ -224,9 +268,25 @@ class FunnelScreen extends ConsumerWidget {
               error: (err, stack) => SizedBox(
                 height: 400,
                 child: Center(
-                  child: Text(
-                    ErrorFormatter.format(err),
-                    style: const TextStyle(color: AppColors.error),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: AppColors.error.withAlpha(204),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        ErrorFormatter.format(err),
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontFamily: 'Urbanist',
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -216,6 +216,13 @@ final funnelDataProvider = FutureProvider.autoDispose<FunnelData?>((ref) async {
     return null;
   }
 
+  // Require at least 2 steps for a funnel
+  if (steps.length < 2) {
+    // We return null here instead of throwing to avoid error state in UI
+    // The UI should handle explaining why no funnel is shown (e.g. "Select at least 2 steps")
+    return null;
+  }
+
   return repository.getFunnelData(
     projectId: projectId,
     steps: steps,
