@@ -66,6 +66,13 @@ class BottomNav extends ConsumerWidget {
               _buildNavItem(
                 context,
                 ref,
+                icon: Icons.filter_alt,
+                route: '/funnel',
+                isActive: currentRoute == '/funnel',
+              ),
+              _buildNavItem(
+                context,
+                ref,
                 icon: Icons.settings,
                 route: '/settings',
                 isActive: currentRoute == '/settings',
@@ -106,6 +113,10 @@ class BottomNav extends ConsumerWidget {
               ref.invalidate(logLevelsProvider);
               ref.invalidate(topErrorsProvider);
               ref.invalidate(activeUsersProvider);
+              break;
+            case '/funnel':
+              ref.invalidate(funnelDataProvider);
+              ref.invalidate(availableEventsProvider);
               break;
           }
           context.go(route);

@@ -139,3 +139,87 @@ final performanceMetricsProvider = FutureProvider<PerformanceMetrics>((
     hours: hours,
   );
 });
+
+// Funnel selected steps notifier
+class FunnelStepsNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() => [];
+
+  void setSteps(List<String> steps) => state = steps;
+  void addStep(String step) => state = [...state, step];
+  void removeStep(String step) =>
+      state = state.where((s) => s != step).toList();
+  void clearSteps() => state = [];
+  void reorderSteps(int oldIndex, int newIndex) {
+    final items = [...state];
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final item = items.removeAt(oldIndex);
+    items.insert(newIndex, item);
+    state = items;
+  }
+}
+
+final funnelStepsProvider = NotifierProvider<FunnelStepsNotifier, List<String>>(
+  FunnelStepsNotifier.new,
+);
+
+// Funnel date range notifier
+class FunnelDateRangeNotifier extends Notifier<(DateTime?, DateTime?)> {
+  @override
+  (DateTime?, DateTime?) build() => (null, null);
+
+  void setDateRange(DateTime? startDate, DateTime? endDate) {
+    state = (startDate, endDate);
+  }
+
+  void clearDateRange() => state = (null, null);
+}
+
+final funnelDateRangeProvider =
+    NotifierProvider<FunnelDateRangeNotifier, (DateTime?, DateTime?)>(
+      FunnelDateRangeNotifier.new,
+    );
+
+// Available events provider
+final availableEventsProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getAvailableEvents(projectId: projectId);
+});
+
+// Funnel data provider
+final funnelDataProvider = FutureProvider.autoDispose<FunnelData?>((ref) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final projectState = ref.watch(projectProvider);
+  final steps = ref.watch(funnelStepsProvider);
+  final dateRange = ref.watch(funnelDateRangeProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  // Don't fetch if no steps are selected
+  if (steps.isEmpty) {
+    return null;
+  }
+
+  return repository.getFunnelData(
+    projectId: projectId,
+    steps: steps,
+    startDate: dateRange.$1,
+    endDate: dateRange.$2,
+  );
+});

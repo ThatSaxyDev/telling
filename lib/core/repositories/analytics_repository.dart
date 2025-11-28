@@ -148,4 +148,48 @@ class AnalyticsRepository {
       throw Exception('Failed to load performance metrics');
     }
   }
+
+  Future<FunnelData> getFunnelData({
+    required String projectId,
+    required List<String> steps,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    if (steps.isEmpty) {
+      throw Exception('At least one step is required for funnel analysis');
+    }
+
+    final queryParams = {
+      'projectId': projectId,
+      'steps': steps.join(','),
+      if (startDate != null) 'startDate': startDate.toIso8601String(),
+      if (endDate != null) 'endDate': endDate.toIso8601String(),
+    };
+
+    final uri = Uri.parse(
+      '$baseUrl/analytics/funnel',
+    ).replace(queryParameters: queryParams);
+
+    final response = await _client.get(uri);
+
+    if (response.statusCode == 200) {
+      return FunnelData.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load funnel data');
+    }
+  }
+
+  Future<List<String>> getAvailableEvents({required String projectId}) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/analytics/events?projectId=$projectId'),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final List<dynamic> events = data['events'] ?? [];
+      return events.map((e) => e.toString()).toList();
+    } else {
+      throw Exception('Failed to load available events');
+    }
+  }
 }

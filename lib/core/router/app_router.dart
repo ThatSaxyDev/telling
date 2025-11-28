@@ -9,6 +9,7 @@ import '../../features/auth/otp_verification_screen.dart';
 import '../../features/overview/overview_screen.dart';
 import '../../features/logs/logs_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
+import '../../features/funnel/funnel_screen.dart';
 import '../../features/users/users_screen.dart';
 import '../../features/users/user_details_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -123,6 +124,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'analytics',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const AnalyticsScreen()),
+          ),
+          GoRoute(
+            path: '/funnel',
+            name: 'funnel',
+            pageBuilder: (context, state) =>
+                NoTransitionPage(child: const FunnelScreen()),
           ),
           GoRoute(
             path: '/settings',

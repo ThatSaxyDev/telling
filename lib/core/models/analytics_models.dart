@@ -185,3 +185,42 @@ class PerformanceMetrics {
     return PerformanceMetrics(metrics: metrics);
   }
 }
+
+class FunnelStep {
+  final String name;
+  final int count;
+  final int stepNumber;
+  final double? conversionFromPrevious; // Null for the first step
+
+  FunnelStep({
+    required this.name,
+    required this.count,
+    required this.stepNumber,
+    this.conversionFromPrevious,
+  });
+
+  factory FunnelStep.fromJson(Map<String, dynamic> json) {
+    return FunnelStep(
+      name: json['name'] ?? '',
+      count: json['count'] ?? 0,
+      stepNumber: json['stepNumber'] ?? 0,
+      conversionFromPrevious: json['conversionFromPrevious']?.toDouble(),
+    );
+  }
+}
+
+class FunnelData {
+  final List<FunnelStep> steps;
+  final double overallConversion;
+
+  FunnelData({required this.steps, required this.overallConversion});
+
+  factory FunnelData.fromJson(Map<String, dynamic> json) {
+    return FunnelData(
+      steps: (json['steps'] as List? ?? [])
+          .map((e) => FunnelStep.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      overallConversion: (json['overallConversion'] ?? 0).toDouble(),
+    );
+  }
+}
