@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/constants/funnel_constants.dart';
 import '../../core/utils/text_formatters.dart';
 import '../../shared/widgets/military_decorations.dart';
 
@@ -28,6 +29,17 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    // Step 5: OTP Verification Screen Viewed (Onboarding Funnel)
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.onboardingFunnel,
+      stepName: FunnelConstants.otpVerificationViewed,
+      step: 5,
+    );
+  }
+
+  @override
   void dispose() {
     _otpController.dispose();
     super.dispose();
@@ -48,6 +60,12 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         Telling.instance.event(
           'Action: Verify OTP Success',
           properties: {'userId': widget.userId},
+        );
+        // Step 6: OTP Verified (Onboarding Funnel)
+        Telling.instance.trackFunnel(
+          funnelName: FunnelConstants.onboardingFunnel,
+          stepName: FunnelConstants.otpVerified,
+          step: 6,
         );
         context.go('/projects');
       } else {

@@ -8,6 +8,7 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:telling_logger/telling_logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/constants/funnel_constants.dart';
 import '../../shared/widgets/military_decorations.dart';
 
 class LandingScreen extends StatefulWidget {
@@ -29,6 +30,13 @@ class _LandingScreenState extends State<LandingScreen>
   @override
   void initState() {
     super.initState();
+
+    // Step 1: Landing Screen Viewed (Onboarding Funnel Start)
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.onboardingFunnel,
+      stepName: FunnelConstants.landingViewed,
+      step: 1,
+    );
 
     _heroController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -180,6 +188,13 @@ class _LandingScreenState extends State<LandingScreen>
                     onPressed: () {
                       Telling.instance.event(
                         'Interaction: Navigate to Register from TopNav',
+                        properties: {'source': 'top_nav'},
+                      );
+                      // Step 2: Get Started Clicked (Onboarding Funnel)
+                      Telling.instance.trackFunnel(
+                        funnelName: FunnelConstants.onboardingFunnel,
+                        stepName: FunnelConstants.getStartedClicked,
+                        step: 2,
                         properties: {'source': 'top_nav'},
                       );
                       context.go('/register');
@@ -609,6 +624,13 @@ class _LandingScreenState extends State<LandingScreen>
                               'Interaction: Navigate to Register from Landing',
                               properties: {'source': 'landing_cta'},
                             );
+                            // Step 2: Get Started Clicked (Onboarding Funnel)
+                            Telling.instance.trackFunnel(
+                              funnelName: FunnelConstants.onboardingFunnel,
+                              stepName: FunnelConstants.getStartedClicked,
+                              step: 2,
+                              properties: {'source': 'landing_cta'},
+                            );
                             context.go('/register');
                           },
                           isPrimary: false,
@@ -639,6 +661,13 @@ class _LandingScreenState extends State<LandingScreen>
                             onPressed: () {
                               Telling.instance.event(
                                 'Interaction: Navigate to Register from Landing',
+                                properties: {'source': 'landing_cta'},
+                              );
+                              // Step 2: Get Started Clicked (Onboarding Funnel)
+                              Telling.instance.trackFunnel(
+                                funnelName: FunnelConstants.onboardingFunnel,
+                                stepName: FunnelConstants.getStartedClicked,
+                                step: 2,
                                 properties: {'source': 'landing_cta'},
                               );
                               context.go('/register');
@@ -884,6 +913,13 @@ class _LandingScreenState extends State<LandingScreen>
                   onPressed: () {
                     Telling.instance.event(
                       'Interaction: Navigate to Register from Landing',
+                      properties: {'source': 'landing_cta'},
+                    );
+                    // Step 2: Get Started Clicked (Onboarding Funnel)
+                    Telling.instance.trackFunnel(
+                      funnelName: FunnelConstants.onboardingFunnel,
+                      stepName: FunnelConstants.getStartedClicked,
+                      step: 2,
                       properties: {'source': 'landing_cta'},
                     );
                     context.go('/register');

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:telling_logger/telling_logger.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/constants/funnel_constants.dart';
 import '../../shared/widgets/military_decorations.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -20,6 +22,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Step 3: Register Screen Viewed (Onboarding Funnel)
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.onboardingFunnel,
+      stepName: FunnelConstants.registerViewed,
+      step: 3,
+    );
+  }
 
   @override
   void dispose() {
@@ -41,6 +54,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
         return;
       }
+
+      // Step 4: Register Submitted (Onboarding Funnel)
+      Telling.instance.trackFunnel(
+        funnelName: FunnelConstants.onboardingFunnel,
+        stepName: FunnelConstants.registerSubmitted,
+        step: 4,
+        properties: {'method': 'email'},
+      );
 
       final result = await ref
           .read(authProvider.notifier)

@@ -2,20 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:telling/core/providers/activity_timeline_provider.dart';
 import 'package:telling/shared/widgets/app_button.dart';
+import 'package:telling_logger/telling_logger.dart';
 import '../../core/providers/log_stats_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/constants/funnel_constants.dart';
 import '../../core/utils/error_formatter.dart';
 import '../../core/utils/number_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import 'widgets/activity_timeline.dart';
 
-class OverviewScreen extends ConsumerWidget {
+class OverviewScreen extends ConsumerStatefulWidget {
   const OverviewScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OverviewScreen> createState() => _OverviewScreenState();
+}
+
+class _OverviewScreenState extends ConsumerState<OverviewScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Step 9: Overview Reached - Onboarding Complete! (Onboarding Funnel)
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.onboardingFunnel,
+      stepName: FunnelConstants.overviewReached,
+      step: 9,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final statsAsync = ref.watch(logStatsProvider);
 
     return LayoutBuilder(

@@ -22,11 +22,18 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   @override
   void initState() {
     super.initState();
-    // Step 1: Projects Screen Viewed
+    // Step 1: Projects Screen Viewed (Project Creation Funnel)
     Telling.instance.trackFunnel(
       funnelName: FunnelConstants.projectCreationFunnel,
       stepName: FunnelConstants.projectsScreenViewed,
       step: 1,
+    );
+    
+    // Step 7: Projects Screen Viewed (Onboarding Funnel)
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.onboardingFunnel,
+      stepName: FunnelConstants.projectsViewed,
+      step: 7,
     );
   }
 
@@ -299,6 +306,13 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 text: 'ENTER SYSTEM',
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 onPressed: () {
+                  // Step 8: Project Selected (Onboarding Funnel)
+                  Telling.instance.trackFunnel(
+                    funnelName: FunnelConstants.onboardingFunnel,
+                    stepName: FunnelConstants.projectSelected,
+                    step: 8,
+                    properties: {'project_name': project['name'] ?? 'unknown'},
+                  );
                   ref.read(projectProvider.notifier).selectProject(project);
                   context.go('/');
                 },
