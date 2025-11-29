@@ -62,7 +62,7 @@ class NamedFunnelScreen extends ConsumerWidget {
                       const SizedBox(width: 16),
                       Flexible(
                         child: GlitchText(
-                          text: 'FUNNELYTICS_2',
+                          text: 'FUNNELYTICS',
                           style: isMobile
                               ? AppTextStyles.titleMedium.copyWith(
                                   fontFamily: 'Syne',

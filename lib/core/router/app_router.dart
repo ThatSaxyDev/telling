@@ -126,15 +126,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const AnalyticsScreen()),
           ),
+          // GoRoute(
+          //   path: '/funnel',
+          //   name: 'funnel',
+          //   pageBuilder: (context, state) =>
+          //       NoTransitionPage(child: const FunnelScreen()),
+          // ),
           GoRoute(
-            path: '/funnel',
-            name: 'funnel',
-            pageBuilder: (context, state) =>
-                NoTransitionPage(child: const FunnelScreen()),
-          ),
-          GoRoute(
-            path: '/funnelytics-2',
-            name: 'funnelytics-2',
+            path: '/funnelytics',
+            name: 'funnelytics',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const NamedFunnelScreen()),
           ),

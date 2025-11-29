@@ -11,23 +11,15 @@ import '../../core/theme/app_colors.dart';
 
 class BottomNav extends ConsumerWidget {
   final String currentRoute;
-  
-  const BottomNav({
-    super.key,
-    required this.currentRoute,
-  });
+
+  const BottomNav({super.key, required this.currentRoute});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
-        border: Border(
-          top: BorderSide(
-            color: AppColors.primary,
-            width: 1,
-          ),
-        ),
+        border: Border(top: BorderSide(color: AppColors.primary, width: 1)),
       ),
       child: SafeArea(
         child: SizedBox(
@@ -56,19 +48,19 @@ class BottomNav extends ConsumerWidget {
                 route: '/users',
                 isActive: currentRoute == '/users',
               ),
+              // _buildNavItem(
+              //   context,
+              //   ref,
+              //   icon: Icons.analytics,
+              //   route: '/analytics',
+              //   isActive: currentRoute == '/analytics',
+              // ),
               _buildNavItem(
                 context,
                 ref,
-                icon: Icons.analytics,
-                route: '/analytics',
-                isActive: currentRoute == '/analytics',
-              ),
-              _buildNavItem(
-                context,
-                ref,
-                icon: Icons.filter_alt,
-                route: '/funnel',
-                isActive: currentRoute == '/funnel',
+                icon: Icons.filter_list,
+                route: '/funnelytics',
+                isActive: currentRoute == '/funnelytics',
               ),
               _buildNavItem(
                 context,
@@ -114,9 +106,8 @@ class BottomNav extends ConsumerWidget {
               ref.invalidate(topErrorsProvider);
               ref.invalidate(activeUsersProvider);
               break;
-            case '/funnel':
-              ref.invalidate(funnelDataProvider);
-              ref.invalidate(availableEventsProvider);
+            case '/funnelytics':
+              ref.invalidate(namedFunnelDataProvider);
               break;
           }
           context.go(route);

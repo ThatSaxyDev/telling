@@ -171,23 +171,13 @@ class _FunnelStepRow extends StatelessWidget {
                 curve: Curves.easeOutQuart,
                 tween: Tween(begin: 0.0, end: 1.0),
                 builder: (context, value, child) {
+                  // Whiter at top (step 1), more transparent as you go down
+                  final alpha = (255 * (1 - (step.stepNumber - 1) / maxCount)).toInt().clamp(77, 255);
+                  Color barColor = AppColors.white.withAlpha(alpha);
                   return Container(
                     width: barWidth * value,
-                    height: 44, // Slightly taller bars to match text
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.white.withAlpha(128),
-                          AppColors.slate.withAlpha(77),
-                        ],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      border: Border.all(
-                        color: AppColors.white.withAlpha(128),
-                        width: 1.5,
-                      ),
-                    ),
+                    height: 45,
+                    decoration: BoxDecoration(color: barColor),
                   );
                 },
               ),
