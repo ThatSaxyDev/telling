@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:telling/core/models/project.dart';
 import 'package:telling/core/providers/auth_provider.dart';
 import '../../core/providers/project_provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -226,7 +227,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   Widget _buildProjectCard(
     BuildContext context,
     WidgetRef ref,
-    dynamic project,
+    Project project,
   ) {
     return MilitaryHoverContainer(
       baseColor: AppColors.surfaceDark,
@@ -311,7 +312,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     funnelName: FunnelConstants.onboardingFunnel,
                     stepName: FunnelConstants.projectSelected,
                     step: 8,
-                    properties: {'project_name': project['name'] ?? 'unknown'},
+                    properties: {'project_name': project.name},
                   );
                   ref.read(projectProvider.notifier).selectProject(project);
                   context.go('/');

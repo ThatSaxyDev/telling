@@ -92,7 +92,7 @@ class UserDetailsScreen extends ConsumerWidget {
               Expanded(
                 child: isSmallScreen
                     ? DefaultTabController(
-                        length: 3,
+                        length: 2,
                         child: Column(
                           children: [
                             Container(
@@ -120,7 +120,7 @@ class UserDetailsScreen extends ConsumerWidget {
                                 tabs: const [
                                   Tab(text: 'SESSION HISTORY'),
                                   Tab(text: 'RECENT ACTIVITY'),
-                                  Tab(text: 'PROPERTIES'),
+                                  // Tab(text: 'PROPERTIES'),
                                 ],
                               ),
                             ),
@@ -133,10 +133,10 @@ class UserDetailsScreen extends ConsumerWidget {
                                     userName: currentUser?.userName,
                                   ),
                                   PaginatedLogsList(userId: userId),
-                                  _UserPropertiesCard(
-                                    userId: userId,
-                                    propertiesAsync: propertiesAsync,
-                                  ),
+                                  // _UserPropertiesCard(
+                                  //   userId: userId,
+                                  //   propertiesAsync: propertiesAsync,
+                                  // ),
                                 ],
                               ),
                             ),
@@ -181,12 +181,12 @@ class UserDetailsScreen extends ConsumerWidget {
                                 const SizedBox(height: 24),
                                 _buildSectionHeader(context, 'PROPERTIES'),
                                 const SizedBox(height: 16),
-                                Expanded(
-                                  child: _UserPropertiesCard(
-                                    userId: userId,
-                                    propertiesAsync: propertiesAsync,
-                                  ),
-                                ),
+                                // Expanded(
+                                //   child: _UserPropertiesCard(
+                                //     userId: userId,
+                                //     propertiesAsync: propertiesAsync,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ),
