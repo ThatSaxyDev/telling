@@ -10,11 +10,30 @@ import '../../shared/widgets/app_button.dart';
 import 'widgets/event_selector_widget.dart';
 import 'widgets/funnel_chart_widget.dart';
 
-class FunnelScreen extends ConsumerWidget {
+import 'package:telling_logger/telling_logger.dart';
+import '../../core/constants/funnel_constants.dart';
+
+class FunnelScreen extends ConsumerStatefulWidget {
   const FunnelScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FunnelScreen> createState() => _FunnelScreenState();
+}
+
+class _FunnelScreenState extends ConsumerState<FunnelScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Step 1: Funnel Screen Viewed
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.funnelAnalysisFunnel,
+      stepName: FunnelConstants.funnelScreenViewed,
+      step: 1,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedSteps = ref.watch(funnelStepsProvider);
     final funnelAsync = ref.watch(funnelDataProvider);
     final isMobile = MediaQuery.of(context).size.width < 900;
@@ -234,7 +253,11 @@ class FunnelScreen extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.trending_down, color: AppColors.white, size: 16),
+                const Icon(
+                  Icons.trending_down,
+                  color: AppColors.white,
+                  size: 16,
+                ),
                 const SizedBox(width: 12),
                 const Text(
                   'CONVERSION_FUNNEL_VISUALIZATION',

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:telling/core/constants/funnel_constants.dart';
+import 'package:telling_logger/telling_logger.dart';
 import '../../../core/providers/analytics_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/error_formatter.dart';
@@ -300,6 +302,12 @@ class _FunnelNameSelectorWidgetState
                                 ref
                                     .read(selectedFunnelNameProvider.notifier)
                                     .setFunnelName(funnel);
+                                Telling.instance.trackFunnel(
+                                  funnelName:
+                                      FunnelConstants.funnelAnalysisFunnel,
+                                  stepName: FunnelConstants.funnelNameSearched,
+                                  step: 2,
+                                );
                                 setState(() {
                                   _searchQuery = '';
                                   _isExpanded = false;

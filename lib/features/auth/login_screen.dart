@@ -6,6 +6,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/military_decorations.dart';
 import 'package:telling_logger/telling_logger.dart';
+import '../../core/constants/funnel_constants.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +22,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isPasswordVisible = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Step 1: Login Screen Viewed
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.authFunnel,
+      stepName: FunnelConstants.loginViewed,
+      step: 1,
+    );
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -33,6 +45,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         'Action: Login Attempt',
         properties: {'email': _emailController.text},
       );
+
+      // Step 2: Login Submitted
+      Telling.instance.trackFunnel(
+        funnelName: FunnelConstants.authFunnel,
+        stepName: FunnelConstants.loginSubmitted,
+        step: 2,
+        properties: {'email': _emailController.text},
+      );
+
       final userId = await ref
           .read(authProvider.notifier)
           .login(_emailController.text, _passwordController.text);
@@ -42,6 +63,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           'Action: Login Success (OTP Sent)',
           properties: {'email': _emailController.text},
         );
+
+        // Step 3: Login Success
+        Telling.instance.trackFunnel(
+          funnelName: FunnelConstants.authFunnel,
+          stepName: FunnelConstants.loginSuccess,
+          step: 3,
+          properties: {'userId': userId},
+        );
+
         context.go(
           '/verify-otp',
           extra: {'userId': userId, 'email': _emailController.text},

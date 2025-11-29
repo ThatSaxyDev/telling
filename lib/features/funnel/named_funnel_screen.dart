@@ -10,11 +10,30 @@ import '../../shared/widgets/app_button.dart';
 import 'widgets/funnel_name_selector_widget.dart';
 import 'widgets/named_funnel_chart_widget.dart';
 
-class NamedFunnelScreen extends ConsumerWidget {
+import 'package:telling_logger/telling_logger.dart';
+import '../../core/constants/funnel_constants.dart';
+
+class NamedFunnelScreen extends ConsumerStatefulWidget {
   const NamedFunnelScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NamedFunnelScreen> createState() => _NamedFunnelScreenState();
+}
+
+class _NamedFunnelScreenState extends ConsumerState<NamedFunnelScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Step 1: Funnel Screen Viewed
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.funnelAnalysisFunnel,
+      stepName: FunnelConstants.funnelScreenViewed,
+      step: 1,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedFunnelName = ref.watch(selectedFunnelNameProvider);
     final funnelAsync = ref.watch(namedFunnelDataProvider);
     final isMobile = MediaQuery.of(context).size.width < 900;
@@ -78,7 +97,7 @@ class NamedFunnelScreen extends ConsumerWidget {
                         text: isMobile ? '' : 'REFRESH',
                         icon: Icons.refresh,
                         isOutlined: true,
-                       onPressed: () {
+                        onPressed: () {
                           ref.invalidate(namedFunnelDataProvider);
                           ref.invalidate(availableFunnelNamesProvider);
                         },
@@ -114,7 +133,8 @@ class NamedFunnelScreen extends ConsumerWidget {
                     const SizedBox(height: 32),
 
                     // Funnel Visualization or Empty State
-                    if (selectedFunnelName == null || selectedFunnelName.isEmpty)
+                    if (selectedFunnelName == null ||
+                        selectedFunnelName.isEmpty)
                       _buildEmptyState()
                     else
                       _buildFunnelSection(funnelAsync, isMobile),
@@ -190,7 +210,11 @@ class NamedFunnelScreen extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.trending_down, color: AppColors.white, size: 16),
+                const Icon(
+                  Icons.trending_down,
+                  color: AppColors.white,
+                  size: 16,
+                ),
                 const SizedBox(width: 12),
                 const Text(
                   'FUNNEL_ANALYSIS',

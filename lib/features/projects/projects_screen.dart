@@ -8,12 +8,30 @@ import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
+import 'package:telling_logger/telling_logger.dart';
+import '../../core/constants/funnel_constants.dart';
 
-class ProjectsScreen extends ConsumerWidget {
+class ProjectsScreen extends ConsumerStatefulWidget {
   const ProjectsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProjectsScreen> createState() => _ProjectsScreenState();
+}
+
+class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Step 1: Projects Screen Viewed
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.projectCreationFunnel,
+      stepName: FunnelConstants.projectsScreenViewed,
+      step: 1,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final projectState = ref.watch(projectProvider);
 
     return Scaffold(
@@ -351,6 +369,13 @@ class ProjectsScreen extends ConsumerWidget {
   }
 
   void _showCreateDialog(BuildContext context, WidgetRef ref) {
+    // Step 2: Create Project Clicked
+    Telling.instance.trackFunnel(
+      funnelName: FunnelConstants.projectCreationFunnel,
+      stepName: FunnelConstants.createProjectClicked,
+      step: 2,
+    );
+
     final controller = TextEditingController();
     showDialog(
       context: context,
@@ -398,12 +423,33 @@ class ProjectsScreen extends ConsumerWidget {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               if (controller.text.isNotEmpty) {
-                ref
+                // Step 3: Create Project Submitted
+                Telling.instance.trackFunnel(
+                  funnelName: FunnelConstants.projectCreationFunnel,
+                  stepName: FunnelConstants.createProjectSubmitted,
+                  step: 3,
+                  properties: {'project_name': controller.text},
+                );
+
+                await ref
                     .read(projectProvider.notifier)
                     .createProject(controller.text);
-                Navigator.pop(context);
+                
+                if (context.mounted) {
+                  final error = ref.read(projectProvider).error;
+                  if (error == null) {
+                    // Step 4: Project Created Successfully
+                    Telling.instance.trackFunnel(
+                      funnelName: FunnelConstants.projectCreationFunnel,
+                      stepName: FunnelConstants.projectCreated,
+                      step: 4,
+                      properties: {'project_name': controller.text},
+                    );
+                  }
+                  Navigator.pop(context);
+                }
               }
             },
             child: const Text(
