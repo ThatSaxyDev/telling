@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'logs_provider.dart';
+import 'auth_provider.dart';
+import 'project_provider.dart';
 
 class LogStats {
   final int totalLogs;
@@ -32,6 +34,18 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
 
   @override
   Future<LogStats> build() async {
+    // Keep provider alive for 2 minutes after last listener
+    // This prevents loading flicker when navigating between screens
+    // final link = ref.keepAlive();
+
+    // // Auto-cancel the keepAlive after 2 minutes
+    // Timer(const Duration(minutes: 2), () {
+    //   link.close();
+    // });
+    
+    // Watch project provider to refetch when project changes
+    ref.watch(projectProvider);
+    
     // Start auto-polling
     _startPolling();
     
@@ -54,8 +68,17 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
   }
 
   Future<LogStats> _fetchStats() async {
+    final authState = ref.read(authProvider);
+    final projectState = ref.read(projectProvider);
+
+    if (authState.user == null || projectState.selectedProject == null) {
+      return LogStats.empty();
+    }
+
     final repository = ref.read(logsRepositoryProvider);
-    final statsMap = await repository.fetchStats();
+    final statsMap = await repository.fetchStats(
+      projectId: projectState.selectedProject!.id,
+    );
     
     return LogStats(
       totalLogs: statsMap['totalLogs'] ?? 0,
@@ -80,6 +103,7 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
 }
 
 // Provider for log statistics
-final logStatsProvider = AsyncNotifierProvider<LogStatsNotifier, LogStats>(() {
+final logStatsProvider =
+    AsyncNotifierProvider<LogStatsNotifier, LogStats>(() {
   return LogStatsNotifier();
 });

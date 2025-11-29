@@ -1,47 +1,309 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../models/analytics_models.dart';
 import '../repositories/analytics_repository.dart';
+import './project_provider.dart';
+import '../services/api_client.dart';
+import '../config/api_config.dart'; // Added import for ApiConfig
 
 // Repository provider
 final analyticsRepositoryProvider = Provider<AnalyticsRepository>((ref) {
-  return AnalyticsRepository(baseUrl: 'http://localhost:8080/api/v1');
+  final apiClient = ref.watch(apiClientProvider);
+  return AnalyticsRepository(
+    apiClient,
+    baseUrl: ApiConfig.baseUrl, // Replaced hardcoded URL with ApiConfig.baseUrl
+  );
 });
 
 // Time range provider (24, 168 for 7d, 720 for 30d)
-final analyticsTimeRangeProvider = StateProvider<int>((ref) => 24);
+class AnalyticsTimeRangeNotifier extends Notifier<int> {
+  @override
+  int build() => 24;
+  void set(int hours) => state = hours;
+}
+
+final analyticsTimeRangeProvider =
+    NotifierProvider<AnalyticsTimeRangeNotifier, int>(
+      AnalyticsTimeRangeNotifier.new,
+    );
 
 // Analytics summary provider
-final analyticsSummaryProvider = FutureProvider.autoDispose<AnalyticsSummary>((ref) async {
+final analyticsSummaryProvider = FutureProvider<AnalyticsSummary>((ref) async {
   final repository = ref.watch(analyticsRepositoryProvider);
   final hours = ref.watch(analyticsTimeRangeProvider);
-  return repository.getSummary(hours: hours);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getSummary(
+    projectId: projectId,
+    hours: hours,
+  );
 });
 
 // Logs timeline provider
-final logsTimelineProvider = FutureProvider.autoDispose<List<LogTimelinePoint>>((ref) async {
+final logsTimelineProvider = FutureProvider<List<LogTimelinePoint>>((
+  ref,
+) async {
   final repository = ref.watch(analyticsRepositoryProvider);
-  final hours = ref.watch(analyticsTimeRangeProvider);
-  return repository.getLogsTimeline(hours: hours);
+    final hours = ref.watch(analyticsTimeRangeProvider);
+    final projectState = ref.watch(projectProvider);
+
+    final projectId = projectState.selectedProject?.id;
+
+    if (projectId == null) {
+      throw Exception('Project not selected');
+    }
+
+    return repository.getLogsTimeline(
+    projectId: projectId, hours: hours);
 });
 
 // Log levels distribution provider
-final logLevelsProvider = FutureProvider.autoDispose<List<LogLevelStat>>((ref) async {
+final logLevelsProvider = FutureProvider<List<LogLevelStat>>((ref) async {
   final repository = ref.watch(analyticsRepositoryProvider);
   final hours = ref.watch(analyticsTimeRangeProvider);
-  return repository.getLogLevels(hours: hours);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getLogLevels(
+    projectId: projectId,
+    hours: hours,
+  );
 });
 
 // Top errors provider
-final topErrorsProvider = FutureProvider.autoDispose<List<TopErrorItem>>((ref) async {
+final topErrorsProvider = FutureProvider<List<TopErrorItem>>((ref) async {
   final repository = ref.watch(analyticsRepositoryProvider);
   final hours = ref.watch(analyticsTimeRangeProvider);
-  return repository.getTopErrors(hours: hours, limit: 10);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getTopErrors(
+    projectId: projectId,
+    hours: hours,
+    limit: 10,
+  );
 });
 
 // Active users provider
-final activeUsersProvider = FutureProvider.autoDispose<List<ActiveUserStat>>((ref) async {
+final activeUsersProvider = FutureProvider<List<ActiveUserStat>>((ref) async {
   final repository = ref.watch(analyticsRepositoryProvider);
   final hours = ref.watch(analyticsTimeRangeProvider);
-  return repository.getActiveUsers(hours: hours, limit: 10);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getActiveUsers(
+    projectId: projectId,
+    hours: hours,
+    limit: 10,
+  );
+});
+
+// Performance metrics provider
+final performanceMetricsProvider = FutureProvider<PerformanceMetrics>((
+  ref,
+) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final hours = ref.watch(analyticsTimeRangeProvider);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+  final apiKey = projectState.selectedProject?.apiKey;
+
+  if (projectId == null || apiKey == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getPerformanceMetrics(
+    projectId: projectId,
+    apiKey: apiKey,
+    hours: hours,
+  );
+});
+
+// Funnel selected steps notifier
+class FunnelStepsNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() => [];
+
+  void setSteps(List<String> steps) => state = steps;
+  void addStep(String step) => state = [...state, step];
+  void removeStep(String step) =>
+      state = state.where((s) => s != step).toList();
+  void clearSteps() => state = [];
+  void reorderSteps(int oldIndex, int newIndex) {
+    final items = [...state];
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final item = items.removeAt(oldIndex);
+    items.insert(newIndex, item);
+    state = items;
+  }
+}
+
+final funnelStepsProvider = NotifierProvider<FunnelStepsNotifier, List<String>>(
+  FunnelStepsNotifier.new,
+);
+
+// Funnel date range notifier
+class FunnelDateRangeNotifier extends Notifier<(DateTime?, DateTime?)> {
+  @override
+  (DateTime?, DateTime?) build() => (null, null);
+
+  void setDateRange(DateTime? startDate, DateTime? endDate) {
+    state = (startDate, endDate);
+  }
+
+  void clearDateRange() => state = (null, null);
+}
+
+final funnelDateRangeProvider =
+    NotifierProvider<FunnelDateRangeNotifier, (DateTime?, DateTime?)>(
+      FunnelDateRangeNotifier.new,
+    );
+
+// Available events provider
+final availableEventsProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getAvailableEvents(projectId: projectId);
+});
+
+// Funnel data provider
+final funnelDataProvider = FutureProvider.autoDispose<FunnelData?>((ref) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final projectState = ref.watch(projectProvider);
+  final steps = ref.watch(funnelStepsProvider);
+  final dateRange = ref.watch(funnelDateRangeProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  // Don't fetch if no steps are selected
+  if (steps.isEmpty) {
+    return null;
+  }
+
+  // Require at least 2 steps for a funnel
+  if (steps.length < 2) {
+    // We return null here instead of throwing to avoid error state in UI
+    // The UI should handle explaining why no funnel is shown (e.g. "Select at least 2 steps")
+    return null;
+  }
+
+  return repository.getFunnelData(
+    projectId: projectId,
+    steps: steps,
+    startDate: dateRange.$1,
+    endDate: dateRange.$2,
+  );
+});
+
+// Named Funnel Providers
+
+// Selected funnel name notifier
+class SelectedFunnelNameNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void setFunnelName(String? name) => state = name;
+  void clear() => state = null;
+}
+
+final selectedFunnelNameProvider =
+    NotifierProvider<SelectedFunnelNameNotifier, String?>(
+      SelectedFunnelNameNotifier.new,
+    );
+
+// Named funnel date range notifier
+class NamedFunnelDateRangeNotifier extends Notifier<(DateTime?, DateTime?)> {
+  @override
+  (DateTime?, DateTime?) build() => (null, null);
+
+  void setDateRange(DateTime? startDate, DateTime? endDate) {
+    state = (startDate, endDate);
+  }
+
+  void clearDateRange() => state = (null, null);
+}
+
+final namedFunnelDateRangeProvider =
+    NotifierProvider<NamedFunnelDateRangeNotifier, (DateTime?, DateTime?)>(
+      NamedFunnelDateRangeNotifier.new,
+    );
+
+// Available funnel names provider
+final availableFunnelNamesProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getAvailableFunnelNames(projectId: projectId);
+});
+
+// Named funnel data provider
+final namedFunnelDataProvider = FutureProvider.autoDispose<NamedFunnelData?>((
+  ref,
+) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final projectState = ref.watch(projectProvider);
+  final funnelName = ref.watch(selectedFunnelNameProvider);
+  final dateRange = ref.watch(namedFunnelDateRangeProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  // Don't fetch if no funnel is selected
+  if (funnelName == null || funnelName.isEmpty) {
+    return null;
+  }
+
+  return repository.getNamedFunnelData(
+    projectId: projectId,
+    funnelName: funnelName,
+    startDate: dateRange.$1,
+    endDate: dateRange.$2,
+  );
 });

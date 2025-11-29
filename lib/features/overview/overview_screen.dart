@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:telling/core/providers/activity_timeline_provider.dart';
+import 'package:telling/shared/widgets/app_button.dart';
 import '../../core/providers/log_stats_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/error_formatter.dart';
 import '../../core/utils/number_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
@@ -19,6 +22,7 @@ class OverviewScreen extends ConsumerWidget {
       builder: (context, constraints) {
         // Use width-based breakpoint for better reliability
         final isDesktop = constraints.maxWidth > 1024;
+        final isMobile = MediaQuery.of(context).size.width < 600;
         final style = constraints.maxWidth > 800
             ? AppTextStyles.headlineSmall
             : AppTextStyles.titleMedium;
@@ -36,6 +40,19 @@ class OverviewScreen extends ConsumerWidget {
                   glitchAmount: 2.0,
                 ),
               ),
+              const Spacer(),
+              AppButton(
+                text: isMobile ? '' : 'REFRESH',
+                icon: Icons.refresh,
+                isOutlined: true,
+                onPressed: () {
+                  ref.invalidate(logStatsProvider);
+                  ref.invalidate(activityTimelineProvider);
+                },
+                width: isMobile ? 48 : null,
+                height: isMobile ? 48 : null,
+                padding: isMobile ? EdgeInsets.zero : null,
+              ),
             ],
           ),
           const SizedBox(height: 32),
@@ -47,7 +64,7 @@ class OverviewScreen extends ConsumerWidget {
             ),
             error: (error, stack) => Center(
               child: Text(
-                'Error loading stats: $error',
+                ErrorFormatter.format(error),
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.error,
                 ),
@@ -171,12 +188,12 @@ class OverviewScreen extends ConsumerWidget {
 
         return MilitaryHoverContainer(
           baseColor: AppColors.surfaceDark,
-          hoverColor: AppColors.white.withOpacity(0.8),
+          hoverColor: AppColors.white.withAlpha(204),
           showGrid: false,
           child: Container(
             padding: EdgeInsets.all(padding),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+              border: Border.all(color: AppColors.slate.withAlpha(77)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +211,7 @@ class OverviewScreen extends ConsumerWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: color.withOpacity(0.5),
+                            color: color.withAlpha(128),
                             blurRadius: 8,
                             spreadRadius: 2,
                           ),

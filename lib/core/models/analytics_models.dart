@@ -17,12 +17,14 @@ class AnalyticsSummary {
 
   factory AnalyticsSummary.fromJson(Map<String, dynamic> json) {
     return AnalyticsSummary(
-      totalLogs: json['totalLogs'],
-      errorCount: json['errorCount'],
-      errorRate: double.parse(json['errorRate'].toString()),
-      activeSessions: json['activeSessions'],
-      activeUsers: json['activeUsers'],
-      logsTrend: json['logsTrend'],
+      totalLogs: json['totalLogs'] ?? 0,
+      errorCount: json['errorCount'] ?? 0,
+      errorRate: json['errorRate'] != null
+          ? double.parse(json['errorRate'].toString())
+          : 0.0,
+      activeSessions: json['activeSessions'] ?? 0,
+      activeUsers: json['activeUsers'] ?? 0,
+      logsTrend: json['logsTrend'] ?? 0,
     );
   }
 }
@@ -37,9 +39,35 @@ class LogTimelinePoint {
   });
 
   factory LogTimelinePoint.fromJson(Map<String, dynamic> json) {
+    // Handle actual backend format: {time: "...", count: 123, level: "info"}
+    if (json.containsKey('time') && json.containsKey('count')) {
+      final timestamp = json['time'] != null
+          ? DateTime.parse(json['time'])
+          : DateTime.now();
+
+      final count = (json['count'] ?? 0) as int;
+      final level = json['level'] as String?;
+
+      return LogTimelinePoint(
+        timestamp: timestamp,
+        counts: {
+          if (level != null) level.toLowerCase(): count else 'total': count,
+        },
+      );
+    }
+    
+    // Handle expected format: {timestamp: "...", counts: {level: count}}
     return LogTimelinePoint(
-      timestamp: DateTime.parse(json['timestamp']),
-      counts: Map<String, int>.from(json['counts']),
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'])
+          : DateTime.now(),
+      counts: json['counts'] != null
+          ? Map<String, int>.from(
+              json['counts'].map(
+                (key, value) => MapEntry(key.toString(), (value ?? 0) as int),
+              ),
+            )
+          : {},
     );
   }
 
@@ -57,8 +85,8 @@ class LogLevelStat {
 
   factory LogLevelStat.fromJson(Map<String, dynamic> json) {
     return LogLevelStat(
-      level: json['level'],
-      count: json['count'],
+      level: json['level'] ?? 'unknown',
+      count: json['count'] ?? 0,
     );
   }
 }
@@ -76,9 +104,11 @@ class TopErrorItem {
 
   factory TopErrorItem.fromJson(Map<String, dynamic> json) {
     return TopErrorItem(
-      message: json['message'],
-      count: json['count'],
-      lastSeen: DateTime.parse(json['lastSeen']),
+      message: json['message'] ?? 'Unknown error',
+      count: json['count'] ?? 0,
+      lastSeen: json['lastSeen'] != null
+          ? DateTime.parse(json['lastSeen'])
+          : DateTime.now(),
     );
   }
 }
@@ -100,11 +130,119 @@ class ActiveUserStat {
 
   factory ActiveUserStat.fromJson(Map<String, dynamic> json) {
     return ActiveUserStat(
-      userId: json['userId'],
+      userId: json['userId'] ?? 'unknown',
       userName: json['userName'],
       userEmail: json['userEmail'],
-      logCount: json['logCount'],
-      lastActive: DateTime.parse(json['lastActive']),
+      logCount: json['logCount'] ?? 0,
+      lastActive: json['lastActive'] != null
+          ? DateTime.parse(json['lastActive'])
+          : DateTime.now(),
+    );
+  }
+}
+
+class PerformanceMetricStats {
+  final double avg;
+  final double p50;
+  final double p90;
+  final double p95;
+  final double p99;
+  final int samples;
+
+  PerformanceMetricStats({
+    required this.avg,
+    required this.p50,
+    required this.p90,
+    required this.p95,
+    required this.p99,
+    required this.samples,
+  });
+
+  factory PerformanceMetricStats.fromJson(Map<String, dynamic> json) {
+    return PerformanceMetricStats(
+      avg: (json['avg'] ?? 0).toDouble(),
+      p50: (json['p50'] ?? 0).toDouble(),
+      p90: (json['p90'] ?? 0).toDouble(),
+      p95: (json['p95'] ?? 0).toDouble(),
+      p99: (json['p99'] ?? 0).toDouble(),
+      samples: json['samples'] ?? 0,
+    );
+  }
+}
+
+class PerformanceMetrics {
+  final Map<String, PerformanceMetricStats> metrics;
+
+  PerformanceMetrics({required this.metrics});
+
+  factory PerformanceMetrics.fromJson(Map<String, dynamic> json) {
+    final metrics = <String, PerformanceMetricStats>{};
+    if (json['metrics'] != null) {
+      (json['metrics'] as Map<String, dynamic>).forEach((key, value) {
+        metrics[key] = PerformanceMetricStats.fromJson(value);
+      });
+    }
+    return PerformanceMetrics(metrics: metrics);
+  }
+}
+
+class FunnelStep {
+  final String name;
+  final int count;
+  final int stepNumber;
+  final double? conversionFromPrevious; // Null for the first step
+
+  FunnelStep({
+    required this.name,
+    required this.count,
+    required this.stepNumber,
+    this.conversionFromPrevious,
+  });
+
+  factory FunnelStep.fromJson(Map<String, dynamic> json) {
+    return FunnelStep(
+      name: json['name'] ?? '',
+      count: json['count'] ?? 0,
+      stepNumber: json['stepNumber'] ?? 0,
+      conversionFromPrevious: json['conversionFromPrevious']?.toDouble(),
+    );
+  }
+}
+
+class FunnelData {
+  final List<FunnelStep> steps;
+  final double overallConversion;
+
+  FunnelData({required this.steps, required this.overallConversion});
+
+  factory FunnelData.fromJson(Map<String, dynamic> json) {
+    return FunnelData(
+      steps: (json['steps'] as List? ?? [])
+          .map((e) => FunnelStep.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      overallConversion: (json['overallConversion'] ?? 0).toDouble(),
+    );
+  }
+}
+
+class NamedFunnelData {
+  final String funnelName;
+  final List<FunnelStep> steps;
+  final double overallConversion;
+
+  NamedFunnelData({
+    required this.funnelName,
+    required this.steps,
+    required this.overallConversion,
+  });
+
+  factory NamedFunnelData.fromJson(Map<String, dynamic> json) {
+    return NamedFunnelData(
+      funnelName: json['funnelName'] ?? '',
+      steps: (json['steps'] as List? ?? [])
+          .map((e) => FunnelStep.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      overallConversion: (json['overallConversion'] ?? 0).toDouble(),
     );
   }
 }

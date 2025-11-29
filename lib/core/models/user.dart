@@ -15,11 +15,13 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      userId: json['userId'],
+      userId: json['userId'] ?? 'unknown',
       userName: json['userName'],
       userEmail: json['userEmail'],
-      lastSeen: DateTime.parse(json['lastSeen']),
-      logCount: json['logCount'],
+      lastSeen: json['lastActive'] != null
+          ? DateTime.parse(json['lastActive'])
+          : DateTime.now(),
+      logCount: json['logCount'] ?? 0,
     );
   }
 }

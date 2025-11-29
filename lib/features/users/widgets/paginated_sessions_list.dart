@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:telling/core/providers/logs_provider.dart';
 import '../../../core/models/user.dart';
 import '../../../core/providers/users_provider.dart';
+import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../logs/widgets/session_timeline_dialog.dart';
 
@@ -13,12 +15,13 @@ class PaginatedSessionsList extends ConsumerStatefulWidget {
   const PaginatedSessionsList({super.key, required this.userId, this.userName});
 
   @override
-  ConsumerState<PaginatedSessionsList> createState() => _PaginatedSessionsListState();
+  ConsumerState<PaginatedSessionsList> createState() =>
+      _PaginatedSessionsListState();
 }
 
 class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
   final ScrollController _scrollController = ScrollController();
-  
+
   List<UserSession> _sessions = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
@@ -45,15 +48,19 @@ class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
       _isLoading = true;
       _currentOffset = 0;
     });
-    
+
     try {
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
       final repository = ref.read(usersRepositoryProvider);
       final sessions = await repository.getUserSessions(
         widget.userId,
+        projectId: projectState.selectedProject!.id,
         limit: _limit,
         offset: _currentOffset,
       );
-      
+
       if (mounted) {
         setState(() {
           _sessions = sessions;
@@ -74,17 +81,21 @@ class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
 
   Future<void> _loadMoreSessions() async {
     if (_isLoadingMore || !_hasMore || _isLoading) return;
-    
+
     setState(() => _isLoadingMore = true);
-    
+
     try {
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
       final repository = ref.read(usersRepositoryProvider);
       final newSessions = await repository.getUserSessions(
         widget.userId,
+        projectId: projectState.selectedProject!.id,
         limit: _limit,
         offset: _currentOffset,
       );
-      
+
       if (mounted) {
         setState(() {
           _sessions.addAll(newSessions);
@@ -104,7 +115,7 @@ class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
+    if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent * 0.9) {
       _loadMoreSessions();
     }
@@ -146,7 +157,7 @@ class _PaginatedSessionsListState extends ConsumerState<PaginatedSessionsList> {
             ),
           );
         }
-        
+
         return _SessionCard(
           session: _sessions[index],
           userName: widget.userName,
@@ -166,76 +177,83 @@ class _SessionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, HH:mm:ss');
     final duration = Duration(seconds: session.durationSeconds);
-    
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) => SessionTimelineDialog(
-            sessionId: session.sessionId,
-            userName: userName,
-            eventCount: session.eventCount,
-            duration: duration,
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
-          border: Border(left: BorderSide(color: AppColors.secondary, width: 2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+    return Consumer(
+      builder: (context, ref, child) {
+        return GestureDetector(
+          onTap: () {
+            ref.invalidate(sessionLogsProvider(session.sessionId));
+            showDialog(
+              context: context,
+              builder: (context) => SessionTimelineDialog(
+                sessionId: session.sessionId,
+                userName: userName,
+                eventCount: session.eventCount,
+                duration: duration,
+              ),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceDark,
+              border: Border(
+                left: BorderSide(color: AppColors.secondary, width: 2),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  dateFormat.format(session.startTime),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${duration.inMinutes}m ${duration.inSeconds % 60}s',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.secondary,
-                      fontWeight: FontWeight.bold,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      dateFormat.format(session.startTime),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.white,
+                      ),
                     ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withAlpha(26),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${duration.inMinutes}m ${duration.inSeconds % 60}s',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${session.eventCount} events logged',
+                  style: const TextStyle(color: AppColors.slate, fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'ID: ${session.sessionId}',
+                  style: const TextStyle(
+                    color: AppColors.slate,
+                    fontSize: 10,
+                    fontFamily: 'Urbanist',
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              '${session.eventCount} events logged',
-              style: const TextStyle(
-                color: AppColors.slate,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'ID: ${session.sessionId}',
-              style: const TextStyle(
-                color: AppColors.slate,
-                fontSize: 10,
-                fontFamily: 'monospace',
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

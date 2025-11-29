@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:telling/core/models/log_level/log_level.dart';
 import '../../../core/models/log_model/log_model.dart';
+import '../../../core/providers/activity_timeline_provider.dart';
 import '../../../core/providers/logs_provider.dart';
+import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/military_decorations.dart';
@@ -22,7 +25,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
   final ScrollController _scrollController = ScrollController();
 
   List<LogModel> _logs = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
   bool _isLoadingMore = false;
   bool _hasMore = true;
   int _currentPage = 1;
@@ -32,7 +35,27 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _loadInitialLogs();
+    
+    // Try to load from provider cache first, then fetch if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cachedData = ref.read(activityTimelineProvider);
+      cachedData.whenData((logs) {
+        if (mounted && logs.isNotEmpty) {
+          setState(() {
+            _logs = logs;
+            _hasMore = logs.length == 20;
+            _isLoading = false;
+          });
+        } else if (mounted) {
+          _loadInitialLogs();
+        }
+      });
+
+      // If no cache or error, load normally
+      if (!cachedData.hasValue || cachedData.value!.isEmpty) {
+        _loadInitialLogs();
+      }
+    });
   }
 
   @override
@@ -48,8 +71,25 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     });
 
     try {
+      final authState = ref.read(authProvider);
+      final projectState = ref.read(projectProvider);
+
+      if (authState.user == null || projectState.selectedProject == null) {
+        if (mounted) {
+          setState(() {
+            _logs = [];
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
       final repository = ref.read(logsRepositoryProvider);
-      final logs = await repository.fetchLogs(page: _currentPage, limit: 20);
+      final logs = await repository.fetchLogs(
+        page: _currentPage,
+        limit: 20,
+        projectId: projectState.selectedProject!.id,
+      );
 
       if (mounted) {
         setState(() {
@@ -74,9 +114,21 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     setState(() => _isLoadingMore = true);
 
     try {
+      final authState = ref.read(authProvider);
+      final projectState = ref.read(projectProvider);
+
+      if (authState.user == null || projectState.selectedProject == null) {
+        setState(() => _isLoadingMore = false);
+        return;
+      }
+
       final repository = ref.read(logsRepositoryProvider);
       _currentPage++;
-      final newLogs = await repository.fetchLogs(page: _currentPage, limit: 20);
+      final newLogs = await repository.fetchLogs(
+        page: _currentPage,
+        limit: 20,
+        projectId: projectState.selectedProject!.id,
+      );
 
       if (mounted) {
         setState(() {
@@ -122,12 +174,12 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
   Widget build(BuildContext context) {
     return MilitaryHoverContainer(
       baseColor: AppColors.surfaceDark,
-      hoverColor: AppColors.slate.withOpacity(0.5),
+      hoverColor: AppColors.slate.withAlpha(128),
       showGrid: false,
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+          border: Border.all(color: AppColors.slate.withAlpha(77)),
         ),
         child: Column(
           children: [
@@ -282,7 +334,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
-        border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: DropdownButtonHideUnderline(
@@ -353,7 +405,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                         height: 10,
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: color.withOpacity(0.5),
+                            color: color.withAlpha(128),
                             width: 1,
                           ),
                         ),
@@ -367,7 +419,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                         color: color,
                         boxShadow: [
                           BoxShadow(
-                            color: color.withOpacity(0.7),
+                            color: color.withAlpha(179),
                             blurRadius: 6,
                           ),
                         ],
@@ -386,8 +438,8 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          color.withOpacity(0.5),
-                          AppColors.slate.withOpacity(0.1),
+                          color.withAlpha(128),
+                          AppColors.slate.withAlpha(26),
                         ],
                       ),
                     ),
@@ -407,20 +459,20 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                   end: Alignment.bottomRight,
                   stops: const [0.0, 0.5, 1.0],
                   colors: [
-                    color.withOpacity(0.01),
-                    AppColors.backgroundDark.withOpacity(0.3),
-                    AppColors.backgroundDark.withOpacity(0.15),
+                    color.withAlpha(3),
+                    AppColors.backgroundDark.withAlpha(77),
+                    AppColors.backgroundDark.withAlpha(38),
                   ],
                 ),
                 border: Border(
                   left: BorderSide(color: color, width: 3),
-                  top: BorderSide(color: color.withOpacity(0.3), width: 1),
+                  top: BorderSide(color: color.withAlpha(77), width: 1),
                   right: BorderSide(
-                    color: AppColors.slate.withOpacity(0.2),
+                    color: AppColors.slate.withAlpha(51),
                     width: 1,
                   ),
                   bottom: BorderSide(
-                    color: AppColors.slate.withOpacity(0.2),
+                    color: AppColors.slate.withAlpha(51),
                     width: 1,
                   ),
                 ),
@@ -443,7 +495,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: color.withOpacity(0.15),
+                                color: color.withAlpha(38),
                                 border: Border.all(color: color, width: 1),
                               ),
                               child: Row(
@@ -466,7 +518,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                                       fontSize: 10,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 1,
-                                      fontFamily: 'monospace',
+                                      fontFamily: 'Urbanist',
                                     ),
                                   ),
                                 ],
@@ -483,9 +535,9 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: typeColor.withOpacity(0.1),
+                                  color: typeColor.withAlpha(26),
                                   border: Border.all(
-                                    color: typeColor.withOpacity(0.5),
+                                    color: typeColor.withAlpha(128),
                                   ),
                                 ),
                                 child: Text(
@@ -507,7 +559,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                               style: const TextStyle(
                                 color: AppColors.slate,
                                 fontSize: 10,
-                                fontFamily: 'monospace',
+                                fontFamily: 'Urbanist',
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -522,7 +574,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                                 ),
                                 decoration: BoxDecoration(
                                   border: Border.all(
-                                    color: AppColors.secondary.withOpacity(0.5),
+                                    color: AppColors.secondary.withAlpha(128),
                                   ),
                                 ),
                                 child: Row(
@@ -587,7 +639,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                     child: CustomPaint(
                       size: const Size(8, 8),
                       painter: CornerBracketPainter(
-                        color: color.withOpacity(0.3),
+                        color: color.withAlpha(77),
                         isTopLeft: false,
                       ),
                     ),
@@ -642,7 +694,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
   Color _getLevelColor(LogLevel level) {
     return level.when(
-      trace: () => AppColors.slate.withOpacity(0.7),
+      trace: () => AppColors.slate.withAlpha(179),
       debug: () => AppColors.slate,
       info: () => Colors.blue,
       warning: () => Colors.orange,

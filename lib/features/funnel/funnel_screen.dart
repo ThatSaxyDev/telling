@@ -1,0 +1,332 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/analytics_provider.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/error_formatter.dart';
+import '../../shared/widgets/military_decorations.dart';
+import '../../shared/widgets/military_loader.dart';
+import '../../shared/widgets/app_button.dart';
+import 'widgets/event_selector_widget.dart';
+import 'widgets/funnel_chart_widget.dart';
+
+class FunnelScreen extends ConsumerWidget {
+  const FunnelScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedSteps = ref.watch(funnelStepsProvider);
+    final funnelAsync = ref.watch(funnelDataProvider);
+    final isMobile = MediaQuery.of(context).size.width < 900;
+
+    return Stack(
+      children: [
+        // Background Effects
+        const Positioned.fill(
+          child: GridBackground(
+            color: Color(0xFF1A1A1A),
+            spacing: 40,
+            strokeWidth: 0.5,
+          ),
+        ),
+        const Positioned.fill(
+          child: Scanline(
+            color: Color(0x0DFFFFFF),
+            duration: Duration(seconds: 8),
+          ),
+        ),
+
+        // Main Content
+        Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark.withAlpha(230),
+                border: Border(
+                  bottom: BorderSide(color: AppColors.slate.withAlpha(77)),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.filter_alt,
+                        color: AppColors.slate,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 16),
+                      Flexible(
+                        child: GlitchText(
+                          text: 'FUNNELYTICS',
+                          style: isMobile
+                              ? AppTextStyles.titleMedium.copyWith(
+                                  fontFamily: 'Syne',
+                                )
+                              : AppTextStyles.headlineSmall.copyWith(
+                                  fontFamily: 'Syne',
+                                ),
+                          glitchAmount: 2.0,
+                        ),
+                      ),
+                      const Spacer(),
+                      AppButton(
+                        text: isMobile ? '' : 'REFRESH',
+                        icon: Icons.refresh,
+                        isOutlined: true,
+                        onPressed: () {
+                          ref.invalidate(funnelDataProvider);
+                          ref.invalidate(availableEventsProvider);
+                        },
+                        width: isMobile ? 48 : null,
+                        height: isMobile ? 48 : null,
+                        padding: isMobile ? EdgeInsets.zero : null,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Track user conversion through event sequences',
+                    style: TextStyle(
+                      color: AppColors.slate.withAlpha(204),
+                      fontSize: 14,
+                      fontFamily: 'Urbanist',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Event Selector Section
+                    const EventSelectorWidget(),
+
+                    const SizedBox(height: 32),
+
+                    // Funnel Visualization or Empty State
+                    if (selectedSteps.isEmpty)
+                      _buildEmptyState()
+                    else if (selectedSteps.length < 2)
+                      _buildInsufficientStepsState()
+                    else
+                      _buildFunnelSection(funnelAsync, isMobile),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(48),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withAlpha(204),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.trending_down,
+              size: 64,
+              color: AppColors.slate.withAlpha(128),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'NO FUNNEL CONFIGURED',
+              style: TextStyle(
+                color: AppColors.slate,
+                fontFamily: 'Urbanist',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                letterSpacing: 2.0,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Select events above to build your conversion funnel',
+              style: TextStyle(
+                color: AppColors.slate.withAlpha(179),
+                fontSize: 14,
+                fontFamily: 'Urbanist',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInsufficientStepsState() {
+    return Container(
+      padding: const EdgeInsets.all(48),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withAlpha(204),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_circle_outline,
+              size: 64,
+              color: AppColors.slate.withAlpha(128),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'ADD MORE STEPS',
+              style: TextStyle(
+                color: AppColors.slate,
+                fontFamily: 'Urbanist',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                letterSpacing: 2.0,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'A funnel requires at least 2 events to analyze conversion',
+              style: TextStyle(
+                color: AppColors.slate.withAlpha(179),
+                fontSize: 14,
+                fontFamily: 'Urbanist',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFunnelSection(AsyncValue funnelAsync, bool isMobile) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withAlpha(204),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.white.withAlpha(13),
+              border: Border(
+                bottom: BorderSide(color: AppColors.slate.withAlpha(77)),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.trending_down, color: AppColors.white, size: 16),
+                const SizedBox(width: 12),
+                const Text(
+                  'CONVERSION_FUNNEL_VISUALIZATION',
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2.0,
+                    fontFamily: 'Urbanist',
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  width: 8,
+                  height: 8,
+                  color: AppColors.white.withAlpha(128),
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: funnelAsync.when(
+              loading: () => const SizedBox(
+                height: 400,
+                child: Center(
+                  child: MilitaryLoader(label: 'ANALYZING FUNNEL...'),
+                ),
+              ),
+              error: (err, stack) => SizedBox(
+                height: 400,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: AppColors.error.withAlpha(204),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        ErrorFormatter.format(err),
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontFamily: 'Urbanist',
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              data: (funnelData) {
+                if (funnelData == null) {
+                  return SizedBox(
+                    height: 400,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 48,
+                            color: AppColors.slate.withAlpha(128),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'NO DATA AVAILABLE',
+                            style: TextStyle(
+                              color: AppColors.slate,
+                              fontFamily: 'Urbanist',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return FunnelChartWidget(
+                  funnelData: funnelData,
+                  isMobile: isMobile,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

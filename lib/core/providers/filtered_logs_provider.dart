@@ -5,7 +5,9 @@ import 'logs_provider.dart';
 import 'filter_provider.dart';
 
 // Computed provider for filtered logs
-final filteredLogsProvider = Provider<AsyncValue<List<LogModel>>>((ref) {
+final filteredLogsProvider = Provider<AsyncValue<List<LogModel>>>((
+  ref,
+) {
   final logsAsync = ref.watch(logsProvider);
   final filter = ref.watch(filterProvider);
 

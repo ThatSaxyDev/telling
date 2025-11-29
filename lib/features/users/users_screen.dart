@@ -8,6 +8,7 @@ import 'package:telling/core/theme/app_text_styles.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../../core/providers/users_provider.dart';
 import '../../core/models/user.dart';
+import '../../core/utils/error_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
@@ -85,7 +86,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
           decoration: BoxDecoration(
             color: AppColors.surfaceDark,
             border: Border(
-              bottom: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+              bottom: BorderSide(color: AppColors.slate.withAlpha(77)),
             ),
           ),
           child: Column(
@@ -107,6 +108,19 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                           : AppTextStyles.headlineSmall,
                       glitchAmount: 2.0,
                     ),
+                  ),
+
+                  const Spacer(),
+                  AppButton(
+                    text: isMobile ? '' : 'REFRESH',
+                    icon: Icons.refresh,
+                    isOutlined: true,
+                    onPressed: () {
+                      ref.invalidate(usersListProvider);
+                    },
+                    width: isMobile ? 48 : null,
+                    height: isMobile ? 48 : null,
+                    padding: isMobile ? EdgeInsets.zero : null,
                   ),
                 ],
               ),
@@ -142,13 +156,13 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: BorderSide(
-                      color: AppColors.slate.withOpacity(0.3),
+                      color: AppColors.slate.withAlpha(77),
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: BorderSide(
-                      color: AppColors.slate.withOpacity(0.3),
+                      color: AppColors.slate.withAlpha(77),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -190,7 +204,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    err.toString(),
+                    ErrorFormatter.format(err),
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.slate,
                     ),
@@ -294,7 +308,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: AppColors.white.withOpacity(0.1), width: 1),
+          top: BorderSide(color: AppColors.white.withAlpha(26), width: 1),
         ),
       ),
       child: Row(
@@ -321,7 +335,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.white.withOpacity(0.2)),
+              border: Border.all(color: AppColors.white.withAlpha(51)),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -359,7 +373,10 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     final dateFormat = DateFormat('MMM d, HH:mm:ss');
 
     return MilitaryHoverContainer(
-      onTap: () => context.go('/users/${user.userId}'),
+      onTap: () {
+        ref.invalidate(userStatsProvider(user.userId));
+        context.go('/users/${user.userId}');
+      },
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -375,8 +392,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.secondary.withOpacity(0.1),
-                border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                color: AppColors.secondary.withAlpha(26),
+                border: Border.all(color: AppColors.secondary.withAlpha(77)),
               ),
               child: const Icon(
                 Icons.person_outline,
@@ -407,7 +424,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                       Text(
                         'ID: ${user.userId}',
                         style: const TextStyle(
-                          fontFamily: 'monospace',
+                          fontFamily: 'Urbanist',
                           color: AppColors.slate,
                           fontSize: 13,
                         ),
@@ -420,7 +437,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                             SnackBar(
                               content: Text(
                                 'Copied: ${user.userId}',
-                                style: const TextStyle(fontFamily: 'monospace'),
+                                style: const TextStyle(fontFamily: 'Urbanist'),
                               ),
                               duration: const Duration(seconds: 2),
                               backgroundColor: AppColors.secondary,
@@ -435,7 +452,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                           child: Icon(
                             Icons.copy,
                             size: 14,
-                            color: AppColors.slate.withOpacity(0.7),
+                            color: AppColors.slate.withAlpha(179),
                           ),
                         ),
                       ),
@@ -463,7 +480,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                         color: AppColors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'monospace',
+                        fontFamily: 'Urbanist',
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -491,7 +508,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                       style: const TextStyle(
                         color: AppColors.slate,
                         fontSize: 13,
-                        fontFamily: 'monospace',
+                        fontFamily: 'Urbanist',
                       ),
                     ),
                   ],

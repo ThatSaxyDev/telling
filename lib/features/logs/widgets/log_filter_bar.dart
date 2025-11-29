@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/log_level/log_level.dart';
 import '../../../core/providers/filter_provider.dart';
 import '../../../core/providers/logs_provider.dart';
-import '../../../core/repositories/logs_repository.dart';
+import '../../../core/providers/project_provider.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/searchable_user_dropdown.dart';
@@ -28,7 +29,12 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
 
   Future<void> _loadUsers() async {
     try {
-      final users = await ref.read(logsRepositoryProvider).fetchUsers();
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
+      final users = await ref
+          .read(logsRepositoryProvider)
+          .fetchUsers(projectId: projectState.selectedProject!.id);
       if (mounted) {
         setState(() {
           _users = users;
@@ -49,7 +55,7 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
         border: Border(
-          bottom: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+          bottom: BorderSide(color: AppColors.slate.withAlpha(77)),
         ),
       ),
       child: Column(
@@ -68,11 +74,11 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
               fillColor: AppColors.backgroundDark,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+                borderSide: BorderSide(color: AppColors.slate.withAlpha(77)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4),
-                borderSide: BorderSide(color: AppColors.slate.withOpacity(0.3)),
+                borderSide: BorderSide(color: AppColors.slate.withAlpha(77)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(4),
@@ -169,7 +175,7 @@ class _LogFilterBarState extends ConsumerState<LogFilterBar> {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
-        border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: DropdownButtonHideUnderline(

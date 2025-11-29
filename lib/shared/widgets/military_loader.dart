@@ -137,7 +137,9 @@ class _LoaderPainter extends CustomPainter {
     final pulse = (math.sin(progress * 4 * math.pi) + 1) / 2; // 0 to 1
     
     paint.style = PaintingStyle.fill;
-    paint.color = color.withOpacity(0.3 + (pulse * 0.7)); // Pulse opacity
+    paint.color = color.withAlpha(
+      77 + (pulse * 179).round(),
+    ); // Pulse alpha: 77-255
     canvas.drawCircle(center, innerRadius, paint);
 
     // Inner Core Border

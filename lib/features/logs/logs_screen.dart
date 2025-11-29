@@ -8,10 +8,11 @@ import '../../core/providers/logs_provider.dart';
 import '../../core/providers/filtered_logs_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/error_formatter.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
-import 'widgets/session_timeline_dialog.dart';
+
 import 'widgets/log_filter_bar.dart';
 
 
@@ -21,7 +22,7 @@ class LogsScreen extends ConsumerWidget {
 
   Color _getLevelColor(LogLevel level) {
     return level.when(
-      trace: () => AppColors.slate.withOpacity(0.7),
+      trace: () => AppColors.slate.withAlpha(179),
       debug: () => AppColors.slate,
       info: () => AppColors.white,
       warning: () => Colors.orange,
@@ -35,7 +36,7 @@ class LogsScreen extends ConsumerWidget {
     final isMobile = MediaQuery.of(context).size.width < 600;
     final isSessionGrouped = ref.watch(isSessionGroupedProvider);
     final logsAsync = ref.watch(filteredLogsProvider);
-    final sessionsAsync = ref.watch(sessionsProvider);
+    // final sessionsAsync = ref.watch(sessionsProvider);
 
     return Column(
       children: [
@@ -80,12 +81,12 @@ class LogsScreen extends ConsumerWidget {
                   //     ),
                   //     decoration: BoxDecoration(
                   //       color: isSessionGrouped
-                  //           ? AppColors.primary.withOpacity(0.2)
+                  //           ? AppColors.primary.withAlpha(51)
                   //           : Colors.transparent,
                   //       border: Border.all(
                   //         color: isSessionGrouped
                   //             ? AppColors.primary
-                  //             : AppColors.slate.withOpacity(0.3),
+                  //             : AppColors.slate.withAlpha(77),
                   //       ),
                   //       borderRadius: BorderRadius.circular(4),
                   //     ),
@@ -208,7 +209,7 @@ class LogsScreen extends ConsumerWidget {
   //                       Text(
   //                         'SESSION ID: ${session['sessionId']}',
   //                         style: const TextStyle(
-  //                           fontFamily: 'monospace',
+  //                           fontFamily: 'Urbanist',
   //                           fontWeight: FontWeight.bold,
   //                           color: AppColors.white,
   //                         ),
@@ -219,7 +220,7 @@ class LogsScreen extends ConsumerWidget {
   //                           vertical: 4,
   //                         ),
   //                         decoration: BoxDecoration(
-  //                           color: AppColors.secondary.withOpacity(0.1),
+  //                           color: AppColors.secondary.withAlpha(26),
   //                           borderRadius: BorderRadius.circular(4),
   //                         ),
   //                         child: Text(
@@ -291,7 +292,7 @@ class LogsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              error.toString(),
+              ErrorFormatter.format(error),
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
               textAlign: TextAlign.center,
             ),
@@ -348,7 +349,7 @@ class LogsScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: AppColors.white.withOpacity(0.1), width: 1),
+          top: BorderSide(color: AppColors.white.withAlpha(26), width: 1),
         ),
       ),
       child: Row(
@@ -369,7 +370,7 @@ class LogsScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.white.withOpacity(0.2)),
+              border: Border.all(color: AppColors.white.withAlpha(51)),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -408,7 +409,7 @@ class LogsScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+          border: Border.all(color: AppColors.slate.withAlpha(77)),
         ),
         child: Row(
           children: [
@@ -516,7 +517,7 @@ class LogsScreen extends ConsumerWidget {
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.primary),
-                color: AppColors.backgroundDark.withOpacity(0.95),
+                color: AppColors.backgroundDark.withAlpha(242),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

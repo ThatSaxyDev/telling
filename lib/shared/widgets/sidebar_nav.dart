@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/providers/activity_timeline_provider.dart';
+import '../../core/providers/analytics_provider.dart';
+import '../../core/providers/filtered_logs_provider.dart';
+import '../../core/providers/log_stats_provider.dart';
+import '../../core/providers/logs_provider.dart';
+import '../../core/providers/users_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import 'military_decorations.dart';
 
-class SidebarNav extends StatefulWidget {
+class SidebarNav extends ConsumerStatefulWidget {
   final String currentRoute;
 
   const SidebarNav({super.key, required this.currentRoute});
 
   @override
-  State<SidebarNav> createState() => _SidebarNavState();
+  ConsumerState<SidebarNav> createState() => _SidebarNavState();
 }
 
-class _SidebarNavState extends State<SidebarNav> {
+class _SidebarNavState extends ConsumerState<SidebarNav> {
   bool _isCollapsed = false;
 
   final List<NavItem> _navItems = [
@@ -21,6 +28,12 @@ class _SidebarNavState extends State<SidebarNav> {
     NavItem(icon: Icons.list_alt, label: 'LOGS EXPLORER', route: '/logs'),
     NavItem(icon: Icons.people_alt, label: 'USERS', route: '/users'),
     NavItem(icon: Icons.analytics, label: 'ANALYTICS', route: '/analytics'),
+    NavItem(icon: Icons.filter_alt, label: 'FUNNELYTICS', route: '/funnel'),
+    NavItem(
+      icon: Icons.filter_list,
+      label: 'FUNNELYTICS_2',
+      route: '/funnelytics-2',
+    ),
     NavItem(icon: Icons.settings, label: 'SETTINGS', route: '/settings'),
   ];
 
@@ -124,7 +137,37 @@ class _SidebarNavState extends State<SidebarNav> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: MilitaryHoverContainer(
-        onTap: () => context.go(item.route),
+        onTap: () {
+          switch (item.route) {
+            case '/':
+              ref.invalidate(logStatsProvider);
+              ref.invalidate(activityTimelineProvider);
+              break;
+            case '/logs':
+              ref.invalidate(logsProvider);
+              ref.invalidate(filteredLogsProvider);
+              break;
+            case '/users':
+              ref.invalidate(usersListProvider);
+              break;
+            case '/analytics':
+              ref.invalidate(analyticsSummaryProvider);
+              ref.invalidate(logsTimelineProvider);
+              ref.invalidate(logLevelsProvider);
+              ref.invalidate(topErrorsProvider);
+              ref.invalidate(activeUsersProvider);
+              break;
+            case '/funnel':
+              ref.invalidate(funnelDataProvider);
+              ref.invalidate(availableEventsProvider);
+              break;
+            case '/funnelytics-2':
+              ref.invalidate(namedFunnelDataProvider);
+              ref.invalidate(availableFunnelNamesProvider);
+              break;
+          }
+          context.go(item.route);
+        },
         baseColor: isActive ? AppColors.secondary : AppColors.slate,
         hoverColor: AppColors.white,
         showGrid: false,
@@ -136,7 +179,7 @@ class _SidebarNavState extends State<SidebarNav> {
           ),
           decoration: BoxDecoration(
             color: isActive
-                ? AppColors.primary.withOpacity(0.05)
+                ? AppColors.primary.withAlpha(13)
                 : Colors.transparent,
             border: Border(
               left: BorderSide(
@@ -153,7 +196,7 @@ class _SidebarNavState extends State<SidebarNav> {
                     item.icon,
                     color: isActive
                         ? AppColors.white
-                        : AppColors.slate.withOpacity(0.8),
+                        : AppColors.slate.withAlpha(204),
                     size: 24,
                   ),
                 )
@@ -162,7 +205,7 @@ class _SidebarNavState extends State<SidebarNav> {
                   item.icon,
                   color: isActive
                       ? AppColors.white
-                      : AppColors.slate.withOpacity(0.8),
+                      : AppColors.slate.withAlpha(204),
                   size: 24,
                 ),
                 const SizedBox(width: 16),
@@ -172,7 +215,7 @@ class _SidebarNavState extends State<SidebarNav> {
                     style: AppTextStyles.labelMedium.copyWith(
                       color: isActive
                           ? AppColors.white
-                          : AppColors.slate.withOpacity(0.8),
+                          : AppColors.slate.withAlpha(204),
                       fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
                     ),
                   ),

@@ -11,11 +11,9 @@ void main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Initialize SDK
       await Telling.instance.init(
-        'TEST_API_KEY',
-        userId: 'demo_user_123',
-        userName: 'Demo User',
+        'JKkqECvjKQCstnhjkmsvp0BWqJyBlEHzYdBOetN13z0=',
+        enableDebugLogs: false,
       );
 
       Telling.instance.enableCrashReporting();
@@ -23,7 +21,6 @@ void main() async {
       runApp(const ProviderScope(child: MainApp()));
     },
     (error, stack) {
-      print('Telling: CAUGHT ZONED ERROR: $error');
       Telling.instance.log(
         'Zoned Crash: $error',
         level: LogLevel.fatal,
@@ -35,18 +32,20 @@ void main() async {
   );
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends ConsumerWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
+
     return MaterialApp.router(
-      title: 'Telling Dashboard',
+      title: 'Telling',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
-      routerConfig: AppRouter.router,
+      routerConfig: router,
 
       builder: (context, child) => ResponsiveBreakpoints.builder(
         child: child!,

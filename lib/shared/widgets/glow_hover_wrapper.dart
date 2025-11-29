@@ -66,12 +66,16 @@ class _GlowHoverWrapperState extends State<GlowHoverWrapper> {
           boxShadow: _isHovered
               ? [
                   BoxShadow(
-                    color: glowColor.withOpacity(widget.glowIntensity),
+                    color: glowColor.withAlpha(
+                      (widget.glowIntensity * 255).round(),
+                    ),
                     blurRadius: 20,
                     spreadRadius: 2,
                   ),
                   BoxShadow(
-                    color: glowColor.withOpacity(widget.glowIntensity * 0.5),
+                    color: glowColor.withAlpha(
+                      (widget.glowIntensity * 0.5 * 255).round(),
+                    ),
                     blurRadius: 40,
                     spreadRadius: 4,
                   ),

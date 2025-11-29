@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/log_entry.dart';
 import '../../../core/providers/users_provider.dart';
+import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 class PaginatedLogsList extends ConsumerStatefulWidget {
@@ -45,9 +46,13 @@ class _PaginatedLogsListState extends ConsumerState<PaginatedLogsList> {
     });
     
     try {
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
       final repository = ref.read(usersRepositoryProvider);
       final logs = await repository.getUserLogs(
         widget.userId,
+        projectId: projectState.selectedProject!.id,
         limit: _limit,
         offset: _currentOffset,
       );
@@ -76,9 +81,13 @@ class _PaginatedLogsListState extends ConsumerState<PaginatedLogsList> {
     setState(() => _isLoadingMore = true);
     
     try {
+      final projectState = ref.read(projectProvider);
+      if (projectState.selectedProject == null) return;
+
       final repository = ref.read(usersRepositoryProvider);
       final newLogs = await repository.getUserLogs(
         widget.userId,
+        projectId: projectState.selectedProject!.id,
         limit: _limit,
         offset: _currentOffset,
       );
@@ -197,7 +206,7 @@ class _LogItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: levelColor.withOpacity(0.1),
+                  color: levelColor.withAlpha(26),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 child: Text(
@@ -214,7 +223,7 @@ class _LogItem extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.slate,
                   fontSize: 10,
-                  fontFamily: 'monospace',
+                  fontFamily: 'Urbanist',
                 ),
               ),
             ],
@@ -232,7 +241,7 @@ class _LogItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withAlpha(77),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -240,7 +249,7 @@ class _LogItem extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.slate,
                   fontSize: 10,
-                  fontFamily: 'monospace',
+                  fontFamily: 'Urbanist',
                 ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,

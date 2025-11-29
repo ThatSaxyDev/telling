@@ -1,15 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/app_button.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/providers/project_provider.dart';
+import './widgets/api_key_display.dart';
+import './widgets/profile_section.dart';
+import './widgets/password_reset_flow_widgets.dart';
+import '../../core/providers/user_profile_provider.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 600;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -32,24 +41,62 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          // Log Generator Section
+          // API Key Section
           MilitaryHoverContainer(
             baseColor: AppColors.surfaceDark,
             showGrid: false,
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.slate.withOpacity(0.3)),
+                border: Border.all(color: AppColors.slate.withAlpha(77)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.bug_report, color: AppColors.secondary),
+                      const Icon(Icons.key, color: AppColors.secondary),
                       const SizedBox(width: 12),
                       Text(
-                        'LOG GENERATOR',
+                        'API KEY',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const ApiKeyDisplay(),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Profile Section
+          const ProfileSection(),
+          const SizedBox(height: 24),
+
+          // Account Section
+          MilitaryHoverContainer(
+            baseColor: AppColors.surfaceDark,
+            showGrid: false,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.slate.withAlpha(77)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.account_circle,
+                        color: AppColors.secondary,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'ACCOUNT',
                         style: AppTextStyles.titleMedium.copyWith(
                           color: AppColors.secondary,
                         ),
@@ -57,159 +104,280 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  Text(
-                    'GENERATE TEST SIGNALS',
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.slate,
-                    ),
+                  AppButton(
+                    text: 'RESET PASSWORD',
+                    icon: Icons.lock_reset,
+                    onPressed: () => _initiatePasswordReset(context, ref),
+                    backgroundColor: AppColors.white.withAlpha(26),
+                    borderColor: AppColors.white,
+                    foregroundColor: AppColors.white,
                   ),
                   const SizedBox(height: 16),
-
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    children: [
-                      _buildLogButton(
-                        label: 'DEBUG LOG',
-                        color: AppColors.slate,
-                        icon: Icons.bug_report_outlined,
-                        onPressed: () {
-                          Telling.instance.log(
-                            'Debug signal initiated',
-                            level: LogLevel.debug,
-                            type: LogType.event, // Event type for app events
-                          );
-                        },
-                      ),
-                      _buildLogButton(
-                        label: 'INFO LOG',
-                        color: AppColors.white,
-                        icon: Icons.info_outline,
-                        onPressed: () {
-                          Telling.instance.log(
-                            'System status nominal',
-                            level: LogLevel.info,
-                            type: LogType.general,
-                          );
-                        },
-                      ),
-                      _buildLogButton(
-                        label: 'WARNING LOG',
-                        color: Colors.orange,
-                        icon: Icons.warning_amber,
-                        onPressed: () {
-                          Telling.instance.log(
-                            'Resource usage high',
-                            level: LogLevel.warning,
-                            type: LogType
-                                .performance, // Performance type for resource warnings
-                            metadata: {'cpu_usage': '85%', 'memory': '1.2GB'},
-                          );
-                        },
-                      ),
-                      _buildLogButton(
-                        label: 'ERROR LOG',
-                        color: AppColors.error,
-                        icon: Icons.error_outline,
-                        onPressed: () {
-                          try {
-                            throw Exception('Connection refused by host');
-                          } catch (e, stack) {
-                            Telling.instance.log(
-                              'Connection failed',
-                              level: LogLevel.error,
-                              type: LogType
-                                  .exception, // Exception type for caught errors
-                              error: e,
-                              stackTrace: stack,
-                              metadata: {
-                                'message': 'Connection refused by host',
-                              },
-                            );
-                          }
-                        },
-                      ),
-                      _buildLogButton(
-                        label: 'FATAL LOG',
-                        color: Colors.red.shade900,
-                        icon: Icons.dangerous,
-                        onPressed: () {
-                          Telling.instance.log(
-                            'CRITICAL SYSTEM FAILURE',
-                            level: LogLevel.fatal,
-                            type: LogType.crash, // Crash type for fatal errors
-                            metadata: {'code': '0xDEADBEEF'},
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-                  Text(
-                    'EVENTS & CRASHES',
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.slate,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    children: [
-                      _buildLogButton(
-                        label: 'TRACK EVENT',
-                        color: Colors.blue,
-                        icon: Icons.analytics_outlined,
-                        onPressed: () {
-                          Telling.instance.event(
-                            'user_action_performed',
-                            properties: {
-                              'action': 'button_click',
-                              'screen': 'settings',
-                              'timestamp': DateTime.now().toIso8601String(),
-                            },
-                          );
-                        },
-                      ),
-                      _buildLogButton(
-                        label: 'NETWORK LOG',
-                        color: Colors.purple,
-                        icon: Icons.wifi,
-                        onPressed: () {
-                          Telling.instance.log(
-                            'API Request: GET /api/v1/users',
-                            level: LogLevel.info,
-                            type: LogType.network,
-                            metadata: {
-                              'status': 200,
-                              'duration_ms': 145,
-                              'bytes_received': 2048,
-                            },
-                          );
-                        },
-                      ),
-                      _buildLogButton(
-                        label: 'FORCE CRASH',
-                        color: AppColors.error,
-                        icon: Icons.flash_on,
-                        // isOutlined: true,
-                        onPressed: () {
-                          // This will be caught by the global error handler if enabled
-                          throw StateError(
-                            'Forced application crash for testing',
-                          );
-                        },
-                      ),
-                    ],
+                  AppButton(
+                    text: 'LOGOUT',
+                    icon: Icons.logout,
+                    onPressed: () {
+                      ref.read(authProvider.notifier).logout();
+                      ref.read(projectProvider.notifier).reset();
+                      context.go('/login');
+                    },
+                    backgroundColor: AppColors.error.withAlpha(26),
+                    borderColor: AppColors.error,
+                    foregroundColor: AppColors.error,
                   ),
                 ],
               ),
             ),
           ),
+
+          if (kDebugMode) const SizedBox(height: 24),
+
+          // Log Generator Section
+          if (kDebugMode)
+            MilitaryHoverContainer(
+              baseColor: AppColors.surfaceDark,
+              showGrid: false,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.slate.withAlpha(77)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.bug_report,
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'LOG GENERATOR',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text(
+                      'GENERATE TEST SIGNALS',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.slate,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        _buildLogButton(
+                          label: 'DEBUG LOG',
+                          color: AppColors.slate,
+                          icon: Icons.bug_report_outlined,
+                          onPressed: () {
+                            Telling.instance.log(
+                              'Debug signal initiated',
+                              level: LogLevel.debug,
+                              type: LogType.event,
+                            );
+                          },
+                        ),
+                        _buildLogButton(
+                          label: 'INFO LOG',
+                          color: AppColors.white,
+                          icon: Icons.info_outline,
+                          onPressed: () {
+                            Telling.instance.log(
+                              'System status nominal',
+                              level: LogLevel.info,
+                              type: LogType.general,
+                            );
+                          },
+                        ),
+                        _buildLogButton(
+                          label: 'WARNING LOG',
+                          color: Colors.orange,
+                          icon: Icons.warning_amber,
+                          onPressed: () {
+                            Telling.instance.log(
+                              'Resource usage high',
+                              level: LogLevel.warning,
+                              type: LogType.performance,
+                              metadata: {'cpu_usage': '85%', 'memory': '1.2GB'},
+                            );
+                          },
+                        ),
+                        _buildLogButton(
+                          label: 'ERROR LOG',
+                          color: AppColors.error,
+                          icon: Icons.error_outline,
+                          onPressed: () {
+                            try {
+                              throw Exception('Connection refused by host');
+                            } catch (e, stack) {
+                              Telling.instance.log(
+                                'Connection failed',
+                                level: LogLevel.error,
+                                type: LogType.exception,
+                                error: e,
+                                stackTrace: stack,
+                                metadata: {
+                                  'message': 'Connection refused by host',
+                                },
+                              );
+                            }
+                          },
+                        ),
+                        _buildLogButton(
+                          label: 'FATAL LOG',
+                          color: Colors.red.shade900,
+                          icon: Icons.dangerous,
+                          onPressed: () {
+                            Telling.instance.log(
+                              'CRITICAL SYSTEM FAILURE',
+                              level: LogLevel.fatal,
+                              type: LogType.crash,
+                              metadata: {'code': '0xDEADBEEF'},
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+                    Text(
+                      'EVENTS & CRASHES',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.slate,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        _buildLogButton(
+                          label: 'TRACK EVENT',
+                          color: Colors.blue,
+                          icon: Icons.analytics_outlined,
+                          onPressed: () {
+                            Telling.instance.event(
+                              'user_action_performed',
+                              properties: {
+                                'action': 'button_click',
+                                'screen': 'settings',
+                                'timestamp': DateTime.now().toIso8601String(),
+                              },
+                            );
+                          },
+                        ),
+                        _buildLogButton(
+                          label: 'NETWORK LOG',
+                          color: Colors.purple,
+                          icon: Icons.wifi,
+                          onPressed: () {
+                            Telling.instance.log(
+                              'API Request: GET /api/v1/users',
+                              level: LogLevel.info,
+                              type: LogType.network,
+                              metadata: {
+                                'status': 200,
+                                'duration_ms': 145,
+                                'bytes_received': 2048,
+                              },
+                            );
+                          },
+                        ),
+                        _buildLogButton(
+                          label: 'FORCE CRASH',
+                          color: AppColors.error,
+                          icon: Icons.flash_on,
+                          onPressed: () {
+                            throw StateError(
+                              'Forced application crash for testing',
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  static void _initiatePasswordReset(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    // Get user email from profile provider
+    final profileAsync = ref.read(userProfileProvider);
+
+    final profile = profileAsync.when(
+      data: (p) => p,
+      loading: () => null,
+      error: (_, __) => null,
+    );
+
+    if (profile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to load user profile',
+            style: TextStyle(fontFamily: 'Urbanist'),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    // Step 1: Email Confirmation
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => EmailConfirmationDialog(
+        email: profile.email,
+        onOtpSent: (userId) {
+          // Step 2: OTP Verification
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => OtpVerificationDialog(
+              userId: userId,
+              email: profile.email,
+              onVerified: (resetToken) {
+                // Step 3: New Password
+                showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) =>
+                      NewPasswordDialog(resetToken: resetToken),
+                ).then((success) {
+                  if (success == true && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'PASSWORD RESET SUCCESSFULLY',
+                          style: TextStyle(fontFamily: 'Urbanist'),
+                        ),
+                        backgroundColor: AppColors.secondary,
+                      ),
+                    );
+                  }
+                });
+              },
+            ),
+          );
+        },
       ),
     );
   }
@@ -226,7 +394,7 @@ class SettingsScreen extends StatelessWidget {
       icon: icon,
       onPressed: onPressed,
       isOutlined: isOutlined,
-      backgroundColor: isOutlined ? Colors.transparent : color.withOpacity(0.1),
+      backgroundColor: isOutlined ? Colors.transparent : color.withAlpha(26),
       borderColor: color,
       foregroundColor: color,
     );

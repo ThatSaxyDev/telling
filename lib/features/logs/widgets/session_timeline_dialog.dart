@@ -5,6 +5,7 @@ import '../../../../core/models/log_model/log_model.dart';
 import '../../../../core/providers/logs_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/error_formatter.dart';
 import '../../../../shared/widgets/military_decorations.dart';
 import '../../../../shared/widgets/military_loader.dart';
 
@@ -38,7 +39,7 @@ class SessionTimelineDialog extends ConsumerWidget {
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.primary),
-              color: AppColors.backgroundDark.withOpacity(0.95),
+              color: AppColors.backgroundDark.withAlpha(242),
             ),
             child: Column(
               children: [
@@ -97,7 +98,7 @@ class SessionTimelineDialog extends ConsumerWidget {
                     ),
                     error: (err, stack) => Center(
                       child: Text(
-                        'Error: $err',
+                        ErrorFormatter.format(err),
                         style: const TextStyle(color: AppColors.error),
                       ),
                     ),
@@ -148,9 +149,9 @@ class SessionTimelineDialog extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.primary.withAlpha(26),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primary.withAlpha(77)),
       ),
       child: Row(
         children: [
@@ -212,7 +213,7 @@ class _TimelineNode extends StatelessWidget {
             child: Text(
               dateFormat.format(log.timestamp),
               style: const TextStyle(
-                fontFamily: 'monospace',
+                fontFamily: 'Urbanist',
                 color: AppColors.slate,
                 fontSize: 12,
               ),
@@ -233,7 +234,7 @@ class _TimelineNode extends StatelessWidget {
                   border: Border.all(color: AppColors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.5),
+                      color: color.withAlpha(128),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
@@ -244,7 +245,7 @@ class _TimelineNode extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: AppColors.slate.withOpacity(0.3),
+                    color: AppColors.slate.withAlpha(77),
                   ),
                 ),
             ],
@@ -266,7 +267,7 @@ class _TimelineNode extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
+                          color: color.withAlpha(26),
                           borderRadius: BorderRadius.circular(2),
                         ),
                         child: Text(
@@ -286,7 +287,7 @@ class _TimelineNode extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.secondary.withOpacity(0.1),
+                            color: AppColors.secondary.withAlpha(26),
                             borderRadius: BorderRadius.circular(2),
                           ),
                           child: const Text(
@@ -316,10 +317,10 @@ class _TimelineNode extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.slate.withOpacity(0.1),
+                        color: AppColors.slate.withAlpha(26),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.slate.withOpacity(0.2),
+                          color: AppColors.slate.withAlpha(51),
                         ),
                       ),
                       child: Row(
