@@ -276,7 +276,6 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
           ),
           cursorColor: AppColors.secondary,
           textAlign: TextAlign.center,
-          keyboardType: TextInputType.text,
           textCapitalization: TextCapitalization.characters,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
