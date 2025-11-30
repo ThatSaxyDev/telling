@@ -13,12 +13,7 @@ class AuthState {
   final bool isLoading;
   final String? error;
 
-  AuthState({
-    this.user,
-    this.token,
-    this.isLoading = false,
-    this.error,
-  });
+  AuthState({this.user, this.token, this.isLoading = false, this.error});
 
   bool get isAuthenticated => user != null && token != null;
 
@@ -55,6 +50,12 @@ class AuthNotifier extends Notifier<AuthState> {
       try {
         final user = AuthUser.fromJson(jsonDecode(userJson));
         state = AuthState(user: user, token: token);
+
+        Telling.instance.setUser(
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
+        );
       } catch (e) {
         await logout();
       }
@@ -75,7 +76,7 @@ class AuthNotifier extends Notifier<AuthState> {
         final data = jsonDecode(response.body);
         // Login now returns userId for OTP verification, not token
         final userId = data['userId'];
-        
+
         state = state.copyWith(isLoading: false);
         return userId;
       } else {
@@ -97,7 +98,7 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> logout() async {
     // Clear user context in Telling SDK before logout
     Telling.instance.clearUser();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     await prefs.remove('auth_user');
@@ -157,14 +158,14 @@ class AuthNotifier extends Notifier<AuthState> {
 
         await _persistSession(user, token);
         state = AuthState(user: user, token: token, isLoading: false);
-        
+
         // Set user context in Telling SDK after successful verification
         Telling.instance.setUser(
           userId: user.id,
           userName: user.name,
           userEmail: user.email,
         );
-        
+
         return true;
       } else {
         state = state.copyWith(
