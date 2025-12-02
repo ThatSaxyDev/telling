@@ -24,7 +24,7 @@ class FunnelChartWidget extends StatelessWidget {
         // Overall Conversion Rate Card
         _buildOverallConversionCard(),
 
-        const SizedBox(height: 24),
+        SizedBox(height: isMobile ? 16 : 24),
 
         // Funnel List
         LayoutBuilder(
@@ -43,6 +43,7 @@ class FunnelChartWidget extends StatelessWidget {
                   maxWidth: constraints.maxWidth,
                   isFirst: index == 0,
                   isLast: index == funnelData.steps.length - 1,
+                  isMobile: isMobile,
                 );
               }),
             );
@@ -54,41 +55,41 @@ class FunnelChartWidget extends StatelessWidget {
 
   Widget _buildOverallConversionCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: BoxDecoration(
         color: AppColors.white.withAlpha(26),
         border: Border.all(color: AppColors.white.withAlpha(77)),
       ),
       child: Column(
         children: [
-          const Text(
-            'OVERALL CONVERSION RATE',
+          Text(
+            isMobile ? 'CONVERSION RATE' : 'OVERALL CONVERSION RATE',
             style: TextStyle(
               color: AppColors.slate,
-              fontSize: 11,
+              fontSize: isMobile ? 10 : 11,
               fontWeight: FontWeight.bold,
-              letterSpacing: 2.0,
+              letterSpacing: isMobile ? 1.0 : 2.0,
               fontFamily: 'Urbanist',
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isMobile ? 8 : 12),
           Text(
             '${funnelData.overallConversion.toStringAsFixed(1)}%',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.white,
-              fontSize: 48,
+              fontSize: isMobile ? 36 : 48,
               fontWeight: FontWeight.bold,
               fontFamily: 'Urbanist',
               letterSpacing: -2,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isMobile ? 4 : 8),
           if (funnelData.steps.isNotEmpty)
             Text(
               '${NumberFormat('#,###').format(funnelData.steps.last.count)} of ${NumberFormat('#,###').format(funnelData.steps.first.count)} users',
               style: TextStyle(
                 color: AppColors.slate.withAlpha(179),
-                fontSize: 13,
+                fontSize: isMobile ? 11 : 13,
                 fontFamily: 'Urbanist',
               ),
             ),
@@ -105,6 +106,7 @@ class _FunnelStepRow extends StatelessWidget {
   final double maxWidth;
   final bool isFirst;
   final bool isLast;
+  final bool isMobile;
 
   const _FunnelStepRow({
     required this.step,
@@ -113,101 +115,111 @@ class _FunnelStepRow extends StatelessWidget {
     required this.maxWidth,
     required this.isFirst,
     required this.isLast,
+    required this.isMobile,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Calculate width based on count relative to max
-    // Cap max width at 70% of available width to leave room for labels
+    // Calculate bar width as percentage of the center area
     final widthRatio = maxCount > 0 ? step.count / maxCount : 0.0;
-    final barWidth = (maxWidth * 0.7) * widthRatio;
 
     return Column(
       children: [
         SizedBox(
-          height: 60, // Fixed height for each step
+          height: isMobile ? 52 : 64,
           child: Row(
             children: [
-              // Left Label (Step Info)
+              // Left Label (Step Info) - Flexible to prevent overflow
               Expanded(
+                flex: isMobile ? 2 : 1,
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 16),
+                  padding: EdgeInsets.only(right: isMobile ? 8 : 16),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start, // Aligned to start (left)
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         'STEP ${step.stepNumber}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.slate,
-                          fontSize: 12, // Increased from 10
+                          fontSize: isMobile ? 9 : 11,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
+                          letterSpacing: isMobile ? 0.5 : 1.0,
                           fontFamily: 'Urbanist',
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: isMobile ? 2 : 4),
                       Text(
                         step.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.white,
-                          fontSize: 14, // Increased from 12
+                          fontSize: isMobile ? 10 : 13,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Urbanist',
                         ),
-                        textAlign: TextAlign.left, // Aligned to left
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // Center Bar (Rectangle)
-              TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.easeOutQuart,
-                tween: Tween(begin: 0.0, end: 1.0),
-                builder: (context, value, child) {
-                  // Whiter at top (step 1), more transparent as you go down
-                  final alpha = (255 * (1 - (step.stepNumber - 1) / maxCount)).toInt().clamp(77, 255);
-                  Color barColor = AppColors.white.withAlpha(alpha);
-                  return Container(
-                    width: barWidth * value,
-                    height: 45,
-                    decoration: BoxDecoration(color: barColor),
-                  );
-                },
+              // Center Bar (Rectangle) - Fixed flex, bar centered inside
+              Expanded(
+                flex: isMobile ? 3 : 4,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final barWidth = constraints.maxWidth * widthRatio;
+                    // Whiter at top (step 1), more transparent as you go down
+                    final alpha = (255 * (1 - (step.stepNumber - 1) / maxCount)).toInt().clamp(77, 255);
+                    
+                    return Center(
+                      child: TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.easeOutQuart,
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        builder: (context, value, child) {
+                          return Container(
+                            width: barWidth * value,
+                            height: isMobile ? 32 : 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.white.withAlpha(alpha),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
 
-              // Right Label (Count)
+              // Right Label (Count) - Flexible to prevent overflow
               Expanded(
+                flex: isMobile ? 2 : 1,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 16),
+                  padding: EdgeInsets.only(left: isMobile ? 8 : 16),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         NumberFormat('#,###').format(step.count),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.white,
-                          fontSize: 18, // Increased from 16
+                          fontSize: isMobile ? 14 : 18,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Urbanist',
                         ),
                       ),
                       Text(
-                        step.count == 1
-                            ? 'USER'
-                            : 'USERS', // Fixed pluralization
+                        step.count == 1 ? 'USER' : 'USERS',
                         style: TextStyle(
                           color: AppColors.slate.withAlpha(128),
-                          fontSize: 12, // Increased from 10
+                          fontSize: isMobile ? 9 : 11,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
+                          letterSpacing: isMobile ? 0.5 : 1.0,
                           fontFamily: 'Urbanist',
                         ),
                       ),
@@ -224,12 +236,12 @@ class _FunnelStepRow extends StatelessWidget {
             nextStep != null &&
             nextStep!.conversionFromPrevious != null)
           SizedBox(
-            height: 36, // Increased height for larger label
+            height: isMobile ? 24 : 32,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 8 : 10,
+                  vertical: isMobile ? 3 : 4,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.backgroundDark,
@@ -246,7 +258,7 @@ class _FunnelStepRow extends StatelessWidget {
                     color: _getConversionColor(
                       nextStep!.conversionFromPrevious!,
                     ),
-                    fontSize: 12, // Increased from 10
+                    fontSize: isMobile ? 10 : 12,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Urbanist',
                   ),
@@ -255,9 +267,8 @@ class _FunnelStepRow extends StatelessWidget {
             ),
           )
         else if (!isLast)
-          // Fallback if no next step data (shouldn't happen in valid funnel)
           SizedBox(
-            height: 20,
+            height: isMobile ? 12 : 16,
             child: Center(
               child: Container(width: 1, color: AppColors.slate.withAlpha(51)),
             ),

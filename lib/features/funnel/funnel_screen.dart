@@ -36,7 +36,8 @@ class _FunnelScreenState extends ConsumerState<FunnelScreen> {
   Widget build(BuildContext context) {
     final selectedSteps = ref.watch(funnelStepsProvider);
     final funnelAsync = ref.watch(funnelDataProvider);
-    final isMobile = MediaQuery.of(context).size.width < 900;
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    final horizontalPadding = isMobile ? 12.0 : 24.0;
 
     return Stack(
       children: [
@@ -60,7 +61,10 @@ class _FunnelScreenState extends ConsumerState<FunnelScreen> {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: isMobile ? 12.0 : 24.0,
+              ),
               decoration: BoxDecoration(
                 color: AppColors.surfaceDark.withAlpha(230),
                 border: Border(
@@ -72,47 +76,60 @@ class _FunnelScreenState extends ConsumerState<FunnelScreen> {
                 children: [
                   // Title
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(
-                        Icons.filter_alt,
-                        color: AppColors.slate,
-                        size: 32,
-                      ),
-                      const SizedBox(width: 16),
-                      Flexible(
-                        child: GlitchText(
-                          text: 'FUNNELYTICS',
-                          style: isMobile
-                              ? AppTextStyles.titleMedium.copyWith(
-                                  fontFamily: 'Syne',
-                                )
-                              : AppTextStyles.headlineSmall.copyWith(
-                                  fontFamily: 'Syne',
-                                ),
-                          glitchAmount: 2.0,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.filter_alt,
+                              color: AppColors.slate,
+                              size: isMobile ? 24 : 32,
+                            ),
+                            SizedBox(width: isMobile ? 8 : 16),
+                            Flexible(
+                              child: GlitchText(
+                                text: isMobile ? 'FUNNELS' : 'FUNNELYTICS',
+                                style: isMobile
+                                    ? AppTextStyles.titleSmall.copyWith(
+                                        fontFamily: 'Syne',
+                                      )
+                                    : AppTextStyles.headlineSmall.copyWith(
+                                        fontFamily: 'Syne',
+                                      ),
+                                glitchAmount: 2.0,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const Spacer(),
-                      AppButton(
-                        text: isMobile ? '' : 'REFRESH',
-                        icon: Icons.refresh,
-                        isOutlined: true,
-                        onPressed: () {
-                          ref.invalidate(funnelDataProvider);
-                          ref.invalidate(availableEventsProvider);
-                        },
-                        width: isMobile ? 48 : null,
-                        height: isMobile ? 48 : null,
-                        padding: isMobile ? EdgeInsets.zero : null,
+                      SizedBox(width: isMobile ? 8 : 16),
+                      Row(
+                        children: [
+                          AppButton(
+                            text: isMobile ? '' : 'REFRESH',
+                            icon: Icons.refresh,
+                            isOutlined: true,
+                            onPressed: () {
+                              ref.invalidate(funnelDataProvider);
+                              ref.invalidate(availableEventsProvider);
+                            },
+                            width: isMobile ? 36 : null,
+                            height: isMobile ? 36 : null,
+                            padding: isMobile ? EdgeInsets.zero : null,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 8 : 16),
                   Text(
-                    'Track user conversion through event sequences',
+                    isMobile 
+                        ? 'Track user conversion'
+                        : 'Track user conversion through event sequences',
                     style: TextStyle(
                       color: AppColors.slate.withAlpha(204),
-                      fontSize: 14,
+                      fontSize: isMobile ? 12 : 14,
                       fontFamily: 'Urbanist',
                     ),
                   ),
@@ -123,7 +140,7 @@ class _FunnelScreenState extends ConsumerState<FunnelScreen> {
             // Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(horizontalPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

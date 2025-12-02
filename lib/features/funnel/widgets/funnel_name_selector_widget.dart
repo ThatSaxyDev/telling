@@ -201,13 +201,16 @@ class _FunnelNameSelectorWidgetState
                           child: _isExpanded
                               ? TextField(
                                   autofocus: true,
+                                  cursorColor: AppColors.white,
+                                  cursorHeight: 18,
                                   style: const TextStyle(
                                     color: AppColors.white,
                                     fontFamily: 'Urbanist',
                                   ),
                                   decoration: InputDecoration(
-                                    hintText: 'Search funnels...',
+                                    hintText: 'SEARCH FUNNELS...',
                                     hintStyle: TextStyle(
+                                      fontSize: 14,
                                       color: AppColors.slate.withAlpha(179),
                                     ),
                                     border: InputBorder.none,

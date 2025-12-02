@@ -20,33 +20,44 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 600;
+    final horizontalPadding = isMobile ? 12.0 : 24.0;
+    final sectionPadding = isMobile ? 16.0 : 24.0;
+    final sectionSpacing = isMobile ? 16.0 : 24.0;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: isMobile ? 12.0 : 24.0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           Row(
             children: [
-              const Icon(Icons.settings, color: AppColors.slate, size: 32),
-              const SizedBox(width: 16),
+              Icon(
+                Icons.settings,
+                color: AppColors.slate,
+                size: isMobile ? 24 : 32,
+              ),
+              SizedBox(width: isMobile ? 8 : 16),
               GlitchText(
                 text: 'SETTINGS',
                 style: isMobile
-                    ? AppTextStyles.titleMedium
+                    ? AppTextStyles.titleSmall
                     : AppTextStyles.headlineSmall,
                 glitchAmount: 2.0,
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: isMobile ? 20 : 32),
 
           // API Key Section
           MilitaryHoverContainer(
             baseColor: AppColors.surfaceDark,
             showGrid: false,
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(sectionPadding),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.slate.withAlpha(77)),
               ),
@@ -55,33 +66,38 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.key, color: AppColors.secondary),
-                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.key,
+                        color: AppColors.secondary,
+                        size: isMobile ? 20 : 24,
+                      ),
+                      SizedBox(width: isMobile ? 8 : 12),
                       Text(
                         'API KEY',
-                        style: AppTextStyles.titleMedium.copyWith(
+                        style: (isMobile ? AppTextStyles.titleSmall : AppTextStyles.titleMedium).copyWith(
                           color: AppColors.secondary,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
                   const ApiKeyDisplay(),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: sectionSpacing),
+
           // Profile Section
           const ProfileSection(),
-          const SizedBox(height: 24),
+          SizedBox(height: sectionSpacing),
 
           // Account Section
           MilitaryHoverContainer(
             baseColor: AppColors.surfaceDark,
             showGrid: false,
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(sectionPadding),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.slate.withAlpha(77)),
               ),
@@ -90,47 +106,82 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.account_circle,
                         color: AppColors.secondary,
+                        size: isMobile ? 20 : 24,
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: isMobile ? 8 : 12),
                       Text(
                         'ACCOUNT',
-                        style: AppTextStyles.titleMedium.copyWith(
+                        style: (isMobile ? AppTextStyles.titleSmall : AppTextStyles.titleMedium).copyWith(
                           color: AppColors.secondary,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  AppButton(
-                    text: 'RESET PASSWORD',
-                    icon: Icons.lock_reset,
-                    onPressed: () => _initiatePasswordReset(context, ref),
-                    backgroundColor: AppColors.white.withAlpha(26),
-                    borderColor: AppColors.white,
-                    foregroundColor: AppColors.white,
-                  ),
-                  const SizedBox(height: 16),
-                  AppButton(
-                    text: 'LOGOUT',
-                    icon: Icons.logout,
-                    onPressed: () {
-                      ref.read(authProvider.notifier).logout();
-                      ref.read(projectProvider.notifier).reset();
-                      context.go('/login');
-                    },
-                    backgroundColor: AppColors.error.withAlpha(26),
-                    borderColor: AppColors.error,
-                    foregroundColor: AppColors.error,
-                  ),
+                  SizedBox(height: isMobile ? 16 : 24),
+                  // Buttons - stack vertically on mobile, row on desktop
+                  if (isMobile)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        AppButton(
+                          text: 'RESET PASSWORD',
+                          icon: Icons.lock_reset,
+                          onPressed: () => _initiatePasswordReset(context, ref),
+                          backgroundColor: AppColors.white.withAlpha(26),
+                          borderColor: AppColors.white,
+                          foregroundColor: AppColors.white,
+                        ),
+                        const SizedBox(height: 12),
+                        AppButton(
+                          text: 'LOGOUT',
+                          icon: Icons.logout,
+                          onPressed: () {
+                            ref.read(authProvider.notifier).logout();
+                            ref.read(projectProvider.notifier).reset();
+                            context.go('/login');
+                          },
+                          backgroundColor: AppColors.error.withAlpha(26),
+                          borderColor: AppColors.error,
+                          foregroundColor: AppColors.error,
+                        ),
+                      ],
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppButton(
+                          text: 'RESET PASSWORD',
+                          icon: Icons.lock_reset,
+                          onPressed: () => _initiatePasswordReset(context, ref),
+                          backgroundColor: AppColors.white.withAlpha(26),
+                          borderColor: AppColors.white,
+                          foregroundColor: AppColors.white,
+                        ),
+                        const SizedBox(height: 16),
+                        AppButton(
+                          text: 'LOGOUT',
+                          icon: Icons.logout,
+                          onPressed: () {
+                            ref.read(authProvider.notifier).logout();
+                            ref.read(projectProvider.notifier).reset();
+                            context.go('/login');
+                          },
+                          backgroundColor: AppColors.error.withAlpha(26),
+                          borderColor: AppColors.error,
+                          foregroundColor: AppColors.error,
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
           ),
 
-          if (kDebugMode) const SizedBox(height: 24),
+          if (kDebugMode) SizedBox(height: sectionSpacing),
 
           // Log Generator Section
           if (kDebugMode)
@@ -138,7 +189,7 @@ class SettingsScreen extends ConsumerWidget {
               baseColor: AppColors.surfaceDark,
               showGrid: false,
               child: Container(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(sectionPadding),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.slate.withAlpha(77)),
                 ),
@@ -147,35 +198,37 @@ class SettingsScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.bug_report,
                           color: AppColors.secondary,
+                          size: isMobile ? 20 : 24,
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: isMobile ? 8 : 12),
                         Text(
                           'LOG GENERATOR',
-                          style: AppTextStyles.titleMedium.copyWith(
+                          style: (isMobile ? AppTextStyles.titleSmall : AppTextStyles.titleMedium).copyWith(
                             color: AppColors.secondary,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: isMobile ? 16 : 24),
 
                     Text(
                       'GENERATE TEST SIGNALS',
                       style: AppTextStyles.labelSmall.copyWith(
                         color: AppColors.slate,
+                        fontSize: isMobile ? 10 : 11,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isMobile ? 12 : 16),
 
                     Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
+                      spacing: isMobile ? 8 : 16,
+                      runSpacing: isMobile ? 8 : 16,
                       children: [
                         _buildLogButton(
-                          label: 'DEBUG LOG',
+                          label: isMobile ? 'DEBUG' : 'DEBUG LOG',
                           color: AppColors.slate,
                           icon: Icons.bug_report_outlined,
                           onPressed: () {
@@ -187,7 +240,7 @@ class SettingsScreen extends ConsumerWidget {
                           },
                         ),
                         _buildLogButton(
-                          label: 'INFO LOG',
+                          label: isMobile ? 'INFO' : 'INFO LOG',
                           color: AppColors.white,
                           icon: Icons.info_outline,
                           onPressed: () {
@@ -199,7 +252,7 @@ class SettingsScreen extends ConsumerWidget {
                           },
                         ),
                         _buildLogButton(
-                          label: 'WARNING LOG',
+                          label: isMobile ? 'WARNING' : 'WARNING LOG',
                           color: Colors.orange,
                           icon: Icons.warning_amber,
                           onPressed: () {
@@ -212,7 +265,7 @@ class SettingsScreen extends ConsumerWidget {
                           },
                         ),
                         _buildLogButton(
-                          label: 'ERROR LOG',
+                          label: isMobile ? 'ERROR' : 'ERROR LOG',
                           color: AppColors.error,
                           icon: Icons.error_outline,
                           onPressed: () {
@@ -233,7 +286,7 @@ class SettingsScreen extends ConsumerWidget {
                           },
                         ),
                         _buildLogButton(
-                          label: 'FATAL LOG',
+                          label: isMobile ? 'FATAL' : 'FATAL LOG',
                           color: Colors.red.shade900,
                           icon: Icons.dangerous,
                           onPressed: () {
@@ -248,21 +301,22 @@ class SettingsScreen extends ConsumerWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 32),
+                    SizedBox(height: isMobile ? 20 : 32),
                     Text(
                       'EVENTS & CRASHES',
                       style: AppTextStyles.labelSmall.copyWith(
                         color: AppColors.slate,
+                        fontSize: isMobile ? 10 : 11,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isMobile ? 12 : 16),
 
                     Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
+                      spacing: isMobile ? 8 : 16,
+                      runSpacing: isMobile ? 8 : 16,
                       children: [
                         _buildLogButton(
-                          label: 'TRACK EVENT',
+                          label: isMobile ? 'EVENT' : 'TRACK EVENT',
                           color: Colors.blue,
                           icon: Icons.analytics_outlined,
                           onPressed: () {
@@ -277,7 +331,7 @@ class SettingsScreen extends ConsumerWidget {
                           },
                         ),
                         _buildLogButton(
-                          label: 'NETWORK LOG',
+                          label: isMobile ? 'NETWORK' : 'NETWORK LOG',
                           color: Colors.purple,
                           icon: Icons.wifi,
                           onPressed: () {
@@ -294,7 +348,7 @@ class SettingsScreen extends ConsumerWidget {
                           },
                         ),
                         _buildLogButton(
-                          label: 'FORCE CRASH',
+                          label: isMobile ? 'CRASH' : 'FORCE CRASH',
                           color: AppColors.error,
                           icon: Icons.flash_on,
                           onPressed: () {

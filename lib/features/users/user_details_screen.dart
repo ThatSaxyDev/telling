@@ -242,43 +242,62 @@ class UserDetailsScreen extends ConsumerWidget {
     bool isSmallScreen,
     bool isMobile,
   ) {
+    final statItems = [
+      _StatCard(
+        label: 'LOGS',
+        value: stats.totalLogs.toString(),
+        icon: Icons.list_alt,
+        color: AppColors.secondary,
+        isMobile: isMobile,
+      ),
+      _StatCard(
+        label: 'SESSIONS',
+        value: stats.sessionCount.toString(),
+        icon: Icons.timer,
+        color: AppColors.secondary,
+        isMobile: isMobile,
+      ),
+      _StatCard(
+        label: 'ERRORS',
+        value: stats.errorCount.toString(),
+        icon: Icons.warning_amber,
+        color: AppColors.error,
+        isMobile: isMobile,
+      ),
+      _StatCard(
+        label: 'LAST SEEN',
+        value: DateFormat('MMM d').format(stats.lastActive),
+        icon: Icons.access_time,
+        color: AppColors.slate,
+        isMobile: isMobile,
+      ),
+    ];
+
+    // Mobile: Horizontal scrollable row for compact height
+    if (isMobile) {
+      return SizedBox(
+        height: 64,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: statItems.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) => SizedBox(
+            width: 120,
+            child: statItems[index],
+          ),
+        ),
+      );
+    }
+
+    // Tablet/Desktop: Grid layout
     return GridView.count(
       crossAxisCount: isSmallScreen ? 2 : 4,
-      crossAxisSpacing: isMobile ? 8 : 16,
-      mainAxisSpacing: isMobile ? 8 : 16,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
       shrinkWrap: true,
-      childAspectRatio: isMobile ? 2.2 : (isSmallScreen ? 2.0 : 2.5),
+      childAspectRatio: isSmallScreen ? 2.0 : 2.5,
       physics: const NeverScrollableScrollPhysics(),
-      children: [
-        _StatCard(
-          label: 'TOTAL LOGS',
-          value: stats.totalLogs.toString(),
-          icon: Icons.list_alt,
-          color: AppColors.secondary,
-          isMobile: isMobile,
-        ),
-        _StatCard(
-          label: 'SESSIONS',
-          value: stats.sessionCount.toString(),
-          icon: Icons.timer,
-          color: AppColors.secondary,
-          isMobile: isMobile,
-        ),
-        _StatCard(
-          label: 'ERRORS',
-          value: stats.errorCount.toString(),
-          icon: Icons.warning_amber,
-          color: AppColors.error,
-          isMobile: isMobile,
-        ),
-        _StatCard(
-          label: isMobile ? 'LAST SEEN' : 'LAST ACTIVE',
-          value: DateFormat(isMobile ? 'MMM d' : 'MMM d, HH:mm').format(stats.lastActive),
-          icon: Icons.access_time,
-          color: AppColors.slate,
-          isMobile: isMobile,
-        ),
-      ],
+      children: statItems,
     );
   }
 }
@@ -301,55 +320,88 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(isMobile ? 10 : 16),
+      padding: EdgeInsets.all(isMobile ? 8 : 16),
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
         border: Border.all(color: color.withAlpha(77)),
         borderRadius: BorderRadius.circular(4),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(isMobile ? 6 : 8),
-            decoration: BoxDecoration(
-              color: color.withAlpha(26),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Icon(icon, color: color, size: isMobile ? 16 : 20),
-          ),
-          SizedBox(width: isMobile ? 8 : 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: isMobile
+          // Mobile: Compact vertical layout
+          ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.slate,
-                    letterSpacing: isMobile ? 0.5 : 1,
-                    fontSize: isMobile ? 9 : 11,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Icon(icon, color: color, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.slate,
+                        letterSpacing: 0.5,
+                        fontSize: 9,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: isMobile ? 2 : 4),
+                const SizedBox(height: 4),
                 Text(
                   value,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Urbanist',
                     color: AppColors.white,
-                    fontSize: isMobile ? 16 : 22,
+                    fontSize: 18,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            )
+          // Desktop/Tablet: Row layout with icon box
+          : Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withAlpha(26),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.slate,
+                          letterSpacing: 1,
+                          fontSize: 11,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        value,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Urbanist',
+                          color: AppColors.white,
+                          fontSize: 22,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
