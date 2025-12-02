@@ -41,8 +41,8 @@ class BottomNav extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Responsive height - taller on mobile for better touch targets
     final navHeight = context.responsive<double>(
-      mobile: 70.0,
-      tablet: 64.0,
+      mobile: 80.0,
+      tablet: 70.0,
       desktop: 60.0,
     );
     
@@ -64,26 +64,23 @@ class BottomNav extends ConsumerWidget {
               ]
             : null,
       ),
-      child: SafeArea(
-        top: false, // Don't add top safe area padding
-        child: SizedBox(
-          height: navHeight,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: _navItems.map((item) {
-              return Expanded(
-                child: _buildNavItem(
-                  context,
-                  ref,
-                  icon: item.icon,
-                  label: item.label,
-                  route: item.route,
-                  isActive: currentRoute == item.route,
-                  showLabel: showLabels,
-                ),
-              );
-            }).toList(),
-          ),
+      child: SizedBox(
+        height: navHeight,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: _navItems.map((item) {
+            return Expanded(
+              child: _buildNavItem(
+                context,
+                ref,
+                icon: item.icon,
+                label: item.label,
+                route: item.route,
+                isActive: currentRoute == item.route,
+                showLabel: showLabels,
+              ),
+            );
+          }).toList(),
         ),
       ),
     );
