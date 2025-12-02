@@ -43,47 +43,63 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
         // Use width-based breakpoint for better reliability
         final isDesktop = constraints.maxWidth > 1024;
         final screenWidth = constraints.maxWidth;
-        
+
         // Responsive text style
         final headerStyle = screenWidth > 800
             ? AppTextStyles.headlineSmall
             : screenWidth > 500
-                ? AppTextStyles.titleMedium
-                : AppTextStyles.titleSmall;
-        
+            ? AppTextStyles.titleMedium
+            : AppTextStyles.titleSmall;
+
         // Responsive padding
-        final horizontalPadding = isMobile ? 12.0 : (screenWidth > 800 ? 24.0 : 16.0);
-        final verticalPadding = isMobile ? 12.0 : 24.0;
+        // Responsive padding
+        final horizontalPadding = context.responsive<double>(
+          mobile: 12.0,
+          tablet: 20.0,
+          desktop: 24.0,
+        );
+        final verticalPadding = isMobile ? 8.0 : 24.0;
 
         final content = [
           // Header
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(
-                Icons.radar,
-                color: AppColors.slate,
-                size: isMobile ? 24 : 32,
-              ),
-              SizedBox(width: isMobile ? 8 : 16),
-              Flexible(
-                child: GlitchText(
-                  text: isMobile ? 'COMMAND' : 'COMMAND CENTER',
-                  style: headerStyle.copyWith(color: AppColors.white),
-                  glitchAmount: 2.0,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.radar,
+                      color: AppColors.slate,
+                      size: isMobile ? 24 : 32,
+                    ),
+                    SizedBox(width: isMobile ? 8 : 16),
+                    Flexible(
+                      child: GlitchText(
+                        text: 'COMMAND CENTER',
+                        style: headerStyle.copyWith(color: AppColors.white),
+                        glitchAmount: 2.0,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Spacer(),
-              AppButton(
-                text: isMobile ? '' : 'REFRESH',
-                icon: Icons.refresh,
-                isOutlined: true,
-                onPressed: () {
-                  ref.invalidate(logStatsProvider);
-                  ref.invalidate(activityTimelineProvider);
-                },
-                width: isMobile ? 44 : null,
-                height: isMobile ? 44 : null,
-                padding: isMobile ? EdgeInsets.zero : null,
+              SizedBox(width: isMobile ? 8 : 16),
+              Row(
+                children: [
+                  AppButton(
+                    text: isMobile ? '' : 'REFRESH',
+                    icon: Icons.refresh,
+                    isOutlined: true,
+                    onPressed: () {
+                      ref.invalidate(logStatsProvider);
+                      ref.invalidate(activityTimelineProvider);
+                    },
+                    width: isMobile ? 36 : null,
+                    height: isMobile ? 36 : null,
+                    padding: isMobile ? EdgeInsets.zero : null,
+                  ),
+                ],
               ),
             ],
           ),
@@ -113,10 +129,14 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
           // Activity Timeline Header
           Text(
             'RECENT ACTIVITY',
-            style: (isMobile ? AppTextStyles.labelLarge : AppTextStyles.titleMedium).copyWith(
-              color: AppColors.white,
-              letterSpacing: isMobile ? 1 : 2,
-            ),
+            style:
+                (isMobile
+                        ? AppTextStyles.labelLarge
+                        : AppTextStyles.titleMedium)
+                    .copyWith(
+                      color: AppColors.white,
+                      letterSpacing: isMobile ? 1 : 2,
+                    ),
           ),
           SizedBox(height: isMobile ? 8 : 16),
         ];
@@ -144,8 +164,9 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ...content,
+                // Use remaining space for timeline - calculate based on content above
                 SizedBox(
-                  height: isMobile ? 400 : 500,
+                  height: isMobile ? 520 : 500,
                   child: const ActivityTimeline(),
                 ),
               ],
@@ -161,13 +182,13 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
     final crossAxisCount = screenWidth > 1200
         ? 4
         : screenWidth > 800
-            ? 4
-            : screenWidth > 500
-                ? 2
-                : 2;
+        ? 4
+        : screenWidth > 500
+        ? 2
+        : 2;
 
     final spacing = isMobile ? 8.0 : 16.0;
-    
+
     // Adjust aspect ratio for mobile to make cards taller
     final aspectRatio = isMobile ? 1.6 : 2.0;
 

@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/providers/users_provider.dart';
 import '../../core/providers/user_properties_provider.dart';
 import '../../core/models/user.dart';
-
+import '../../core/extensions/responsive_extension.dart';
 import '../../core/theme/app_colors.dart';
 import 'widgets/paginated_sessions_list.dart';
 import 'widgets/paginated_logs_list.dart';
@@ -35,11 +35,17 @@ class UserDetailsScreen extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isMobile = context.isMobile;
         // Treat tablet (< 1100px) as small for grid purposes to ensure cards have space
         final isSmallScreen = constraints.maxWidth < 1100;
+        final horizontalPadding = isMobile ? 12.0 : 24.0;
+        final verticalPadding = isMobile ? 12.0 : 24.0;
 
         return Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: verticalPadding,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -48,45 +54,57 @@ class UserDetailsScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => context.go('/users'),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_back,
                       color: AppColors.secondary,
+                      size: isMobile ? 20 : 24,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: isMobile ? 32 : 40,
+                      minHeight: isMobile ? 32 : 40,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'USER PROFILE',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.slate,
-                          letterSpacing: 2,
+                  SizedBox(width: isMobile ? 8 : 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'USER PROFILE',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.slate,
+                            letterSpacing: isMobile ? 1 : 2,
+                            fontSize: isMobile ? 10 : 11,
+                          ),
                         ),
-                      ),
-                      Text(
-                        userId,
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Urbanist',
-                              color: AppColors.white,
-                            ),
-                      ),
-                    ],
+                        Text(
+                          userId,
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Urbanist',
+                                color: AppColors.white,
+                                fontSize: isMobile ? 16 : 24,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: isMobile ? 16 : 32),
 
               // Stats Grid - Use 2 columns for tablet/mobile, 4 for desktop
               statsAsync.when(
-                data: (stats) => _buildStatsGrid(context, stats, isSmallScreen),
+                data: (stats) => _buildStatsGrid(context, stats, isSmallScreen, isMobile),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, stack) => Text('Error loading stats: $err'),
               ),
 
-              const SizedBox(height: 32),
+              SizedBox(height: isMobile ? 16 : 32),
 
               // Split View vs Tabs
               Expanded(
@@ -96,7 +114,7 @@ class UserDetailsScreen extends ConsumerWidget {
                         child: Column(
                           children: [
                             Container(
-                              height: 40,
+                              height: isMobile ? 36 : 40,
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
@@ -113,18 +131,19 @@ class UserDetailsScreen extends ConsumerWidget {
                                     .withAlpha(
                                   153,
                                 ),
-                                labelStyle: const TextStyle(
+                                labelStyle: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
+                                  letterSpacing: isMobile ? 0.5 : 1,
+                                  fontSize: isMobile ? 11 : 14,
                                 ),
-                                tabs: const [
-                                  Tab(text: 'SESSION HISTORY'),
-                                  Tab(text: 'RECENT ACTIVITY'),
+                                tabs: [
+                                  Tab(text: isMobile ? 'SESSIONS' : 'SESSION HISTORY'),
+                                  Tab(text: isMobile ? 'ACTIVITY' : 'RECENT ACTIVITY'),
                                   // Tab(text: 'PROPERTIES'),
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: isMobile ? 12 : 16),
                             Expanded(
                               child: TabBarView(
                                 children: [
@@ -221,13 +240,14 @@ class UserDetailsScreen extends ConsumerWidget {
     BuildContext context,
     UserStats stats,
     bool isSmallScreen,
+    bool isMobile,
   ) {
     return GridView.count(
       crossAxisCount: isSmallScreen ? 2 : 4,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
+      crossAxisSpacing: isMobile ? 8 : 16,
+      mainAxisSpacing: isMobile ? 8 : 16,
       shrinkWrap: true,
-      childAspectRatio: isSmallScreen ? 2.0 : 2.5,
+      childAspectRatio: isMobile ? 2.2 : (isSmallScreen ? 2.0 : 2.5),
       physics: const NeverScrollableScrollPhysics(),
       children: [
         _StatCard(
@@ -235,24 +255,28 @@ class UserDetailsScreen extends ConsumerWidget {
           value: stats.totalLogs.toString(),
           icon: Icons.list_alt,
           color: AppColors.secondary,
+          isMobile: isMobile,
         ),
         _StatCard(
           label: 'SESSIONS',
           value: stats.sessionCount.toString(),
           icon: Icons.timer,
           color: AppColors.secondary,
+          isMobile: isMobile,
         ),
         _StatCard(
           label: 'ERRORS',
           value: stats.errorCount.toString(),
           icon: Icons.warning_amber,
           color: AppColors.error,
+          isMobile: isMobile,
         ),
         _StatCard(
-          label: 'LAST ACTIVE',
-          value: DateFormat('MMM d, HH:mm').format(stats.lastActive),
+          label: isMobile ? 'LAST SEEN' : 'LAST ACTIVE',
+          value: DateFormat(isMobile ? 'MMM d' : 'MMM d, HH:mm').format(stats.lastActive),
           icon: Icons.access_time,
           color: AppColors.slate,
+          isMobile: isMobile,
         ),
       ],
     );
@@ -264,18 +288,20 @@ class _StatCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
+  final bool isMobile;
 
   const _StatCard({
     required this.label,
     required this.value,
     required this.icon,
     required this.color,
+    this.isMobile = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 10 : 16),
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
         border: Border.all(color: color.withAlpha(77)),
@@ -284,14 +310,14 @@ class _StatCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(isMobile ? 6 : 8),
             decoration: BoxDecoration(
               color: color.withAlpha(26),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: isMobile ? 16 : 20),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: isMobile ? 8 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,16 +327,20 @@ class _StatCard extends StatelessWidget {
                   label,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: AppColors.slate,
-                    letterSpacing: 1,
+                    letterSpacing: isMobile ? 0.5 : 1,
+                    fontSize: isMobile ? 9 : 11,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: isMobile ? 2 : 4),
                 Text(
                   value,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Urbanist',
                     color: AppColors.white,
+                    fontSize: isMobile ? 16 : 22,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

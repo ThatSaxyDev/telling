@@ -138,8 +138,8 @@ class LogsScreen extends ConsumerWidget {
                       ref.invalidate(logsProvider);
                       if (isSessionGrouped) ref.invalidate(sessionsProvider);
                     },
-                    width: isMobile ? 48 : null,
-                    height: isMobile ? 48 : null,
+                    width: isMobile ? 36 : null,
+                    height: isMobile ? 36 : null,
                     padding: isMobile ? EdgeInsets.zero : null,
                   ),
                 ],

@@ -77,12 +77,16 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersListProvider);
     final isMobile = MediaQuery.of(context).size.width < 600;
+    final horizontalPadding = isMobile ? 12.0 : 24.0;
 
     return Column(
       children: [
         // Header
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: isMobile ? 12.0 : 24.0,
+          ),
           decoration: BoxDecoration(
             color: AppColors.surfaceDark,
             border: Border(
@@ -93,38 +97,48 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(
-                    Icons.people_alt,
-                    color: AppColors.slate,
-                    size: 32,
-                  ),
-                  const SizedBox(width: 16),
-                  Flexible(
-                    child: GlitchText(
-                      text: 'USERS',
-                      style: isMobile
-                          ? AppTextStyles.titleMedium
-                          : AppTextStyles.headlineSmall,
-                      glitchAmount: 2.0,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.people_alt,
+                          color: AppColors.slate,
+                          size: isMobile ? 24 : 32,
+                        ),
+                        SizedBox(width: isMobile ? 8 : 16),
+                        Flexible(
+                          child: GlitchText(
+                            text: 'USERS',
+                            style: isMobile
+                                ? AppTextStyles.titleSmall
+                                : AppTextStyles.headlineSmall,
+                            glitchAmount: 2.0,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-
-                  const Spacer(),
-                  AppButton(
-                    text: isMobile ? '' : 'REFRESH',
-                    icon: Icons.refresh,
-                    isOutlined: true,
-                    onPressed: () {
-                      ref.invalidate(usersListProvider);
-                    },
-                    width: isMobile ? 48 : null,
-                    height: isMobile ? 48 : null,
-                    padding: isMobile ? EdgeInsets.zero : null,
+                  SizedBox(width: isMobile ? 8 : 16),
+                  Row(
+                    children: [
+                      AppButton(
+                        text: isMobile ? '' : 'REFRESH',
+                        icon: Icons.refresh,
+                        isOutlined: true,
+                        onPressed: () {
+                          ref.invalidate(usersListProvider);
+                        },
+                        width: isMobile ? 36 : null,
+                        height: isMobile ? 36 : null,
+                        padding: isMobile ? EdgeInsets.zero : null,
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: isMobile ? 12 : 16),
 
               // Search Bar
               TextField(
@@ -258,42 +272,42 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 children: [
                   // Results info
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                    ).copyWith(top: 10),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ).copyWith(top: isMobile ? 8 : 10),
                     child: Row(
                       children: [
                         Text(
                           'Showing ${(_currentPage - 1) * _itemsPerPage + 1}-${(_currentPage - 1) * _itemsPerPage + paginatedUsers.length} of ${filteredUsers.length}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.slate,
-                            fontSize: 12,
+                            fontSize: isMobile ? 11 : 12,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: isMobile ? 8 : 12),
 
                   // Users list
                   Expanded(
                     child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
                         vertical: 0,
                       ),
                       itemCount: paginatedUsers.length,
                       separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12),
+                          SizedBox(height: isMobile ? 8 : 12),
                       itemBuilder: (context, index) {
                         final user = paginatedUsers[index];
-                        return _buildUserItem(context, user);
+                        return _buildUserItem(context, user, isMobile);
                       },
                     ),
                   ),
 
                   // Pagination controls
-                  if (totalPages > 1) _buildPaginationControls(totalPages),
+                  if (totalPages > 1) _buildPaginationControls(totalPages, isMobile),
                 ],
               );
             },
@@ -303,9 +317,9 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     ).nowTelling(name: 'User Screen Reached');
   }
 
-  Widget _buildPaginationControls(int totalPages) {
+  Widget _buildPaginationControls(int totalPages, bool isMobile) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(color: AppColors.white.withAlpha(26), width: 1),
@@ -315,62 +329,118 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Previous Button
-          AppButton(
-            text: 'PREVIOUS',
-            onPressed: _currentPage > 1
-                ? () => _goToPage(_currentPage - 1)
-                : null,
-            backgroundColor: _currentPage > 1
-                ? AppColors.white
-                : AppColors.darkSlate,
-            foregroundColor: _currentPage > 1
-                ? AppColors.primary
-                : AppColors.slate,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
+          if (isMobile)
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: IconButton(
+                onPressed: _currentPage > 1
+                    ? () => _goToPage(_currentPage - 1)
+                    : null,
+                icon: Icon(
+                  Icons.chevron_left,
+                  color: _currentPage > 1 ? AppColors.white : AppColors.slate,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: _currentPage > 1
+                      ? AppColors.primary.withAlpha(51)
+                      : AppColors.darkSlate,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              width: 100,
+              child: AppButton(
+                text: 'PREVIOUS',
+                onPressed: _currentPage > 1
+                    ? () => _goToPage(_currentPage - 1)
+                    : null,
+                backgroundColor: _currentPage > 1
+                    ? AppColors.white
+                    : AppColors.darkSlate,
+                foregroundColor: _currentPage > 1
+                    ? AppColors.primary
+                    : AppColors.slate,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
 
-          const SizedBox(width: 16),
+          SizedBox(width: isMobile ? 12 : 16),
 
           // Page Indicator
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 16,
+              vertical: isMobile ? 6 : 8,
+            ),
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.white.withAlpha(51)),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              'PAGE $_currentPage OF $totalPages',
+              isMobile ? '$_currentPage / $totalPages' : 'PAGE $_currentPage OF $totalPages',
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.white,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
+                letterSpacing: isMobile ? 1.0 : 1.5,
+                fontSize: isMobile ? 12 : 14,
               ),
             ),
           ),
 
-          const SizedBox(width: 16),
+          SizedBox(width: isMobile ? 12 : 16),
 
           // Next Button
-          AppButton(
-            text: 'NEXT',
-            onPressed: _currentPage < totalPages
-                ? () => _goToPage(_currentPage + 1)
-                : null,
-            backgroundColor: _currentPage < totalPages
-                ? AppColors.white
-                : AppColors.darkSlate,
-            foregroundColor: _currentPage < totalPages
-                ? AppColors.primary
-                : AppColors.slate,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
+          if (isMobile)
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: IconButton(
+                onPressed: _currentPage < totalPages
+                    ? () => _goToPage(_currentPage + 1)
+                    : null,
+                icon: Icon(
+                  Icons.chevron_right,
+                  color: _currentPage < totalPages ? AppColors.white : AppColors.slate,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: _currentPage < totalPages
+                      ? AppColors.primary.withAlpha(51)
+                      : AppColors.darkSlate,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              width: 100,
+              child: AppButton(
+                text: 'NEXT',
+                onPressed: _currentPage < totalPages
+                    ? () => _goToPage(_currentPage + 1)
+                    : null,
+                backgroundColor: _currentPage < totalPages
+                    ? AppColors.white
+                    : AppColors.darkSlate,
+                foregroundColor: _currentPage < totalPages
+                    ? AppColors.primary
+                    : AppColors.slate,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildUserItem(BuildContext context, User user) {
-    final dateFormat = DateFormat('MMM d, HH:mm:ss');
+  Widget _buildUserItem(BuildContext context, User user, bool isMobile) {
+    final dateFormat = DateFormat(isMobile ? 'MMM d, HH:mm' : 'MMM d, HH:mm:ss');
 
     return MilitaryHoverContainer(
       onTap: () {
@@ -378,145 +448,252 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
         context.go('/users/${user.userId}');
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(isMobile ? 12 : 20),
         decoration: BoxDecoration(
           color: AppColors.surfaceDark,
           border: Border(
-            left: BorderSide(color: AppColors.secondary, width: 4),
+            left: BorderSide(color: AppColors.secondary, width: isMobile ? 3 : 4),
           ),
         ),
-        child: Row(
-          children: [
-            // User icon
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withAlpha(26),
-                border: Border.all(color: AppColors.secondary.withAlpha(77)),
-              ),
-              child: const Icon(
-                Icons.person_outline,
-                color: AppColors.secondary,
-                size: 28,
-              ),
-            ),
-
-            const SizedBox(width: 20),
-
-            // User info
-            Expanded(
-              child: Column(
+        child: isMobile
+            // Mobile: Stacked layout
+            ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    user.userName ?? 'Unknown User',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                      fontSize: 18,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
+                  // Top row: Avatar + Name + Log count
                   Row(
                     children: [
-                      Text(
-                        'ID: ${user.userId}',
-                        style: const TextStyle(
-                          fontFamily: 'Urbanist',
-                          color: AppColors.slate,
-                          fontSize: 13,
+                      // User icon
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withAlpha(26),
+                          border: Border.all(color: AppColors.secondary.withAlpha(77)),
+                        ),
+                        child: const Icon(
+                          Icons.person_outline,
+                          color: AppColors.secondary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Name
+                      Expanded(
+                        child: Text(
+                          user.userName ?? 'Unknown User',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                            fontSize: 15,
+                            letterSpacing: 0.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      InkWell(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: user.userId));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Copied: ${user.userId}',
-                                style: const TextStyle(fontFamily: 'Urbanist'),
-                              ),
-                              duration: const Duration(seconds: 2),
-                              backgroundColor: AppColors.secondary,
-                              behavior: SnackBarBehavior.floating,
-                              width: 300,
+                      // Log count badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(26),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.list_alt,
+                              size: 12,
+                              color: AppColors.white,
                             ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Icon(
-                            Icons.copy,
-                            size: 14,
-                            color: AppColors.slate.withAlpha(179),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${user.logCount ?? 0}',
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Urbanist',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Bottom row: ID and last seen
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'ID: ${user.userId}',
+                          style: const TextStyle(
+                            fontFamily: 'Urbanist',
+                            color: AppColors.slate,
+                            fontSize: 11,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.access_time,
+                        size: 12,
+                        color: AppColors.slate.withAlpha(179),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        dateFormat.format(user.lastSeen),
+                        style: const TextStyle(
+                          color: AppColors.slate,
+                          fontSize: 11,
+                          fontFamily: 'Urbanist',
                         ),
                       ),
                     ],
                   ),
                 ],
-              ),
-            ),
+              )
+            // Desktop: Row layout
+            : Row(
+                children: [
+                  // User icon
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withAlpha(26),
+                      border: Border.all(color: AppColors.secondary.withAlpha(77)),
+                    ),
+                    child: const Icon(
+                      Icons.person_outline,
+                      color: AppColors.secondary,
+                      size: 28,
+                    ),
+                  ),
 
-            // Stats
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.list_alt,
-                      size: 16,
-                      color: AppColors.white,
+                  const SizedBox(width: 20),
+
+                  // User info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.userName ?? 'Unknown User',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                            fontSize: 18,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'ID: ${user.userId}',
+                                style: const TextStyle(
+                                  fontFamily: 'Urbanist',
+                                  color: AppColors.slate,
+                                  fontSize: 13,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(text: user.userId));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Copied: ${user.userId}',
+                                      style: const TextStyle(fontFamily: 'Urbanist'),
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    backgroundColor: AppColors.secondary,
+                                    behavior: SnackBarBehavior.floating,
+                                    width: 300,
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(4),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
+                                child: Icon(
+                                  Icons.copy,
+                                  size: 14,
+                                  color: AppColors.slate.withAlpha(179),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${user.logCount ?? 0}',
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Urbanist',
+                  ),
+
+                  // Stats
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.list_alt,
+                            size: 16,
+                            color: AppColors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${user.logCount ?? 0}',
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Urbanist',
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'LOGS',
+                            style: TextStyle(
+                              color: AppColors.slate,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'LOGS',
-                      style: TextStyle(
-                        color: AppColors.slate,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.access_time,
+                            size: 14,
+                            color: AppColors.slate,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            dateFormat.format(user.lastSeen),
+                            style: const TextStyle(
+                              color: AppColors.slate,
+                              fontSize: 13,
+                              fontFamily: 'Urbanist',
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.access_time,
-                      size: 14,
-                      color: AppColors.slate,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      dateFormat.format(user.lastSeen),
-                      style: const TextStyle(
-                        color: AppColors.slate,
-                        fontSize: 13,
-                        fontFamily: 'Urbanist',
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
+                    ],
+                  ),
+                ],
+              ),
       ),
     );
   }
