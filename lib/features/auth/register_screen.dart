@@ -220,32 +220,32 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         SizedBox(
                           width: double.infinity,
                           height: isMobile ? 44 : 48,
-                          child: ElevatedButton(
-                            onPressed: authState.isLoading ? null : _register,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.white,
-                              foregroundColor: AppColors.primary,
-                              shape: const RoundedRectangleBorder(),
+                          child: Material(
+                            color: Colors.white,
+                            child: InkWell(
+                              onTap: authState.isLoading ? null : _register,
+                              child: Center(
+                                child: authState.isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.secondary,
+                                        ),
+                                      )
+                                    : Text(
+                                        isMobile ? 'REGISTER' : 'SUBMIT_CREDENTIALS',
+                                        style: const TextStyle(
+                                          fontFamily: 'Urbanist',
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1,
+                                          fontSize: 14,
+                                          color: Color(0xFF000000),
+                                        ),
+                                      ),
+                              ),
                             ),
-                            child: authState.isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.secondary,
-                                    ),
-                                  )
-                                : Text(
-                                    isMobile ? 'REGISTER' : 'SUBMIT_CREDENTIALS',
-                                    style: TextStyle(
-                                      fontFamily: 'Urbanist',
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1,
-                                      fontSize: isMobile ? 13 : 14,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
                           ),
                         ),
                         SizedBox(height: isMobile ? 12 : 16),
