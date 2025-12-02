@@ -1,15 +1,37 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:telling_logger/telling_logger.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/responsive.dart';
 
 void main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      // Set preferred orientations for mobile
+      if (Responsive.isNativeMobile) {
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]);
+        
+        // Set system UI overlay style for immersive experience
+        SystemChrome.setSystemUIOverlayStyle(
+          const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            systemNavigationBarColor: Color(0xFF0D0D0D), // AppColors.surfaceDark
+            systemNavigationBarIconBrightness: Brightness.light,
+          ),
+        );
+      }
 
       await Telling.instance.init(
         'JKkqECvjKQCstnhjkmsvp0BWqJyBlEHzYdBOetN13z0=',
@@ -50,10 +72,14 @@ class MainApp extends ConsumerWidget {
       builder: (context, child) => ResponsiveBreakpoints.builder(
         child: child!,
         breakpoints: [
-          const Breakpoint(start: 0, end: 450, name: MOBILE),
-          const Breakpoint(start: 451, end: 800, name: TABLET),
-          const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-          const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+          // More granular breakpoints for better mobile support
+          const Breakpoint(start: 0, end: 320, name: 'MOBILE_SMALL'),
+          const Breakpoint(start: 321, end: 450, name: MOBILE),
+          const Breakpoint(start: 451, end: 600, name: 'MOBILE_LARGE'),
+          const Breakpoint(start: 601, end: 800, name: TABLET),
+          const Breakpoint(start: 801, end: 1024, name: DESKTOP),
+          const Breakpoint(start: 1025, end: 1440, name: 'DESKTOP_LARGE'),
+          const Breakpoint(start: 1441, end: double.infinity, name: '4K'),
         ],
       ),
     );

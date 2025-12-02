@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/utils/responsive.dart';
+import '../../core/extensions/responsive_extension.dart';
 import 'military_decorations.dart';
 import 'sidebar_nav.dart';
 import 'bottom_nav.dart';
@@ -24,17 +24,24 @@ class DashboardLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobile(context);
-    final isTablet = Responsive.isTablet(context);
-    final showSidebar = !isMobile && !isTablet;
+    // Use new responsive helpers
+    final showSidebarNav = context.showSidebar;
+    final showBottomNavBar = context.showBottomNav;
+    
+    // Responsive padding values
+    final contentPadding = context.responsive<double>(
+      mobile: 12.0,
+      tablet: 16.0,
+      desktop: 16.0,
+    );
     
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: CrosshairCursor(
         child: Row(
           children: [
-            // Sidebar Navigation (Desktop only)
-            if (showSidebar) SidebarNav(currentRoute: currentRoute),
+            // Sidebar Navigation (Desktop only, not on native mobile)
+            if (showSidebarNav) SidebarNav(currentRoute: currentRoute),
 
             // Main Content Area
             Expanded(
@@ -49,12 +56,22 @@ class DashboardLayout extends StatelessWidget {
                       ),
                     ),
 
-                  // 2. Main Content
+                  // 2. Main Content with proper safe area
                   SafeArea(
+                    // Don't add bottom padding if we have bottom nav
+                    bottom: !showBottomNavBar,
                     child: Column(
                       children: [
+                        // Project selector with responsive padding
                         Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: contentPadding,
+                            vertical: context.responsive<double>(
+                              mobile: 8.0,
+                              tablet: 12.0,
+                              desktop: 16.0,
+                            ),
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [const ProjectSelector()],
@@ -80,8 +97,8 @@ class DashboardLayout extends StatelessWidget {
           ],
         ),
       ),
-      // Bottom Navigation (Mobile/Tablet only)
-      bottomNavigationBar: (isMobile || isTablet)
+      // Bottom Navigation (Mobile/Tablet only, or always on native mobile)
+      bottomNavigationBar: showBottomNavBar
           ? BottomNav(currentRoute: currentRoute)
           : null,
     );
