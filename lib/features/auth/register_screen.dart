@@ -83,6 +83,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
@@ -95,178 +97,188 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               strokeWidth: 0.5,
             ),
           ),
-          Center(
-            child: Container(
-              width: 400,
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceDark.withAlpha(230),
-                border: Border.all(color: AppColors.slate.withAlpha(77)),
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'NEW_OPERATOR // REGISTRATION',
-                      style: TextStyle(
-                        fontFamily: 'Syne',
-                        color: AppColors.white,
-                        fontSize: 20,
-                        letterSpacing: 2,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    if (authState.error != null)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withAlpha(26),
-                          border: Border.all(color: AppColors.error),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 16 : 32,
+                  vertical: isMobile ? 16 : 32,
+                ).copyWith(bottom: bottomInset > 0 ? 16 : (isMobile ? 16 : 32)),
+                child: Container(
+                  width: isMobile ? double.infinity : 400,
+                  padding: EdgeInsets.all(isMobile ? 20 : 32),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceDark.withAlpha(230),
+                    border: Border.all(color: AppColors.slate.withAlpha(77)),
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isMobile ? 'REGISTER' : 'NEW_OPERATOR // REGISTRATION',
+                          style: TextStyle(
+                            fontFamily: 'Syne',
+                            color: AppColors.white,
+                            fontSize: isMobile ? 18 : 20,
+                            letterSpacing: isMobile ? 1 : 2,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.warning,
-                              color: AppColors.error,
-                              size: 16,
+                        SizedBox(height: isMobile ? 20 : 32),
+                        if (authState.error != null)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withAlpha(26),
+                              border: Border.all(color: AppColors.error),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                authState.error!,
-                                style: const TextStyle(
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning,
                                   color: AppColors.error,
-                                  fontFamily: 'Urbanist',
-                                  fontSize: 12,
+                                  size: 16,
                                 ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    authState.error!,
+                                    style: const TextStyle(
+                                      color: AppColors.error,
+                                      fontFamily: 'Urbanist',
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        _buildTextField(
+                          controller: _nameController,
+                          label: 'OPERATOR_NAME',
+                          icon: Icons.badge_outlined,
+                        ),
+                        SizedBox(height: isMobile ? 12 : 16),
+                        _buildTextField(
+                          controller: _emailController,
+                          label: 'OPERATOR_ID (EMAIL)',
+                          icon: Icons.person_outline,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'REQUIRED_FIELD';
+                            }
+                            final emailRegex = RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                            );
+                            if (!emailRegex.hasMatch(value)) {
+                              return 'INVALID_EMAIL_FORMAT';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: isMobile ? 12 : 16),
+                        _buildTextField(
+                          controller: _passwordController,
+                          label: 'ACCESS_CODE (PASSWORD)',
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                          isPasswordVisible: _isPasswordVisible,
+                          onTogglePasswordVisibility: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                        SizedBox(height: isMobile ? 12 : 16),
+                        _buildTextField(
+                          controller: _confirmPasswordController,
+                          label: 'CONFIRM_ACCESS_CODE',
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                          isPasswordVisible: _isConfirmPasswordVisible,
+                          onTogglePasswordVisibility: () {
+                            setState(() {
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'REQUIRED_FIELD';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'PASSWORDS_DO_NOT_MATCH';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: isMobile ? 20 : 32),
+                        SizedBox(
+                          width: double.infinity,
+                          height: isMobile ? 44 : 48,
+                          child: ElevatedButton(
+                            onPressed: authState.isLoading ? null : _register,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.white,
+                              foregroundColor: AppColors.primary,
+                              shape: const RoundedRectangleBorder(),
+                            ),
+                            child: authState.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.secondary,
+                                    ),
+                                  )
+                                : Text(
+                                    isMobile ? 'REGISTER' : 'SUBMIT_CREDENTIALS',
+                                    style: TextStyle(
+                                      fontFamily: 'Urbanist',
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                      fontSize: isMobile ? 13 : 14,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        SizedBox(height: isMobile ? 12 : 16),
+                        Center(
+                          child: TextButton(
+                            onPressed: () => context.go('/login'),
+                            child: Text(
+                              isMobile ? 'BACK TO LOGIN' : 'RETURN_TO_LOGIN',
+                              style: TextStyle(
+                                fontFamily: 'Urbanist',
+                                color: AppColors.slate,
+                                fontSize: isMobile ? 11 : 12,
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    _buildTextField(
-                      controller: _nameController,
-                      label: 'OPERATOR_NAME',
-                      icon: Icons.badge_outlined,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _emailController,
-                      label: 'OPERATOR_ID (EMAIL)',
-                      icon: Icons.person_outline,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'REQUIRED_FIELD';
-                        }
-                        final emailRegex = RegExp(
-                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                        );
-                        if (!emailRegex.hasMatch(value)) {
-                          return 'INVALID_EMAIL_FORMAT';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _passwordController,
-                      label: 'ACCESS_CODE (PASSWORD)',
-                      icon: Icons.lock_outline,
-                      isPassword: true,
-                      isPasswordVisible: _isPasswordVisible,
-                      onTogglePasswordVisibility: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _confirmPasswordController,
-                      label: 'CONFIRM_ACCESS_CODE',
-                      icon: Icons.lock_outline,
-                      isPassword: true,
-                      isPasswordVisible: _isConfirmPasswordVisible,
-                      onTogglePasswordVisibility: () {
-                        setState(() {
-                          _isConfirmPasswordVisible =
-                              !_isConfirmPasswordVisible;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'REQUIRED_FIELD';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'PASSWORDS_DO_NOT_MATCH';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: authState.isLoading ? null : _register,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.white,
-                          foregroundColor: AppColors.primary,
-                          shape: const RoundedRectangleBorder(),
-                        ),
-                        child: authState.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.secondary,
-                                ),
-                              )
-                            : const Text(
-                                'SUBMIT_CREDENTIALS',
-                                style: TextStyle(
-                                  fontFamily: 'Urbanist',
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
+                        SizedBox(height: isMobile ? 4 : 10),
+                        Center(
+                          child: TextButton(
+                            onPressed: () => context.go('/'),
+                            child: Text(
+                              isMobile ? 'HOME' : 'ABORT_MISSION (HOME)',
+                              style: TextStyle(
+                                fontFamily: 'Urbanist',
+                                color: AppColors.slate,
+                                fontSize: isMobile ? 11 : 12,
                               ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Center(
-                      child: TextButton(
-                        onPressed: () => context.go('/login'),
-                        child: const Text(
-                          'RETURN_TO_LOGIN',
-                          style: TextStyle(
-                            fontFamily: 'Urbanist',
-                            color: AppColors.slate,
-                            fontSize: 12,
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: TextButton(
-                        onPressed: () => context.go('/'),
-                        child: const Text(
-                          'ABORT_MISSION (HOME)',
-                          style: TextStyle(
-                            fontFamily: 'Urbanist',
-                            color: AppColors.slate,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

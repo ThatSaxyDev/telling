@@ -32,6 +32,13 @@ dev_dependencies:
   freezed: ^3.2.3
   build_runner: ^2.4.13
   json_serializable: ^6.11.2
+  flutter_launcher_icons: ^0.14.4
+  
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/launchericon.png"
+  min_sdk_android: 21
 
 flutter:
 
