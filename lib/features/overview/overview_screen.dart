@@ -9,6 +9,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/funnel_constants.dart';
 import '../../core/utils/error_formatter.dart';
 import '../../core/utils/number_formatter.dart';
+import '../../core/extensions/responsive_extension.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import 'widgets/activity_timeline.dart';
@@ -35,26 +36,39 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
   @override
   Widget build(BuildContext context) {
     final statsAsync = ref.watch(logStatsProvider);
+    final isMobile = context.isMobile;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         // Use width-based breakpoint for better reliability
         final isDesktop = constraints.maxWidth > 1024;
-        final isMobile = MediaQuery.of(context).size.width < 600;
-        final style = constraints.maxWidth > 800
+        final screenWidth = constraints.maxWidth;
+        
+        // Responsive text style
+        final headerStyle = screenWidth > 800
             ? AppTextStyles.headlineSmall
-            : AppTextStyles.titleMedium;
+            : screenWidth > 500
+                ? AppTextStyles.titleMedium
+                : AppTextStyles.titleSmall;
+        
+        // Responsive padding
+        final horizontalPadding = isMobile ? 12.0 : (screenWidth > 800 ? 24.0 : 16.0);
+        final verticalPadding = isMobile ? 12.0 : 24.0;
 
         final content = [
           // Header
           Row(
             children: [
-              const Icon(Icons.radar, color: AppColors.slate, size: 32),
-              const SizedBox(width: 16),
+              Icon(
+                Icons.radar,
+                color: AppColors.slate,
+                size: isMobile ? 24 : 32,
+              ),
+              SizedBox(width: isMobile ? 8 : 16),
               Flexible(
                 child: GlitchText(
-                  text: 'COMMAND CENTER',
-                  style: style.copyWith(color: AppColors.white),
+                  text: isMobile ? 'COMMAND' : 'COMMAND CENTER',
+                  style: headerStyle.copyWith(color: AppColors.white),
                   glitchAmount: 2.0,
                 ),
               ),
@@ -67,18 +81,21 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
                   ref.invalidate(logStatsProvider);
                   ref.invalidate(activityTimelineProvider);
                 },
-                width: isMobile ? 48 : null,
-                height: isMobile ? 48 : null,
+                width: isMobile ? 44 : null,
+                height: isMobile ? 44 : null,
                 padding: isMobile ? EdgeInsets.zero : null,
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: isMobile ? 16 : 32),
 
           // Stats Grid
           statsAsync.when(
-            loading: () => const Center(
-              child: MilitaryLoader(label: 'ANALYZING SYSTEMS...'),
+            loading: () => Center(
+              child: MilitaryLoader(
+                label: isMobile ? 'ANALYZING...' : 'ANALYZING SYSTEMS...',
+                size: isMobile ? 40 : 60,
+              ),
             ),
             error: (error, stack) => Center(
               child: Text(
@@ -88,26 +105,26 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
                 ),
               ),
             ),
-            data: (stats) => _buildStatsGrid(stats),
+            data: (stats) => _buildStatsGrid(stats, isMobile, screenWidth),
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: isMobile ? 16 : 32),
 
           // Activity Timeline Header
           Text(
             'RECENT ACTIVITY',
-            style: AppTextStyles.titleMedium.copyWith(
+            style: (isMobile ? AppTextStyles.labelLarge : AppTextStyles.titleMedium).copyWith(
               color: AppColors.white,
-              letterSpacing: 2,
+              letterSpacing: isMobile ? 1 : 2,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 8 : 16),
         ];
 
         if (isDesktop) {
           // Desktop: Expandable layout that fills remaining height
           return Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(horizontalPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -118,74 +135,81 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
           );
         } else {
           // Mobile/Tablet: Scrollable layout with fixed timeline height
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final padding = constraints.maxWidth > 800 ? 24.0 : 16.0;
-              return SingleChildScrollView(
-                padding: EdgeInsets.all(padding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ...content,
-                    SizedBox(height: 500, child: const ActivityTimeline()),
-                  ],
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...content,
+                SizedBox(
+                  height: isMobile ? 400 : 500,
+                  child: const ActivityTimeline(),
                 ),
-              );
-            },
+              ],
+            ),
           );
         }
       },
     );
   }
 
-  Widget _buildStatsGrid(LogStats stats) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 1200
+  Widget _buildStatsGrid(LogStats stats, bool isMobile, double screenWidth) {
+    // Determine grid configuration based on screen width
+    final crossAxisCount = screenWidth > 1200
+        ? 4
+        : screenWidth > 800
             ? 4
-            : constraints.maxWidth > 1106
-            ? 4
-            : 2;
+            : screenWidth > 500
+                ? 2
+                : 2;
 
-        final padding = constraints.maxWidth > 800 ? 16.0 : 8.0;
+    final spacing = isMobile ? 8.0 : 16.0;
+    
+    // Adjust aspect ratio for mobile to make cards taller
+    final aspectRatio = isMobile ? 1.6 : 2.0;
 
-        return GridView.count(
-          crossAxisCount: crossAxisCount,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: padding,
-          crossAxisSpacing: padding,
-          childAspectRatio: 2,
-          children: [
-            _buildStatCard(
-              icon: Icons.list_alt,
-              label: 'TOTAL LOGS',
-              value: NumberFormatter.format(stats.totalLogs),
-              color: AppColors.white,
-            ),
-            _buildStatCard(
-              icon: Icons.error_outline,
-              label: 'ERRORS',
-              value: NumberFormatter.format(stats.errorCount),
-              color: AppColors.error,
-            ),
-            _buildStatCard(
-              icon: Icons.warning_amber,
-              label: 'WARNINGS',
-              value: NumberFormatter.format(stats.warningCount),
-              color: Colors.orange,
-            ),
-            _buildStatCard(
-              icon: Icons.analytics_outlined,
-              label: 'EVENTS',
-              value: NumberFormatter.format(
-                stats.totalLogs - stats.errorCount - stats.warningCount,
-              ),
-              color: AppColors.white,
-            ),
-          ],
-        );
-      },
+    return GridView.count(
+      crossAxisCount: crossAxisCount,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: spacing,
+      crossAxisSpacing: spacing,
+      childAspectRatio: aspectRatio,
+      children: [
+        _buildStatCard(
+          icon: Icons.list_alt,
+          label: 'TOTAL LOGS',
+          value: NumberFormatter.format(stats.totalLogs),
+          color: AppColors.white,
+          isMobile: isMobile,
+        ),
+        _buildStatCard(
+          icon: Icons.error_outline,
+          label: 'ERRORS',
+          value: NumberFormatter.format(stats.errorCount),
+          color: AppColors.error,
+          isMobile: isMobile,
+        ),
+        _buildStatCard(
+          icon: Icons.warning_amber,
+          label: 'WARNINGS',
+          value: NumberFormatter.format(stats.warningCount),
+          color: Colors.orange,
+          isMobile: isMobile,
+        ),
+        _buildStatCard(
+          icon: Icons.analytics_outlined,
+          label: 'EVENTS',
+          value: NumberFormatter.format(
+            stats.totalLogs - stats.errorCount - stats.warningCount,
+          ),
+          color: AppColors.white,
+          isMobile: isMobile,
+        ),
+      ],
     );
   }
 
@@ -194,20 +218,23 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
     required String label,
     required String value,
     required Color color,
+    required bool isMobile,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive sizing based on card width
         final isSmall = constraints.maxWidth < 200;
-        final padding = isSmall ? 5.0 : 20.0;
-        final iconSize = isSmall ? 20.0 : 28.0;
-        final valueFontSize = isSmall ? 20.0 : 32.0;
-        final labelFontSize = isSmall ? 10.0 : 12.0;
+        final isVerySmall = constraints.maxWidth < 150;
+        final padding = isVerySmall ? 8.0 : (isSmall ? 10.0 : 20.0);
+        final iconSize = isVerySmall ? 18.0 : (isSmall ? 20.0 : 28.0);
+        final valueFontSize = isVerySmall ? 18.0 : (isSmall ? 22.0 : 32.0);
+        final labelFontSize = isVerySmall ? 8.0 : (isSmall ? 10.0 : 12.0);
+        final dotSize = isVerySmall ? 5.0 : (isSmall ? 6.0 : 8.0);
 
         return MilitaryHoverContainer(
           baseColor: AppColors.surfaceDark,
           hoverColor: AppColors.white.withAlpha(204),
-          showGrid: false,
+          showGrid: !isMobile,
           child: Container(
             padding: EdgeInsets.all(padding),
             decoration: BoxDecoration(
@@ -222,8 +249,8 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
                   children: [
                     Icon(icon, color: color, size: iconSize),
                     Container(
-                      width: isSmall ? 6 : 8,
-                      height: isSmall ? 6 : 8,
+                      width: dotSize,
+                      height: dotSize,
                       decoration: BoxDecoration(
                         color: color,
                         shape: BoxShape.circle,

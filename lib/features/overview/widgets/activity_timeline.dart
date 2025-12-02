@@ -8,6 +8,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/extensions/responsive_extension.dart';
 import '../../../shared/widgets/military_decorations.dart';
 import '../../../shared/widgets/military_loader.dart';
 import '../../../shared/painters/corner_bracket_painter.dart';
@@ -172,34 +173,39 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = context.isMobile;
+    
     return MilitaryHoverContainer(
       baseColor: AppColors.surfaceDark,
       hoverColor: AppColors.slate.withAlpha(128),
-      showGrid: false,
+      showGrid: !isMobile,
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 12 : 24),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.slate.withAlpha(77)),
         ),
         child: Column(
           children: [
             // Compact Filter Bar
-            _buildCompactFilterBar(),
-            const SizedBox(height: 16),
+            _buildCompactFilterBar(isMobile),
+            SizedBox(height: isMobile ? 10 : 16),
 
             // Timeline Content
             Expanded(
-              child: _buildContent()),
+              child: _buildContent(isMobile)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(bool isMobile) {
     if (_isLoading) {
-      return const Center(
-        child: MilitaryLoader(label: 'LOADING ACTIVITY...', size: 60),
+      return Center(
+        child: MilitaryLoader(
+          label: isMobile ? 'LOADING...' : 'LOADING ACTIVITY...',
+          size: isMobile ? 40 : 60,
+        ),
       );
     }
 
@@ -208,6 +214,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
         child: Text(
           'Error loading activity: $_error',
           style: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
+          textAlign: TextAlign.center,
         ),
       );
     }
@@ -219,11 +226,13 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.timeline, size: 48, color: AppColors.slate),
-            const SizedBox(height: 16),
+            Icon(Icons.timeline, size: isMobile ? 36 : 48, color: AppColors.slate),
+            SizedBox(height: isMobile ? 8 : 16),
             Text(
-              _logs.isEmpty ? 'NO ACTIVITY DETECTED' : 'NO MATCHING ACTIVITY',
-              style: AppTextStyles.titleMedium.copyWith(color: AppColors.slate),
+              _logs.isEmpty ? 'NO ACTIVITY' : 'NO MATCHES',
+              style: (isMobile ? AppTextStyles.labelLarge : AppTextStyles.titleMedium).copyWith(
+                color: AppColors.slate,
+              ),
             ),
           ],
         ),
@@ -233,13 +242,16 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     return ListView.separated(
       controller: _scrollController,
       itemCount: filteredLogs.length + (_hasMore ? 1 : 0),
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      separatorBuilder: (context, index) => SizedBox(height: isMobile ? 6 : 8),
       itemBuilder: (context, index) {
         if (index == filteredLogs.length) {
-          return const Center(
+          return Center(
             child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: MilitaryLoader(label: 'LOADING MORE...', size: 30),
+              padding: EdgeInsets.all(isMobile ? 10 : 16.0),
+              child: MilitaryLoader(
+                label: 'LOADING...',
+                size: isMobile ? 24 : 30,
+              ),
             ),
           );
         }
@@ -248,63 +260,70 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
         return _buildTimelineItem(
           log,
           index == filteredLogs.length - 1 && !_hasMore,
+          isMobile,
         );
       },
     );
   }
 
-  Widget _buildCompactFilterBar() {
+  Widget _buildCompactFilterBar(bool isMobile) {
     return Row(
       children: [
         // Level filter
-        _buildCompactDropdown<LogLevel>(
-          value: _filterLevel,
-          hint: 'ALL LEVELS',
-          items: const [
-            LogLevel.trace(),
-            LogLevel.debug(),
-            LogLevel.info(),
-            LogLevel.warning(),
-            LogLevel.error(),
-            LogLevel.fatal(),
-          ],
-          onChanged: (level) => setState(() => _filterLevel = level),
-          itemLabel: (level) => level.toString().split('.').last.toUpperCase(),
+        Expanded(
+          child: _buildCompactDropdown<LogLevel>(
+            value: _filterLevel,
+            hint: isMobile ? 'LEVEL' : 'ALL LEVELS',
+            items: const [
+              LogLevel.trace(),
+              LogLevel.debug(),
+              LogLevel.info(),
+              LogLevel.warning(),
+              LogLevel.error(),
+              LogLevel.fatal(),
+            ],
+            onChanged: (level) => setState(() => _filterLevel = level),
+            itemLabel: (level) => level.toString().split('.').last.toUpperCase(),
+            isMobile: isMobile,
+          ),
         ),
 
-        const SizedBox(width: 12),
+        SizedBox(width: isMobile ? 8 : 12),
 
         // Type filter
-        _buildCompactDropdown<LogType>(
-          value: _filterType,
-          hint: 'TYPE',
-          items: const [
-            LogType.general(),
-            LogType.analytics(),
-            LogType.event(),
-            LogType.performance(),
-            LogType.network(),
-            LogType.security(),
-            LogType.exception(),
-            LogType.crash(),
-          ],
-          onChanged: (type) => setState(() => _filterType = type),
-          itemLabel: (type) => type.when(
-            general: () => 'GENERAL',
-            analytics: () => 'ANALYTICS',
-            event: () => 'EVENT',
-            performance: () => 'PERFORMANCE',
-            network: () => 'NETWORK',
-            security: () => 'SECURITY',
-            exception: () => 'EXCEPTION',
-            crash: () => 'CRASH',
-            custom: (name) => name.toUpperCase(),
+        Expanded(
+          child: _buildCompactDropdown<LogType>(
+            value: _filterType,
+            hint: 'TYPE',
+            items: const [
+              LogType.general(),
+              LogType.analytics(),
+              LogType.event(),
+              LogType.performance(),
+              LogType.network(),
+              LogType.security(),
+              LogType.exception(),
+              LogType.crash(),
+            ],
+            onChanged: (type) => setState(() => _filterType = type),
+            itemLabel: (type) => type.when(
+              general: () => 'GENERAL',
+              analytics: () => 'ANALYTICS',
+              event: () => 'EVENT',
+              performance: () => 'PERFORMANCE',
+              network: () => 'NETWORK',
+              security: () => 'SECURITY',
+              exception: () => 'EXCEPTION',
+              crash: () => 'CRASH',
+              custom: (name) => name.toUpperCase(),
+            ),
+            isMobile: isMobile,
           ),
         ),
 
         // Clear filters
         if (_filterLevel != null || _filterType != null) ...[
-          const SizedBox(width: 12),
+          SizedBox(width: isMobile ? 6 : 12),
           IconButton(
             onPressed: () {
               setState(() {
@@ -312,7 +331,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                 _filterType = null;
               });
             },
-            icon: const Icon(Icons.clear, size: 18, color: AppColors.error),
+            icon: Icon(Icons.clear, size: isMobile ? 16 : 18, color: AppColors.error),
             tooltip: 'Clear Filters',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -328,10 +347,11 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     required List<T> items,
     required Function(T?) onChanged,
     required String Function(T) itemLabel,
+    bool isMobile = false,
   }) {
     return Container(
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      height: isMobile ? 32 : 36,
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 10),
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
         border: Border.all(color: AppColors.slate.withAlpha(77)),
@@ -342,14 +362,18 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
           value: value,
           hint: Text(
             hint,
-            style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate),
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.slate,
+              fontSize: isMobile ? 10 : 12,
+            ),
           ),
           isDense: true,
+          isExpanded: true,
           dropdownColor: AppColors.surfaceDark,
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_drop_down,
             color: AppColors.secondary,
-            size: 18,
+            size: isMobile ? 16 : 18,
           ),
           items: [
             DropdownMenuItem<T>(
@@ -358,6 +382,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                 hint,
                 style: AppTextStyles.labelSmall.copyWith(
                   color: AppColors.slate,
+                  fontSize: isMobile ? 10 : 12,
                 ),
               ),
             ),
@@ -368,6 +393,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                   itemLabel(item),
                   style: AppTextStyles.labelSmall.copyWith(
                     color: AppColors.white,
+                    fontSize: isMobile ? 10 : 12,
                   ),
                 ),
               ),
@@ -379,19 +405,19 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     );
   }
 
-  Widget _buildTimelineItem(LogModel log, bool isLast) {
+  Widget _buildTimelineItem(LogModel log, bool isLast, bool isMobile) {
     final color = _getLevelColor(log.level);
     final typeColor = _getTypeColor(log.type);
     final timeStr = _formatTime(log.timestamp);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: isMobile ? 8 : 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Tactical dot with hex design
           SizedBox(
-            width: 20,
+            width: isMobile ? 16 : 20,
             child: Column(
               children: [
                 Stack(
@@ -401,8 +427,8 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                     Transform.rotate(
                       angle: 0.785398, // 45 degrees
                       child: Container(
-                        width: 10,
-                        height: 10,
+                        width: isMobile ? 8 : 10,
+                        height: isMobile ? 8 : 10,
                         decoration: BoxDecoration(
                           border: Border.all(
                             color: color.withAlpha(128),
@@ -413,14 +439,14 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                     ),
                     // Inner dot
                     Container(
-                      width: 6,
-                      height: 6,
+                      width: isMobile ? 4 : 6,
+                      height: isMobile ? 4 : 6,
                       decoration: BoxDecoration(
                         color: color,
                         boxShadow: [
                           BoxShadow(
                             color: color.withAlpha(179),
-                            blurRadius: 6,
+                            blurRadius: isMobile ? 4 : 6,
                           ),
                         ],
                       ),
@@ -431,7 +457,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                 if (!isLast)
                   Container(
                     width: 1,
-                    height: 52,
+                    height: isMobile ? 40 : 52,
                     margin: const EdgeInsets.only(top: 4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -448,7 +474,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
             ),
           ),
 
-          const SizedBox(width: 12),
+          SizedBox(width: isMobile ? 8 : 12),
 
           // Main content with tactical frame
           Expanded(
@@ -465,7 +491,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                   ],
                 ),
                 border: Border(
-                  left: BorderSide(color: color, width: 3),
+                  left: BorderSide(color: color, width: isMobile ? 2 : 3),
                   top: BorderSide(color: color.withAlpha(77), width: 1),
                   right: BorderSide(
                     color: AppColors.slate.withAlpha(51),
@@ -481,171 +507,203 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
                 children: [
                   // Main content
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                    padding: EdgeInsets.fromLTRB(
+                      isMobile ? 8 : 12,
+                      isMobile ? 8 : 10,
+                      isMobile ? 8 : 12,
+                      isMobile ? 8 : 10,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Compact header
-                        Row(
-                          children: [
-                            // Level indicator
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: color.withAlpha(38),
-                                border: Border.all(color: color, width: 1),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                        // Compact header - stack on mobile if needed
+                        isMobile
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    _getLevelIcon(log.level),
-                                    size: 11,
-                                    color: color,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    log.level
-                                        .toString()
-                                        .split('.')
-                                        .last
-                                        .toUpperCase(),
-                                    style: TextStyle(
-                                      color: color,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 1,
-                                      fontFamily: 'Urbanist',
-                                    ),
+                                  Row(
+                                    children: [
+                                      // Level indicator
+                                      _buildLevelBadge(log, color, isMobile),
+                                      const SizedBox(width: 6),
+                                      // Type badge
+                                      if (log.type != const LogType.general())
+                                        _buildTypeBadge(log, typeColor, isMobile),
+                                      const Spacer(),
+                                      // Timestamp
+                                      Text(
+                                        timeStr,
+                                        style: TextStyle(
+                                          color: AppColors.slate,
+                                          fontSize: 9,
+                                          fontFamily: 'Urbanist',
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                              ),
-                            ),
-
-                            const SizedBox(width: 8),
-
-                            // Type badge (if not default)
-                            if (log.type != const LogType.general())
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: typeColor.withAlpha(26),
-                                  border: Border.all(
-                                    color: typeColor.withAlpha(128),
-                                  ),
-                                ),
-                                child: Text(
-                                  _getTypeLabel(log.type),
-                                  style: TextStyle(
-                                    color: typeColor,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-
-                            const Spacer(),
-
-                            // Timestamp
-                            Text(
-                              timeStr,
-                              style: const TextStyle(
-                                color: AppColors.slate,
-                                fontSize: 10,
-                                fontFamily: 'Urbanist',
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-
-                            // User indicator
-                            if (log.userName != null) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 1,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: AppColors.secondary.withAlpha(128),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.person,
-                                      size: 9,
-                                      color: AppColors.secondary,
+                              )
+                            : Row(
+                                children: [
+                                  // Level indicator
+                                  _buildLevelBadge(log, color, isMobile),
+                                  const SizedBox(width: 8),
+                                  // Type badge
+                                  if (log.type != const LogType.general())
+                                    _buildTypeBadge(log, typeColor, isMobile),
+                                  const Spacer(),
+                                  // Timestamp
+                                  Text(
+                                    timeStr,
+                                    style: const TextStyle(
+                                      color: AppColors.slate,
+                                      fontSize: 10,
+                                      fontFamily: 'Urbanist',
+                                      letterSpacing: 0.5,
                                     ),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      log.userName!,
-                                      style: const TextStyle(
-                                        color: AppColors.secondary,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                  ),
+                                  // User indicator
+                                  if (log.userName != null) ...[
+                                    const SizedBox(width: 8),
+                                    _buildUserBadge(log, isMobile),
                                   ],
-                                ),
+                                ],
                               ),
-                            ],
-                          ],
-                        ),
 
-                        const SizedBox(height: 6),
+                        SizedBox(height: isMobile ? 4 : 6),
 
                         // Message
                         Text(
                           log.message,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.white,
-                            fontSize: 13,
+                            fontSize: isMobile ? 11 : 13,
                             height: 1.3,
                             letterSpacing: 0.2,
                           ),
-                          maxLines: 2,
+                          maxLines: isMobile ? 2 : 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
 
-                  // Top-left corner bracket
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    child: CustomPaint(
-                      size: const Size(8, 8),
-                      painter: CornerBracketPainter(
-                        color: color,
-                        isTopLeft: true,
+                  // Corner brackets - hide on mobile for cleaner look
+                  if (!isMobile) ...[
+                    // Top-left corner bracket
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      child: CustomPaint(
+                        size: const Size(8, 8),
+                        painter: CornerBracketPainter(
+                          color: color,
+                          isTopLeft: true,
+                        ),
                       ),
                     ),
-                  ),
-
-                  // Bottom-right corner bracket
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: CustomPaint(
-                      size: const Size(8, 8),
-                      painter: CornerBracketPainter(
-                        color: color.withAlpha(77),
-                        isTopLeft: false,
+                    // Bottom-right corner bracket
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: CustomPaint(
+                        size: const Size(8, 8),
+                        painter: CornerBracketPainter(
+                          color: color.withAlpha(77),
+                          isTopLeft: false,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLevelBadge(LogModel log, Color color, bool isMobile) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 4 : 6,
+        vertical: isMobile ? 1 : 2,
+      ),
+      decoration: BoxDecoration(
+        color: color.withAlpha(38),
+        border: Border.all(color: color, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _getLevelIcon(log.level),
+            size: isMobile ? 9 : 11,
+            color: color,
+          ),
+          SizedBox(width: isMobile ? 2 : 3),
+          Text(
+            log.level.toString().split('.').last.toUpperCase(),
+            style: TextStyle(
+              color: color,
+              fontSize: isMobile ? 8 : 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: isMobile ? 0.5 : 1,
+              fontFamily: 'Urbanist',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeBadge(LogModel log, Color typeColor, bool isMobile) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 4 : 5,
+        vertical: isMobile ? 1 : 2,
+      ),
+      decoration: BoxDecoration(
+        color: typeColor.withAlpha(26),
+        border: Border.all(color: typeColor.withAlpha(128)),
+      ),
+      child: Text(
+        _getTypeLabel(log.type),
+        style: TextStyle(
+          color: typeColor,
+          fontSize: isMobile ? 7 : 9,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserBadge(LogModel log, bool isMobile) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 3 : 4,
+        vertical: 1,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.secondary.withAlpha(128)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.person,
+            size: isMobile ? 8 : 9,
+            color: AppColors.secondary,
+          ),
+          SizedBox(width: isMobile ? 1 : 2),
+          Text(
+            log.userName!,
+            style: TextStyle(
+              color: AppColors.secondary,
+              fontSize: isMobile ? 8 : 9,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
