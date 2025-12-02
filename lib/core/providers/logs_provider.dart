@@ -43,8 +43,10 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
     // Watch project provider to refetch when project changes
     ref.watch(projectProvider);
     
-    // Start auto-polling
-    _startPolling();
+    // NOTE: Auto-polling disabled to reduce API usage
+    // Users can manually refresh using the refresh button
+    // To re-enable, uncomment the lines below:
+    // _startPolling();
     
     // Clean up on dispose
     ref.onDispose(() {
@@ -155,9 +157,10 @@ final logsProvider =
 });
 
 // Polling interval provider (configurable)
+// NOTE: Increased from 30 seconds to 5 minutes to reduce API usage
 class PollingIntervalNotifier extends Notifier<Duration> {
   @override
-  Duration build() => const Duration(seconds: 30);
+  Duration build() => const Duration(minutes: 5);
   void set(Duration duration) => state = duration;
 }
 
