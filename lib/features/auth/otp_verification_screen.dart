@@ -98,7 +98,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-
+    final isMobile = MediaQuery.of(context).size.width < 600;
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
@@ -182,33 +182,34 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                     const SizedBox(height: 32),
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: authState.isLoading ? null : _verify,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.white,
-                          foregroundColor: AppColors.primary,
-                          shape: const RoundedRectangleBorder(),
+                      height: isMobile ? 44 : 48,
+                      child: Material(
+                        color: Colors.white,
+                        child: InkWell(
+                          onTap: authState.isLoading ? null : _verify,
+                          child: Center(
+                            child: authState.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.primary,
+                                    ),
+                                  )
+                                : const Text(
+                                    'VERIFY_IDENTITY',
+                                    style: TextStyle(
+                                      fontFamily: 'Urbanist',
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                          ),
                         ),
-                        child: authState.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.secondary,
-                                ),
-                              )
-                            : const Text(
-                                'VERIFY_IDENTITY',
-                                style: TextStyle(
-                                  fontFamily: 'Urbanist',
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
-                              ),
                       ),
                     ),
+
                     const SizedBox(height: 16),
                     Center(
                       child: TextButton(
