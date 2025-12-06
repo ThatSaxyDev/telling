@@ -23,6 +23,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
+  // Password validation (mirror backend rules)
+  String? _validatePassword(String? password) {
+    if (password == null || password.isEmpty) return 'REQUIRED_FIELD';
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    if (!RegExp(r'[A-Z]').hasMatch(password)) return 'Must contain an uppercase letter';
+    if (!RegExp(r'[a-z]').hasMatch(password)) return 'Must contain a lowercase letter';
+    if (!RegExp(r'[0-9]').hasMatch(password)) return 'Must contain a number';
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) return 'Must contain a special character';
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -192,6 +203,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               _isPasswordVisible = !_isPasswordVisible;
                             });
                           },
+                          validator: _validatePassword,
                         ),
                         SizedBox(height: isMobile ? 12 : 16),
                         _buildTextField(
