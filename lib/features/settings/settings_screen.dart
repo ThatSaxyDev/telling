@@ -141,8 +141,8 @@ class SettingsScreen extends ConsumerWidget {
                         AppButton(
                           text: 'LOGOUT',
                           icon: Icons.logout,
-                          onPressed: () {
-                            ref.read(authProvider.notifier).logout();
+                          onPressed: () async {
+                            await ref.read(authProvider.notifier).logout();
                             ref.read(projectProvider.notifier).reset();
                             context.go('/login');
                           },
@@ -198,8 +198,8 @@ class SettingsScreen extends ConsumerWidget {
                         AppButton(
                           text: 'LOGOUT',
                           icon: Icons.logout,
-                          onPressed: () {
-                            ref.read(authProvider.notifier).logout();
+                          onPressed: () async {
+                            await ref.read(authProvider.notifier).logout();
                             ref.read(projectProvider.notifier).reset();
                             context.go('/login');
                           },
