@@ -201,6 +201,28 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<bool> deleteAccount() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final response = await apiClient.delete(Uri.parse('$_baseUrl/account'));
+
+      if (response.statusCode == 200) {
+        await logout();
+        return true;
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'Failed to delete account: ${response.body}',
+        );
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
   Future<void> _persistSession(AuthUser user, String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);

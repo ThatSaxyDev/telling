@@ -13,6 +13,9 @@ import './widgets/api_key_display.dart';
 import './widgets/profile_section.dart';
 import './widgets/password_reset_flow_widgets.dart';
 import '../../core/providers/user_profile_provider.dart';
+import './widgets/account_deletion_dialog.dart';
+import '../../shared/widgets/military_loader.dart';
+import '../../core/providers/logs_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -147,6 +150,36 @@ class SettingsScreen extends ConsumerWidget {
                           borderColor: AppColors.error,
                           foregroundColor: AppColors.error,
                         ),
+                        const SizedBox(height: 24),
+                        const Divider(color: AppColors.slate, height: 1),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppColors.error,
+                              size: isMobile ? 20 : 24,
+                            ),
+                            SizedBox(width: isMobile ? 8 : 12),
+                            Text(
+                              'DANGER ZONE',
+                              style:
+                                  (isMobile
+                                          ? AppTextStyles.titleSmall
+                                          : AppTextStyles.titleMedium)
+                                      .copyWith(color: AppColors.error),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        AppButton(
+                          text: 'DELETE ACCOUNT',
+                          icon: Icons.delete_forever,
+                          onPressed: () => _handleDeleteAccount(context, ref),
+                          backgroundColor: AppColors.error.withAlpha(26),
+                          borderColor: AppColors.error,
+                          foregroundColor: AppColors.error,
+                        ),
                       ],
                     )
                   else
@@ -170,6 +203,36 @@ class SettingsScreen extends ConsumerWidget {
                             ref.read(projectProvider.notifier).reset();
                             context.go('/login');
                           },
+                          backgroundColor: AppColors.error.withAlpha(26),
+                          borderColor: AppColors.error,
+                          foregroundColor: AppColors.error,
+                        ),
+                        const SizedBox(height: 32),
+                        const Divider(color: AppColors.slate, height: 1),
+                        const SizedBox(height: 32),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: AppColors.error,
+                              size: isMobile ? 20 : 24,
+                            ),
+                            SizedBox(width: isMobile ? 8 : 12),
+                            Text(
+                              'DANGER ZONE',
+                              style:
+                                  (isMobile
+                                          ? AppTextStyles.titleSmall
+                                          : AppTextStyles.titleMedium)
+                                      .copyWith(color: AppColors.error),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        AppButton(
+                          text: 'DELETE ACCOUNT',
+                          icon: Icons.delete_forever,
+                          onPressed: () => _handleDeleteAccount(context, ref),
                           backgroundColor: AppColors.error.withAlpha(26),
                           borderColor: AppColors.error,
                           foregroundColor: AppColors.error,
@@ -452,5 +515,66 @@ class SettingsScreen extends ConsumerWidget {
       borderColor: color,
       foregroundColor: color,
     );
+  }
+
+  void _handleDeleteAccount(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => const AccountDeletionDialog(),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: MilitaryLoader(
+          size: 60,
+          color: AppColors.error,
+          label: 'DELETING ACCOUNT...',
+        ),
+      ),
+    );
+
+    try {
+      final success = await ref.read(authProvider.notifier).deleteAccount();
+
+      if (!context.mounted) return;
+      Navigator.pop(context); // Dismiss loading
+
+      if (success) {
+        // Clear all data
+        ref.invalidate(userProfileProvider);
+        ref.invalidate(logsProvider);
+        ref.read(projectProvider.notifier).reset();
+
+        context.go('/login');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully'),
+            backgroundColor: AppColors.secondary,
+          ),
+        );
+      } else {
+        final error = ref.read(authProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error ?? 'Failed to delete account'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context); // Dismiss loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 }
