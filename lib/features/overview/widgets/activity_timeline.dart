@@ -241,10 +241,11 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
 
     return ListView.separated(
       controller: _scrollController,
-      itemCount: filteredLogs.length + (_hasMore ? 1 : 0),
+      itemCount: filteredLogs.length + (_isLoadingMore ? 1 : 0),
       separatorBuilder: (context, index) => SizedBox(height: isMobile ? 6 : 8),
       itemBuilder: (context, index) {
-        if (index == filteredLogs.length) {
+        // Show loader only at the end when actively loading more
+        if (index == filteredLogs.length && _isLoadingMore) {
           return Center(
             child: Padding(
               padding: EdgeInsets.all(isMobile ? 10 : 16.0),
