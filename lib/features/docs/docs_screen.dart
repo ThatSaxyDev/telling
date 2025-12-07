@@ -283,35 +283,41 @@ class _DocsScreenState extends State<DocsScreen> {
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.menu, color: AppColors.white),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'DOCS / ${_sections[_currentIndex].title.toUpperCase()}',
-              style: const TextStyle(
-                fontFamily: 'Syne',
-                color: AppColors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1,
-              ),
-            ),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.close, color: AppColors.white),
-              onPressed: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/landing');
-                }
-              },
-            ),
-          ],
+        child: Builder(
+          builder: (contextt) {
+            return Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.white),
+                  onPressed: () => Scaffold.of(contextt).openDrawer(),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'DOCS / ${_sections[_currentIndex].title.toUpperCase()}',
+                    style: const TextStyle(
+                      fontFamily: 'Syne',
+                      color: AppColors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+                // const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close, color: AppColors.white),
+                  onPressed: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/landing');
+                    }
+                  },
+                ),
+              ],
+            );
+          }
         ),
       ),
     );
@@ -506,6 +512,7 @@ class _DocsScreenState extends State<DocsScreen> {
 
           // Navigation Footer (Next/Prev)
           const SizedBox(height: 80),
+          if (!isMobile)
           _buildFooterNavigation(isMobile),
         ],
       ),
