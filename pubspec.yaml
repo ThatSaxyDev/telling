@@ -2,7 +2,7 @@ name: telling
 description: "An analytics dashboard built with Flutter. This application serves as the command center for monitoring logs, events, and crashes sent from the `telling_logger` SDK."
 publish_to: 'none'
 
-version: 1.0.0+8
+version: 1.0.0+9
 
 environment:
   sdk: ^3.9.2
@@ -119,6 +119,46 @@ flutter:
         - asset: assets/fonts/urbanist/Urbanist-Black.ttf
           weight: 900
         - asset: assets/fonts/urbanist/Urbanist-BlackItalic.ttf
+          weight: 900
+          style: italic
+    - family: SourceCodePro
+      fonts:
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-ExtraLightItalic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-Light.ttf
+          weight: 300
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-Regular.ttf
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-Italic.ttf
+          style: italic
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-ExtraBoldItalic.ttf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-Black.ttf
+          weight: 900
+        - asset: assets/fonts/sourceCodePro/SourceCodePro-BlackItalic.ttf
           weight: 900
           style: italic
 

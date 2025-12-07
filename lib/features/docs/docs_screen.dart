@@ -412,7 +412,7 @@ class _DocsScreenState extends State<DocsScreen> {
               builders: {
                 'code': CodeElementBuilder(
                   textStyle: const TextStyle(
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'SourceCodePro',
                     fontSize: 14,
                   ),
                 ),
@@ -451,7 +451,7 @@ class _DocsScreenState extends State<DocsScreen> {
                 ),
                 // Code block styling handled by builder now
                 code: TextStyle(
-                  fontFamily: 'JetBrains Mono',
+                  fontFamily: 'SourceCodePro',
                   backgroundColor: const Color(0xFF2A2A2A),
                   color: AppColors.secondary, // Inline code color
                   fontSize: 14,
@@ -680,7 +680,7 @@ class CodeElementBuilder extends MarkdownElementBuilder {
           element.textContent,
           style: textStyle?.copyWith(
             color: AppColors.secondary,
-            fontFamily: 'JetBrains Mono',
+            fontFamily: 'SourceCodePro',
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
@@ -781,7 +781,7 @@ class _CodeBlockState extends State<_CodeBlock> {
                         Text(
                           widget.language.toUpperCase(),
                           style: TextStyle(
-                            fontFamily: 'JetBrains Mono',
+                            fontFamily: 'SourceCodePro',
                             color: AppColors.slate.withValues(alpha: 0.7),
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -822,7 +822,7 @@ class _CodeBlockState extends State<_CodeBlock> {
                           Text(
                             _copied ? 'COPIED' : 'COPY',
                             style: TextStyle(
-                              fontFamily: 'JetBrains Mono',
+                              fontFamily: 'SourceCodePro',
                               color: _copied
                                   ? AppColors.secondary
                                   : AppColors.slate,
@@ -851,7 +851,7 @@ class _CodeBlockState extends State<_CodeBlock> {
                     theme: _kVSCodeTheme, // New custom theme
                     padding: EdgeInsets.zero,
                     textStyle: widget.textStyle?.copyWith(
-                      fontFamily: 'JetBrains Mono',
+                      fontFamily: 'SourceCodePro',
                       fontSize: 14,
                       height: 1.6,
                       letterSpacing: 0.5,
