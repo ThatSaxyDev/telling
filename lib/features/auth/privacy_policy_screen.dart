@@ -42,7 +42,10 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppColors.white),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: AppColors.white,
+                        ),
                         onPressed: () => context.go('/'),
                       ),
                       const SizedBox(width: 16),
@@ -71,38 +74,38 @@ class PrivacyPolicyScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildSection(
-                              'EFFECTIVE_DATE',
-                              'December 7, ${DateTime.now().year}',
-                              isMobile,
+                              title: 'EFFECTIVE_DATE',
+                              content: 'December 7, ${DateTime.now().year}',
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 32),
 
                             _buildSection(
-                              'OVERVIEW',
-                              'Telling is a real-time application monitoring and error tracking service consisting of:\n\n'
-                              '• **telling_logger SDK**: A Flutter package that developers integrate into their apps to collect and send logs.\n'
-                              '• **Telling Dashboard** (this web app): A command center for viewing and analyzing logs sent by the SDK.\n\n'
-                              'This Privacy Policy explains how we handle data across both components.',
-                              isMobile,
+                              title: 'OVERVIEW',
+                              content: 'Telling is a real-time application monitoring and error tracking service consisting of:\n\n'
+                                  '• **telling_logger SDK**: A Flutter package that developers integrate into their apps to collect and send logs.\n'
+                                  '• **Telling Dashboard** (this web app): A command center for viewing and analyzing logs sent by the SDK.\n\n'
+                                  'This Privacy Policy explains how we handle data across both components.',
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 32),
 
                             _buildSection(
-                              'DASHBOARD_DATA_COLLECTION',
-                              '''This dashboard web app collects:
+                              title: 'DASHBOARD_DATA_COLLECTION',
+                              content: '''This dashboard web app collects:
 
 • **Account Information**: Email address and name for authentication.
 
 • **Project Configuration**: Project names and API keys you create.
 
 The dashboard does NOT collect logs directly—it only displays logs that your apps send via the SDK.''',
-                              isMobile,
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 32),
 
                             _buildSection(
-                              'SDK_DATA_COLLECTION',
-                              '''The telling_logger SDK (integrated into your Flutter apps) collects:
+                              title: 'SDK_DATA_COLLECTION',
+                              content: '''The telling_logger SDK (integrated into your Flutter apps) collects:
 
 • **Log Data**: Application logs, error reports, crash data, and performance metrics that you explicitly log.
 
@@ -113,53 +116,53 @@ The dashboard does NOT collect logs directly—it only displays logs that your a
 • **User Properties**: Custom properties you explicitly set via setUserProperty().
 
 The SDK only collects data when you call its logging methods—it does not collect anything automatically without your explicit code.''',
-                              isMobile,
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 32),
 
                             _buildSection(
-                              'HOW_WE_USE_YOUR_DATA',
-                              '''We use collected data to:
+                              title: 'HOW_WE_USE_YOUR_DATA',
+                              content: '''We use collected data to:
 
 • Display logs, errors, and analytics in your dashboard.
 • Identify and help you debug application issues.
 • Generate aggregated analytics and insights.
 
 We do NOT sell your data to third parties.''',
-                              isMobile,
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 32),
 
                             _buildSection(
-                              'DATA_RETENTION',
-                              'Log data is retained for 90 days by default. Account information is retained until you request deletion.',
-                              isMobile,
+                              title: 'DATA_RETENTION',
+                              content: 'Log data is retained for 90 days by default. Account information is retained until you request deletion.',
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 32),
 
                             _buildSection(
-                              'DATA_SECURITY',
-                              'All data is transmitted over HTTPS with TLS encryption. GZIP compression is used to minimize data transfer. '
-                              'API keys are project-scoped and can be regenerated at any time.',
-                              isMobile,
+                              title: 'DATA_SECURITY',
+                              content: 'All data is transmitted over HTTPS with TLS encryption. GZIP compression is used to minimize data transfer. '
+                                  'API keys are project-scoped and can be regenerated at any time.',
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 32),
 
                             _buildSection(
-                              'YOUR_RIGHTS',
-                              '''You have the right to:
+                              title: 'YOUR_RIGHTS',
+                              content: '''You have the right to:
 
 • Access your data through the dashboard.
 • Delete your account and associated data.
 • Regenerate API keys to revoke SDK access.''',
-                              isMobile,
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 32),
 
                             _buildSection(
-                              'CONTACT',
-                              'For privacy-related inquiries, contact us at: privacy@telling.dev',
-                              isMobile,
+                              title: 'CONTACT',
+                              content: 'For privacy-related inquiries, contact us at: kiishidart@gmail.com',
+                              isMobile: isMobile,
                             ),
                             const SizedBox(height: 48),
 
@@ -189,7 +192,11 @@ We do NOT sell your data to third parties.''',
     );
   }
 
-  Widget _buildSection(String title, String content, bool isMobile) {
+  Widget _buildSection({
+    required String title,
+    required String content,
+    required bool isMobile,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
