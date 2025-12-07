@@ -70,7 +70,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
         state = state.copyWith(isLoading: false, error: 'Failed to load projects');
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
     }
   }
 
@@ -100,7 +100,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
         state = state.copyWith(isLoading: false, error: 'Failed to create project');
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
     }
   }
 
@@ -133,7 +133,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
         state = state.copyWith(isLoading: false, error: 'Failed to delete project');
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
     }
   }
 
@@ -188,7 +188,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
         return null;
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
       return null;
     }
   }
@@ -199,6 +199,17 @@ class ProjectNotifier extends Notifier<ProjectState> {
 
   void reset() {
     state = ProjectState();
+  }
+
+  String _sanitizeError(Object e) {
+    final message = e.toString();
+    if (message.contains('ClientException') ||
+        message.contains('SocketException') ||
+        message.contains('Connection refused') ||
+        message.contains('Failed to host lookup')) {
+      return 'Network error. Please check your internet connection.';
+    }
+    return 'An unexpected error occurred. Please try again later.';
   }
 }
 

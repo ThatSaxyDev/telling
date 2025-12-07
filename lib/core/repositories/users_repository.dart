@@ -24,10 +24,13 @@ class UsersRepository {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => User.fromJson(json)).toList();
       } else {
-        throw Exception('Failed to load users: ${response.statusCode}');
+        throw UsersRepositoryException(
+          'Failed to load users',
+          response.statusCode,
+        );
       }
     } catch (e) {
-      throw Exception('Failed to connect to server: $e');
+      throw UsersRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -43,10 +46,13 @@ class UsersRepository {
       if (response.statusCode == 200) {
         return UserStats.fromJson(jsonDecode(response.body));
       } else {
-        throw Exception('Failed to load user stats: ${response.statusCode}');
+        throw UsersRepositoryException(
+          'Failed to load user stats',
+          response.statusCode,
+        );
       }
     } catch (e) {
-      throw Exception('Failed to connect to server: $e');
+      throw UsersRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -67,10 +73,13 @@ class UsersRepository {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => UserSession.fromJson(json)).toList();
       } else {
-        throw Exception('Failed to load user sessions: ${response.statusCode}');
+        throw UsersRepositoryException(
+          'Failed to load user sessions',
+          response.statusCode,
+        );
       }
     } catch (e) {
-      throw Exception('Failed to connect to server: $e');
+      throw UsersRepositoryException(_sanitizeError(e));
     }
   }
   
@@ -91,10 +100,34 @@ class UsersRepository {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => LogEntry.fromJson(json)).toList();
       } else {
-        throw Exception('Failed to load user logs: ${response.statusCode}');
+        throw UsersRepositoryException(
+          'Failed to load user logs',
+          response.statusCode,
+        );
       }
     } catch (e) {
-      throw Exception('Failed to connect to server: $e');
+      throw UsersRepositoryException(_sanitizeError(e));
     }
   }
+
+  String _sanitizeError(Object e) {
+    final message = e.toString();
+    if (message.contains('ClientException') ||
+        message.contains('SocketException') ||
+        message.contains('Connection refused') ||
+        message.contains('Failed to host lookup')) {
+      return 'Network error. Please check your internet connection.';
+    }
+    return 'An unexpected error occurred. Please try again later.';
+  }
+}
+
+class UsersRepositoryException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  UsersRepositoryException(this.message, [this.statusCode]);
+
+  @override
+  String toString() => message; // Clean message without prefix
 }

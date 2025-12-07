@@ -12,15 +12,24 @@ class AnalyticsRepository {
     required String projectId,
     int hours = 24,
   }) async {
-    // Note: userId is extracted from the JWT token by the backend
-    final response = await _client.get(
-      Uri.parse('$baseUrl/analytics/summary?projectId=$projectId&hours=$hours'),
-    );
+    try {
+      // Note: userId is extracted from the JWT token by the backend
+      final response = await _client.get(
+        Uri.parse(
+          '$baseUrl/analytics/summary?projectId=$projectId&hours=$hours',
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      return AnalyticsSummary.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load analytics summary');
+      if (response.statusCode == 200) {
+        return AnalyticsSummary.fromJson(jsonDecode(response.body));
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load analytics summary',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -28,46 +37,53 @@ class AnalyticsRepository {
     required String projectId,
     int hours = 24,
   }) async {
-    final response = await _client.get(
-      Uri.parse(
-        '$baseUrl/analytics/timeline-by-level?projectId=$projectId&hours=$hours',
-      ),
-    );
+    try {
+      final response = await _client.get(
+        Uri.parse(
+          '$baseUrl/analytics/timeline-by-level?projectId=$projectId&hours=$hours',
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      final rawPoints = data
-          .map((json) => LogTimelinePoint.fromJson(json))
-          .toList();
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final rawPoints = data
+            .map((json) => LogTimelinePoint.fromJson(json))
+            .toList();
 
-      // Aggregate points by timestamp
-      final Map<DateTime, Map<String, int>> aggregated = {};
+        // Aggregate points by timestamp
+        final Map<DateTime, Map<String, int>> aggregated = {};
 
-      for (final point in rawPoints) {
-        // Normalize timestamp to remove seconds/milliseconds if needed,
-        // but usually backend returns hourly buckets like "2025-11-25T13:00:00"
-        final timestamp = point.timestamp;
+        for (final point in rawPoints) {
+          // Normalize timestamp to remove seconds/milliseconds if needed,
+          // but usually backend returns hourly buckets like "2025-11-25T13:00:00"
+          final timestamp = point.timestamp;
 
-        if (!aggregated.containsKey(timestamp)) {
-          aggregated[timestamp] = {};
+          if (!aggregated.containsKey(timestamp)) {
+            aggregated[timestamp] = {};
+          }
+
+          point.counts.forEach((level, count) {
+            aggregated[timestamp]![level] =
+                (aggregated[timestamp]![level] ?? 0) + count;
+          });
         }
 
-        point.counts.forEach((level, count) {
-          aggregated[timestamp]![level] =
-              (aggregated[timestamp]![level] ?? 0) + count;
-        });
+        // Convert back to list and sort
+        final List<LogTimelinePoint> result = aggregated.entries.map((entry) {
+          return LogTimelinePoint(timestamp: entry.key, counts: entry.value);
+        }).toList();
+
+        result.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+        return result;
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load logs timeline',
+          response.statusCode,
+        );
       }
-
-      // Convert back to list and sort
-      final List<LogTimelinePoint> result = aggregated.entries.map((entry) {
-        return LogTimelinePoint(timestamp: entry.key, counts: entry.value);
-      }).toList();
-
-      result.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-      return result;
-    } else {
-      throw Exception('Failed to load logs timeline');
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -75,15 +91,24 @@ class AnalyticsRepository {
     required String projectId,
     int hours = 24,
   }) async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/analytics/levels?projectId=$projectId&hours=$hours'),
-    );
+    try {
+      final response = await _client.get(
+        Uri.parse(
+          '$baseUrl/analytics/levels?projectId=$projectId&hours=$hours',
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => LogLevelStat.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load log levels');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => LogLevelStat.fromJson(json)).toList();
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load log levels',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -92,17 +117,24 @@ class AnalyticsRepository {
     int hours = 24,
     int limit = 10,
   }) async {
-    final response = await _client.get(
-      Uri.parse(
-        '$baseUrl/analytics/errors?projectId=$projectId&hours=$hours&limit=$limit',
-      ),
-    );
+    try {
+      final response = await _client.get(
+        Uri.parse(
+          '$baseUrl/analytics/errors?projectId=$projectId&hours=$hours&limit=$limit',
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => TopErrorItem.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load top errors');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => TopErrorItem.fromJson(json)).toList();
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load top errors',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -111,17 +143,24 @@ class AnalyticsRepository {
     int hours = 24,
     int limit = 10,
   }) async {
-    final response = await _client.get(
-      Uri.parse(
-        '$baseUrl/analytics/users?projectId=$projectId&hours=$hours&limit=$limit',
-      ),
-    );
+    try {
+      final response = await _client.get(
+        Uri.parse(
+          '$baseUrl/analytics/users?projectId=$projectId&hours=$hours&limit=$limit',
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => ActiveUserStat.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load active users');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => ActiveUserStat.fromJson(json)).toList();
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load active users',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -131,21 +170,28 @@ class AnalyticsRepository {
     int hours = 24,
     String? metric,
   }) async {
-    final queryParams = {
-      'projectId': projectId,
-      'hours': hours.toString(),
-      if (metric != null) 'metric': metric,
-    };
-    final uri = Uri.parse(
-      '$baseUrl/analytics/performance/overview',
-    ).replace(queryParameters: queryParams);
+    try {
+      final queryParams = {
+        'projectId': projectId,
+        'hours': hours.toString(),
+        if (metric != null) 'metric': metric,
+      };
+      final uri = Uri.parse(
+        '$baseUrl/analytics/performance/overview',
+      ).replace(queryParameters: queryParams);
 
-    final response = await _client.get(uri, headers: {'x-api-key': apiKey});
+      final response = await _client.get(uri, headers: {'x-api-key': apiKey});
 
-    if (response.statusCode == 200) {
-      return PerformanceMetrics.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load performance metrics');
+      if (response.statusCode == 200) {
+        return PerformanceMetrics.fromJson(jsonDecode(response.body));
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load performance metrics',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -159,37 +205,51 @@ class AnalyticsRepository {
       throw Exception('At least one step is required for funnel analysis');
     }
 
-    final queryParams = {
-      'projectId': projectId,
-      'steps': steps.join(','),
-      if (startDate != null) 'startDate': startDate.toIso8601String(),
-      if (endDate != null) 'endDate': endDate.toIso8601String(),
-    };
+    try {
+      final queryParams = {
+        'projectId': projectId,
+        'steps': steps.join(','),
+        if (startDate != null) 'startDate': startDate.toIso8601String(),
+        if (endDate != null) 'endDate': endDate.toIso8601String(),
+      };
 
-    final uri = Uri.parse(
-      '$baseUrl/analytics/funnel',
-    ).replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$baseUrl/analytics/funnel',
+      ).replace(queryParameters: queryParams);
 
-    final response = await _client.get(uri);
+      final response = await _client.get(uri);
 
-    if (response.statusCode == 200) {
-      return FunnelData.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load funnel data');
+      if (response.statusCode == 200) {
+        return FunnelData.fromJson(jsonDecode(response.body));
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load funnel data',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
   Future<List<String>> getAvailableEvents({required String projectId}) async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/analytics/events?projectId=$projectId'),
-    );
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/analytics/events?projectId=$projectId'),
+      );
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      final List<dynamic> events = data['events'] ?? [];
-      return events.map((e) => e.toString()).toList();
-    } else {
-      throw Exception('Failed to load available events');
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        final List<dynamic> events = data['events'] ?? [];
+        return events.map((e) => e.toString()).toList();
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load available events',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -197,21 +257,22 @@ class AnalyticsRepository {
   Future<List<String>> getAvailableFunnelNames({
     required String projectId,
   }) async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/analytics/funnels?projectId=$projectId'),
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => e.toString()).toList();
-    } else {
-      // Enhanced error logging
-      print('Error fetching funnel names:');
-      print('Status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      throw Exception(
-        'Failed to load available funnel names (${response.statusCode}): ${response.body}',
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/analytics/funnels?projectId=$projectId'),
       );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => e.toString()).toList();
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load available funnel names',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -221,23 +282,51 @@ class AnalyticsRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    final queryParams = {
-      'projectId': projectId,
-      'funnelName': funnelName,
-      if (startDate != null) 'startDate': startDate.toIso8601String(),
-      if (endDate != null) 'endDate': endDate.toIso8601String(),
-    };
+    try {
+      final queryParams = {
+        'projectId': projectId,
+        'funnelName': funnelName,
+        if (startDate != null) 'startDate': startDate.toIso8601String(),
+        if (endDate != null) 'endDate': endDate.toIso8601String(),
+      };
 
-    final uri = Uri.parse(
-      '$baseUrl/analytics/funnel-analysis',
-    ).replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$baseUrl/analytics/funnel-analysis',
+      ).replace(queryParameters: queryParams);
 
-    final response = await _client.get(uri);
+      final response = await _client.get(uri);
 
-    if (response.statusCode == 200) {
-      return NamedFunnelData.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load named funnel data');
+      if (response.statusCode == 200) {
+        return NamedFunnelData.fromJson(jsonDecode(response.body));
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load named funnel data',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
     }
   }
+
+  String _sanitizeError(Object e) {
+    final message = e.toString();
+    if (message.contains('ClientException') ||
+        message.contains('SocketException') ||
+        message.contains('Connection refused') ||
+        message.contains('Failed to host lookup')) {
+      return 'Network error. Please check your internet connection.';
+    }
+    return 'An unexpected error occurred. Please try again later.';
+  }
+}
+
+class AnalyticsRepositoryException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  AnalyticsRepositoryException(this.message, [this.statusCode]);
+
+  @override
+  String toString() => message;
 }

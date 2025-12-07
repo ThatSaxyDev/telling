@@ -90,7 +90,7 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
       return null;
     }
   }
@@ -137,7 +137,7 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
       return null;
     }
   }
@@ -181,7 +181,7 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       return false;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
       return false;
     }
   }
@@ -218,7 +218,7 @@ class AuthNotifier extends Notifier<AuthState> {
         return false;
       }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
       return false;
     }
   }
@@ -227,6 +227,17 @@ class AuthNotifier extends Notifier<AuthState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
     await prefs.setString('auth_user', jsonEncode(user.toJson()));
+  }
+
+  String _sanitizeError(Object e) {
+    final message = e.toString();
+    if (message.contains('ClientException') ||
+        message.contains('SocketException') ||
+        message.contains('Connection refused') ||
+        message.contains('Failed to host lookup')) {
+      return 'Network error. Please check your internet connection.';
+    }
+    return 'An unexpected error occurred. Please try again later.';
   }
 }
 

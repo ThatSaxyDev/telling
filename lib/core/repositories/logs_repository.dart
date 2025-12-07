@@ -44,7 +44,7 @@ class LogsRepository {
         );
       }
     } catch (e) {
-      throw LogsRepositoryException('Unexpected error: $e');
+      throw LogsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -68,7 +68,7 @@ class LogsRepository {
         );
       }
     } catch (e) {
-      throw LogsRepositoryException('Unexpected error: $e');
+      throw LogsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -92,7 +92,7 @@ class LogsRepository {
         );
       }
     } catch (e) {
-      throw LogsRepositoryException('Unexpected error: $e');
+      throw LogsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -120,7 +120,7 @@ class LogsRepository {
         );
       }
     } catch (e) {
-      throw LogsRepositoryException('Unexpected error: $e');
+      throw LogsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -147,7 +147,7 @@ class LogsRepository {
         );
       }
     } catch (e) {
-      throw LogsRepositoryException('Unexpected error: $e');
+      throw LogsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -170,7 +170,7 @@ class LogsRepository {
         );
       }
     } catch (e) {
-      throw LogsRepositoryException('Unexpected error: $e');
+      throw LogsRepositoryException(_sanitizeError(e));
     }
   }
 
@@ -188,8 +188,19 @@ class LogsRepository {
         );
       }
     } catch (e) {
-      throw LogsRepositoryException('Unexpected error: $e');
+      throw LogsRepositoryException(_sanitizeError(e));
     }
+  }
+
+  String _sanitizeError(Object e) {
+    final message = e.toString();
+    if (message.contains('ClientException') ||
+        message.contains('SocketException') ||
+        message.contains('Connection refused') ||
+        message.contains('Failed to host lookup')) {
+      return 'Network error. Please check your internet connection.';
+    }
+    return 'An unexpected error occurred. Please try again later.';
   }
 }
 
@@ -200,5 +211,5 @@ class LogsRepositoryException implements Exception {
   LogsRepositoryException(this.message, [this.statusCode]);
 
   @override
-  String toString() => 'LogsRepositoryException: $message${statusCode != null ? " (HTTP $statusCode)" : ""}';
+  String toString() => message;
 }
