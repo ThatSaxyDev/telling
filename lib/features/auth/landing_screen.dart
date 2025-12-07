@@ -1039,29 +1039,51 @@ class _LandingScreenState extends State<LandingScreen>
   Widget _buildFooter(bool isMobile) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
         children: [
-          Text(
-            'Made with Flutter & 💙 by ',
-            style: TextStyle(
-              fontFamily: 'Urbanist',
-              color: AppColors.slate,
-              fontSize: isMobile ? 12 : 14,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Made with Flutter & 💙 by ',
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  color: AppColors.slate,
+                  fontSize: isMobile ? 12 : 14,
+                ),
+              ),
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => _launchUrl('https://kiishi.space/'),
+                  child: Text(
+                    'Kiishi',
+                    style: TextStyle(
+                      fontFamily: 'Urbanist',
+                      color: AppColors.white,
+                      fontSize: isMobile ? 12 : 14,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
           MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              onTap: () => _launchUrl('https://kiishi.space/'),
+              onTap: () => context.go('/privacy'),
               child: Text(
-                'Kiishi',
+                'PRIVACY_POLICY',
                 style: TextStyle(
                   fontFamily: 'Urbanist',
-                  color: AppColors.white,
-                  fontSize: isMobile ? 12 : 14,
+                  color: AppColors.slate,
+                  fontSize: isMobile ? 10 : 12,
+                  letterSpacing: 1.5,
                   decoration: TextDecoration.underline,
-                  decorationColor: AppColors.white,
+                  decorationColor: AppColors.slate,
                 ),
               ),
             ),

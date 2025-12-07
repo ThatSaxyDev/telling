@@ -6,6 +6,7 @@ import '../../features/auth/landing_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/auth/otp_verification_screen.dart';
+import '../../features/auth/privacy_policy_screen.dart';
 import '../../features/overview/overview_screen.dart';
 import '../../features/logs/logs_screen.dart';
 import '../../features/analytics/analytics_screen.dart';
@@ -40,7 +41,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isLoggingIn =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
-          state.matchedLocation == '/verify-otp';
+          state.matchedLocation == '/verify-otp' ||
+          state.matchedLocation == '/privacy';
       final isOnProjectsScreen = state.matchedLocation == '/projects';
 
       // Logged in but on landing page? Go to projects
@@ -83,6 +85,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/projects',
         builder: (context, state) => const ProjectsScreen(),
+      ),
+      GoRoute(
+        path: '/privacy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) {
