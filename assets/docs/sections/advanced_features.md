@@ -1,5 +1,9 @@
 # Advanced Features
 
+
+<br>
+
+
 ## Exception Capture
 Report handled exceptions from try-catch blocks without crashing your app:
 
@@ -15,6 +19,10 @@ try {
   );
 }
 ```
+
+
+<br>
+
 
 ## TellingTryCatch Mixin
 For cleaner code, use the `TellingTryCatch` mixin to automatically capture exceptions:
@@ -34,6 +42,10 @@ class PaymentService with TellingTryCatch {
 }
 ```
 
+
+<br>
+
+
 ## User Context Tracking
 Associate logs with specific users for better debugging and analytics:
 
@@ -49,6 +61,10 @@ Telling.instance.setUser(
 Telling.instance.clearUser();
 ```
 
+
+<br>
+
+
 ## User Properties
 Track custom user attributes for segmentation:
 
@@ -58,6 +74,10 @@ Telling.instance.setUserProperties({
   'seats': 5,
 });
 ```
+
+
+<br>
+
 
 ## Automatic Screen Tracking
 

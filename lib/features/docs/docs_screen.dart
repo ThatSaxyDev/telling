@@ -403,7 +403,7 @@ class _DocsScreenState extends State<DocsScreen> {
           Container(
             padding: EdgeInsets.all(
               isMobile ? 0 : 0,
-            ), // Remove background container for cleaner look
+            ),
             child: MarkdownBody(
               data: _markdownData!,
               selectable: true,
@@ -416,6 +416,7 @@ class _DocsScreenState extends State<DocsScreen> {
                 ),
               },
               styleSheet: MarkdownStyleSheet(
+                blockSpacing: 20.0, 
                 h1: TextStyle(
                   fontFamily: 'Syne',
                   color: AppColors.white,
@@ -430,7 +431,7 @@ class _DocsScreenState extends State<DocsScreen> {
                   fontSize: isMobile ? 24 : 32,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.5,
-                  height: 1.5,
+                  height: 1.5, 
                 ),
                 h3: TextStyle(
                   fontFamily: 'Syne',
@@ -438,7 +439,7 @@ class _DocsScreenState extends State<DocsScreen> {
                   fontSize: isMobile ? 20 : 24,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
-                  height: 1.5,
+                  height: 1.4,
                 ),
                 p: TextStyle(
                   fontFamily: 'Urbanist',

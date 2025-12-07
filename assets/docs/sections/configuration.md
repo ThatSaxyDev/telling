@@ -1,5 +1,9 @@
 # Configuration
 
+
+<br>
+
+
 ## Initialization Parameters
 
 ```dart
@@ -12,6 +16,10 @@ await Telling.instance.init(
 );
 ```
 
+
+<br>
+
+
 ## Environment Setup
 
 ```dart
@@ -21,6 +29,10 @@ await Telling.instance.init(
   isProduction ? 'PROD_API_KEY' : 'DEV_API_KEY',
 );
 ```
+
+
+<br>
+
 
 ## Debug Logs
 

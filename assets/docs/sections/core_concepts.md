@@ -1,5 +1,9 @@
 # Core Concepts
 
+
+<br>
+
+
 ## Log Levels
 Control the severity and visibility of your logs:
 
@@ -11,6 +15,10 @@ Control the severity and visibility of your logs:
 | `LogLevel.warning` | Potentially harmful situations | 3 |
 | `LogLevel.error` | Runtime errors that allow continuation | 4 |
 | `LogLevel.fatal` | Critical errors causing termination | 5 |
+
+
+<br>
+
 
 ## Log Types
 Categorize logs for better filtering and analytics:

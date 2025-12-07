@@ -1,5 +1,9 @@
 # Getting Started
 
+
+<br>
+
+
 ## 📦 Installation
 Add `telling_logger` to your `pubspec.yaml`:
 
@@ -14,12 +18,20 @@ Then install:
 flutter pub get
 ```
 
+
+<br>
+
+
 ## 🔑 Get Your API Key
 To use Telling Logger, you need an API key.
 
-1. Go to the [Telling Dashboard](https://telling.cv/).
-2. Log in or create an account.
-3. Create a new project to obtain your API key.
+1. Log in or create an account.
+2. Create a new project.
+3. Go to `Settings` to obtain your API key.
+
+
+<br>
+
 
 ## 🚀 Quick Start
 
@@ -45,6 +57,10 @@ void main() async {
   runApp(MyApp());
 }
 ```
+
+
+<br>
+
 
 ### 2. Log Events
 
@@ -75,6 +91,10 @@ try {
   );
 }
 ```
+
+
+<br>
+
 
 ### 3. Track Analytics
 

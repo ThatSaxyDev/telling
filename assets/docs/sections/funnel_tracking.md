@@ -1,10 +1,18 @@
 # Funnel Tracking
 
+
+<br>
+
+
 Track user journeys through multi-step flows to identify drop-off points.
 
 > [!CAUTION]
 > **Critical: Set User Context First**
 > Always call `Telling.instance.setUser()` **BEFORE** tracking funnel steps to connect the journey to a single user.
+
+
+<br>
+
 
 ## Basic Usage
 
@@ -16,6 +24,10 @@ Telling.instance.trackFunnel(
   properties: {'source': 'google_ads'},
 );
 ```
+
+
+<br>
+
 
 ## Example: Checkout Flow
 
@@ -43,6 +55,10 @@ Telling.instance.trackFunnel(
   step: 3,
 );
 ```
+
+
+<br>
+
 
 ## Best Practices
 1. **Consistent Naming**: Use exact same `funnelName` for all steps.

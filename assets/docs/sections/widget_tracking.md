@@ -1,5 +1,9 @@
 # Widget Tracking
 
+
+<br>
+
+
 Use the `.nowTelling()` extension to track any widget's visibility:
 
 ```dart

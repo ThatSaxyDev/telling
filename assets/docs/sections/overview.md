@@ -1,6 +1,10 @@
-# Telling Logger 📊
+# Telling 📊
 
 A **production-ready** crash reporting, error tracking, and analytics SDK for Flutter applications. Monitor your app's health, track user behavior, and gain actionable insights with minimal setup.
+
+
+<br>
+
 
 ## ✨ Features
 
@@ -17,6 +21,10 @@ A **production-ready** crash reporting, error tracking, and analytics SDK for Fl
 -  **Offline Support** – Persists logs when offline, auto-sends when connection is restored
 - 🛡️ **Rate Limiting** – Built-in deduplication, throttling, and flood protection
 - 🌍 **Cross-Platform** – Works on iOS, Android, Web, macOS, Windows, and Linux
+
+
+<br>
+
 
 ### Developer Experience
 
