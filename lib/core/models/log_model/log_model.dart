@@ -55,13 +55,8 @@ extension LogModelX on LogModel {
     return type.when(
       general: () => Icons.info,
       analytics: () => Icons.analytics,
-      event: () => Icons.event,
-      performance: () => Icons.speed, // or Icons.show_chart, Icons.timer
-      network: () => Icons.wifi, // or Icons.cloud, Icons.lan
-      security: () => Icons.security,
-      exception: () => Icons.error_outline,
       crash: () => Icons.dangerous,
-      custom: (name) => Icons.info,
+      performance: () => Icons.speed,
     );
   }
 

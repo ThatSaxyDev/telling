@@ -298,24 +298,15 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
             items: const [
               LogType.general(),
               LogType.analytics(),
-              LogType.event(),
-              LogType.performance(),
-              LogType.network(),
-              LogType.security(),
-              LogType.exception(),
               LogType.crash(),
+              LogType.performance(),
             ],
             onChanged: (type) => setState(() => _filterType = type),
             itemLabel: (type) => type.when(
               general: () => 'GENERAL',
               analytics: () => 'ANALYTICS',
-              event: () => 'EVENT',
-              performance: () => 'PERFORMANCE',
-              network: () => 'NETWORK',
-              security: () => 'SECURITY',
-              exception: () => 'EXCEPTION',
               crash: () => 'CRASH',
-              custom: (name) => name.toUpperCase(),
+              performance: () => 'PERFORMANCE',
             ),
             isMobile: isMobile,
           ),
@@ -726,13 +717,8 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     return type.when(
       general: () => AppColors.slate,
       analytics: () => Colors.purple,
-      event: () => Colors.green,
-      performance: () => Colors.amber,
-      network: () => Colors.blue,
-      security: () => Colors.red,
-      exception: () => Colors.orange,
       crash: () => Colors.red.shade900,
-      custom: (name) => AppColors.primary,
+      performance: () => Colors.amber,
     );
   }
 
@@ -740,13 +726,8 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     return type.when(
       general: () => 'GEN',
       analytics: () => 'ANA',
-      event: () => 'EVT',
-      performance: () => 'PRF',
-      network: () => 'NET',
-      security: () => 'SEC',
-      exception: () => 'EXC',
       crash: () => 'CRS',
-      custom: (name) => name.substring(0, 3).toUpperCase(),
+      performance: () => 'PRF',
     );
   }
 

@@ -61,10 +61,10 @@ _Analytics _$AnalyticsFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$AnalyticsToJson(_Analytics instance) =>
     <String, dynamic>{'runtimeType': instance.$type};
 
-_Event _$EventFromJson(Map<String, dynamic> json) =>
-    _Event($type: json['runtimeType'] as String?);
+_Crash _$CrashFromJson(Map<String, dynamic> json) =>
+    _Crash($type: json['runtimeType'] as String?);
 
-Map<String, dynamic> _$EventToJson(_Event instance) => <String, dynamic>{
+Map<String, dynamic> _$CrashToJson(_Crash instance) => <String, dynamic>{
   'runtimeType': instance.$type,
 };
 
@@ -73,38 +73,3 @@ _Performance _$PerformanceFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PerformanceToJson(_Performance instance) =>
     <String, dynamic>{'runtimeType': instance.$type};
-
-_Network _$NetworkFromJson(Map<String, dynamic> json) =>
-    _Network($type: json['runtimeType'] as String?);
-
-Map<String, dynamic> _$NetworkToJson(_Network instance) => <String, dynamic>{
-  'runtimeType': instance.$type,
-};
-
-_Security _$SecurityFromJson(Map<String, dynamic> json) =>
-    _Security($type: json['runtimeType'] as String?);
-
-Map<String, dynamic> _$SecurityToJson(_Security instance) => <String, dynamic>{
-  'runtimeType': instance.$type,
-};
-
-_Exception _$ExceptionFromJson(Map<String, dynamic> json) =>
-    _Exception($type: json['runtimeType'] as String?);
-
-Map<String, dynamic> _$ExceptionToJson(_Exception instance) =>
-    <String, dynamic>{'runtimeType': instance.$type};
-
-_Crash _$CrashFromJson(Map<String, dynamic> json) =>
-    _Crash($type: json['runtimeType'] as String?);
-
-Map<String, dynamic> _$CrashToJson(_Crash instance) => <String, dynamic>{
-  'runtimeType': instance.$type,
-};
-
-_Custom _$CustomFromJson(Map<String, dynamic> json) =>
-    _Custom(json['name'] as String, $type: json['runtimeType'] as String?);
-
-Map<String, dynamic> _$CustomToJson(_Custom instance) => <String, dynamic>{
-  'name': instance.name,
-  'runtimeType': instance.$type,
-};

@@ -38,40 +38,32 @@ abstract class LogLevel with _$LogLevel {
 abstract class LogType with _$LogType {
   const factory LogType.general() = _General;
   const factory LogType.analytics() = _Analytics;
-  const factory LogType.event() = _Event;
-  const factory LogType.performance() = _Performance;
-  const factory LogType.network() = _Network;
-  const factory LogType.security() = _Security;
-  const factory LogType.exception() = _Exception;
   const factory LogType.crash() = _Crash;
-  const factory LogType.custom(String name) = _Custom;
+  const factory LogType.performance() = _Performance;
 
   factory LogType.fromJson(Map<String, dynamic> json) => _$LogTypeFromJson(json);
   
+  /// Parse LogType with backward compatibility for deprecated types
   static LogType fromString(String type) {
     switch (type.toLowerCase()) {
       case 'general':
-      case 'log': // Legacy support
+      case 'log': // Legacy
+      case 'error': // Legacy (the type, not level)
+      case 'errorr': // Legacy typo
+      case 'network': // Deprecated → general
+      case 'security': // Deprecated → general
+      case 'custom': // Deprecated → general
         return const LogType.general();
       case 'analytics':
+      case 'event': // Deprecated → analytics
         return const LogType.analytics();
-      case 'event':
-        return const LogType.event();
+      case 'crash':
+      case 'exception': // Deprecated → crash
+        return const LogType.crash();
       case 'performance':
         return const LogType.performance();
-      case 'network':
-        return const LogType.network();
-      case 'security':
-        return const LogType.security();
-      case 'exception':
-        return const LogType.exception();
-      case 'crash':
-        return const LogType.crash();
-      case 'error': // Legacy support - map to general
-      case 'errorr': // Legacy support for typo
-        return const LogType.general();
       default:
-        return LogType.custom(type);
+        return const LogType.general();
     }
   }
 }

@@ -684,13 +684,8 @@ class LogsScreen extends ConsumerWidget {
                         log.type.when(
                           general: () => 'GENERAL',
                           analytics: () => 'ANALYTICS',
-                          event: () => 'EVENT',
-                          performance: () => 'PERFORMANCE',
-                          network: () => 'NETWORK',
-                          security: () => 'SECURITY',
-                          exception: () => 'EXCEPTION',
                           crash: () => 'CRASH',
-                          custom: (name) => name.toUpperCase(),
+                          performance: () => 'PERFORMANCE',
                         ),
                         style: AppTextStyles.labelSmall.copyWith(
                           color: AppColors.secondary,
@@ -936,13 +931,8 @@ class LogsScreen extends ConsumerWidget {
     buffer.writeln('Type: ${log.type.when(
       general: () => 'GENERAL',
       analytics: () => 'ANALYTICS',
-      event: () => 'EVENT',
-      performance: () => 'PERFORMANCE',
-      network: () => 'NETWORK',
-      security: () => 'SECURITY',
-      exception: () => 'EXCEPTION',
       crash: () => 'CRASH',
-      custom: (name) => name.toUpperCase(),
+      performance: () => 'PERFORMANCE',
     )}');
     buffer.writeln('Timestamp: ${log.timestamp.toIso8601String()}');
     buffer.writeln('');
