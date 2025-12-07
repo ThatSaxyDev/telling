@@ -130,7 +130,13 @@ class _DocsScreenState extends State<DocsScreen> {
           children: [
             // Back Button
             IconButton(
-              onPressed: () => context.go('/landing'),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/landing');
+                }
+              },
               icon: const Icon(
                 Icons.arrow_back_ios_new,
                 color: AppColors.white,

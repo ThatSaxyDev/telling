@@ -39,22 +39,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authState.isAuthenticated;
       final hasSelectedProject = projectState.selectedProject != null;
       final isOnLanding = state.matchedLocation == '/landing';
-      final isLoggingIn =
+      final isAuthRoute =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
-          state.matchedLocation == '/verify-otp' ||
+          state.matchedLocation == '/verify-otp';
+
+      final isPublicRoute =
           state.matchedLocation == '/privacy' ||
           state.matchedLocation == '/docs';
+
       final isOnProjectsScreen = state.matchedLocation == '/projects';
 
       // Logged in but on landing page? Go to projects
       if (isLoggedIn && isOnLanding) return '/projects';
 
-      // Not logged in and not on any auth screen? Go to landing
-      if (!isLoggedIn && !isLoggingIn && !isOnLanding) return '/landing';
+      // Not logged in and not on any auth/public screen? Go to landing
+      if (!isLoggedIn && !isAuthRoute && !isPublicRoute && !isOnLanding) {
+        return '/landing';
+      }
 
       // Logged in but on auth screens? Go to projects
-      if (isLoggedIn && isLoggingIn) return '/projects';
+      if (isLoggedIn && isAuthRoute) return '/projects';
 
       // Logged in but no project selected and not on projects screen? Force project selection
       if (isLoggedIn && !hasSelectedProject && !isOnProjectsScreen) {

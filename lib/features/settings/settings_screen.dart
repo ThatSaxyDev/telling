@@ -139,6 +139,15 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 12),
                         AppButton(
+                          text: 'VIEW DOCS',
+                          icon: Icons.description,
+                          onPressed: () => context.push('/docs'),
+                          backgroundColor: AppColors.white.withAlpha(26),
+                          borderColor: AppColors.white,
+                          foregroundColor: AppColors.white,
+                        ),
+                        const SizedBox(height: 12),
+                        AppButton(
                           text: 'LOGOUT',
                           icon: Icons.logout,
                           onPressed: () async {
@@ -190,6 +199,15 @@ class SettingsScreen extends ConsumerWidget {
                           text: 'RESET PASSWORD',
                           icon: Icons.lock_reset,
                           onPressed: () => _initiatePasswordReset(context, ref),
+                          backgroundColor: AppColors.white.withAlpha(26),
+                          borderColor: AppColors.white,
+                          foregroundColor: AppColors.white,
+                        ),
+                        const SizedBox(height: 16),
+                        AppButton(
+                          text: 'VIEW DOCS',
+                          icon: Icons.description,
+                          onPressed: () => context.push('/docs'),
                           backgroundColor: AppColors.white.withAlpha(26),
                           borderColor: AppColors.white,
                           foregroundColor: AppColors.white,
