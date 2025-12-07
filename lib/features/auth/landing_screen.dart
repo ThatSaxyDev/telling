@@ -231,6 +231,7 @@ class _LandingScreenState extends State<LandingScreen>
         child: SlideTransition(
           position: _heroSlide,
           child: SafeArea(
+            bottom: false,
             child: Container(
               constraints: BoxConstraints(
                 minHeight: MediaQuery.of(context).size.height,

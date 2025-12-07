@@ -841,7 +841,7 @@ class _CodeBlockState extends State<_CodeBlock> {
                   child: HighlightView(
                     widget.code,
                     language: widget.language,
-                    theme: _kAtomOneDarkTheme, // New custom theme
+                    theme: _kVSCodeTheme, // New custom theme
                     padding: EdgeInsets.zero,
                     textStyle: widget.textStyle?.copyWith(
                       fontFamily: 'JetBrains Mono',
@@ -860,46 +860,58 @@ class _CodeBlockState extends State<_CodeBlock> {
   }
 }
 
-// Custom High-Contrast "Military Spy" Theme
-const _kAtomOneDarkTheme = {
+// Custom "VS Code Dark" Theme for Familiarity and Readability
+const _kVSCodeTheme = {
   'root': TextStyle(
-    color: Color(0xffabb2bf),
+    color: Color(0xFFD4D4D4),
     backgroundColor: Color(0xFF000000),
-  ), // Pure Black BG
-  'comment': TextStyle(color: Color(0xff5c6370), fontStyle: FontStyle.italic),
-  'quote': TextStyle(color: Color(0xff5c6370), fontStyle: FontStyle.italic),
-  'doctag': TextStyle(color: Color(0xffc678dd)),
-  'keyword': TextStyle(color: Color(0xffc678dd)),
-  'formula': TextStyle(color: Color(0xffc678dd)),
-  'section': TextStyle(color: Color(0xffe06c75)),
-  'name': TextStyle(color: Color(0xffe06c75)),
-  'selector-tag': TextStyle(color: Color(0xffe06c75)),
-  'deletion': TextStyle(color: Color(0xffe06c75)),
-  'subst': TextStyle(color: Color(0xffe06c75)),
-  'literal': TextStyle(color: Color(0xff56b6c2)),
-  'string': TextStyle(color: Color(0xff98c379)),
-  'regexp': TextStyle(color: Color(0xff98c379)),
-  'addition': TextStyle(color: Color(0xff98c379)),
-  'attribute': TextStyle(color: Color(0xff98c379)),
-  'meta-string': TextStyle(color: Color(0xff98c379)),
-  'built_in': TextStyle(color: Color(0xffe6c07b)),
-  'class .title': TextStyle(color: Color(0xffe6c07b)),
-  'attr': TextStyle(color: Color(0xffd19a66)),
-  'variable': TextStyle(color: Color(0xffd19a66)),
-  'template-variable': TextStyle(color: Color(0xffd19a66)),
-  'type': TextStyle(color: Color(0xffd19a66)),
-  'selector-attr': TextStyle(color: Color(0xffd19a66)),
-  'selector-pseudo': TextStyle(color: Color(0xffd19a66)),
-  'number': TextStyle(color: Color(0xffd19a66)),
-  'symbol': TextStyle(color: Color(0xff61aeee)),
-  'bullet': TextStyle(color: Color(0xff61aeee)),
+  ), // Light Grey text, Pure Black BG
+  'comment': TextStyle(color: Color(0xFF6A9955)), // Green comments
+  'quote': TextStyle(color: Color(0xFF6A9955)),
+
+  // Keywords -> Blue & Purple
+  'keyword': TextStyle(
+    color: Color(0xFF569CD6),
+    fontWeight: FontWeight.bold,
+  ), // Blue (void, class, var)
+  'selector-tag': TextStyle(
+    color: Color(0xFFC586C0),
+    fontWeight: FontWeight.bold,
+  ), // Purple (control flow)
+  // Classes & Types -> Teal/Cyan
+  'type': TextStyle(color: Color(0xFF4EC9B0)), // Class names, Types
+  'class': TextStyle(color: Color(0xFF4EC9B0)),
+  'built_in': TextStyle(color: Color(0xFF4EC9B0)),
+  'name': TextStyle(color: Color(0xFF4EC9B0)),
+
+  // Functions & Methods -> Yellow
+  'title': TextStyle(color: Color(0xFFDCDCAA)), // Function definitions
+  'function': TextStyle(color: Color(0xFFDCDCAA)),
+  'attr': TextStyle(
+    color: Color(0xFFDCDCAA),
+  ), // Method calls often hit here in some grammars
+  // Variables & Properties -> Light Blue
+  'variable': TextStyle(color: Color(0xFF9CDCFE)),
+  'property': TextStyle(color: Color(0xFF9CDCFE)),
+  'attribute': TextStyle(color: Color(0xFF9CDCFE)),
+  'template-variable': TextStyle(color: Color(0xFF9CDCFE)),
+
+  // Strings -> Orange
+  'string': TextStyle(color: Color(0xFFCE9178)),
+  'regexp': TextStyle(color: Color(0xFFD16969)),
+
+  // Numbers -> Light Green
+  'number': TextStyle(color: Color(0xFFB5CEA8)),
+  'literal': TextStyle(color: Color(0xFF569CD6)), // Booleans are usually blue
+
+  'symbol': TextStyle(color: Color(0xFFD7BA7D)),
+  'bullet': TextStyle(color: Color(0xFFD7BA7D)),
   'link': TextStyle(
-    color: Color(0xff61aeee),
+    color: Color(0xFF569CD6),
     decoration: TextDecoration.underline,
   ),
-  'meta': TextStyle(color: Color(0xff61aeee)),
-  'selector-id': TextStyle(color: Color(0xff61aeee)),
-  'title': TextStyle(color: Color(0xff61aeee)),
-  'emphasis': TextStyle(fontStyle: FontStyle.italic),
-  'strong': TextStyle(fontWeight: FontWeight.bold),
+
+  'meta': TextStyle(color: Color(0xFF569CD6)), // Annotations like @override
+  'deletion': TextStyle(color: Color(0xFFCE9178)),
+  'addition': TextStyle(color: Color(0xFFB5CEA8)),
 };
