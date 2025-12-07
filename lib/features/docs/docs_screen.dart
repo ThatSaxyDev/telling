@@ -74,11 +74,7 @@ class _DocsScreenState extends State<DocsScreen> {
       file: 'best_practices.md',
       icon: Icons.verified_outlined,
     ),
-    _DocsSection(
-      title: 'Support',
-      file: 'support.md',
-      icon: Icons.help_outline,
-    ),
+
   ];
 
   @override
