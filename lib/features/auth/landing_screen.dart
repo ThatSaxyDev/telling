@@ -172,6 +172,18 @@ class _LandingScreenState extends State<LandingScreen>
               Row(
                 children: [
                   _TopNavButton(
+                        label: 'DOCS',
+                        onPressed: () {
+                          Telling.instance.event(
+                            'Interaction: Navigate to Docs from TopNav',
+                            properties: {'source': 'top_nav'},
+                          );
+                          context.go('/docs');
+                        },
+                        isPrimary: false,
+                      ),
+                      const SizedBox(width: 16),
+                      _TopNavButton(
                     label: 'INITIATE_ACCESS',
                     onPressed: () {
                       Telling.instance.event(
@@ -636,6 +648,15 @@ class _LandingScreenState extends State<LandingScreen>
                           isPrimary: false,
                           isMobile: isMobile,
                         ),
+                        const SizedBox(height: 16),
+                        _MilitaryButton(
+                          label: 'DOCS',
+                          onPressed: () {
+                            context.go('/docs');
+                          },
+                          isPrimary: false,
+                          isMobile: isMobile,
+                        ),
                       ],
                     )
                   : Row(
@@ -923,6 +944,15 @@ class _LandingScreenState extends State<LandingScreen>
                       properties: {'source': 'landing_cta'},
                     );
                     context.go('/register');
+                  },
+                  isPrimary: false,
+                  isMobile: isMobile,
+                ),
+                const SizedBox(height: 16),
+                _MilitaryButton(
+                  label: 'DOCS',
+                  onPressed: () {
+                    context.go('/docs');
                   },
                   isPrimary: false,
                   isMobile: isMobile,

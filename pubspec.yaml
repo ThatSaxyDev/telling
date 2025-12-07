@@ -23,6 +23,7 @@ dependencies:
   shared_preferences: ^2.2.2
   intl: ^0.20.2
   url_launcher: ^6.3.2
+  flutter_markdown_plus: ^1.0.5
 
 dev_dependencies:
   flutter_test:
@@ -118,3 +119,7 @@ flutter:
         - asset: assets/fonts/urbanist/Urbanist-BlackItalic.ttf
           weight: 900
           style: italic
+
+  assets:
+    - assets/images/
+    - assets/docs/
