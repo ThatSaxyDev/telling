@@ -298,7 +298,7 @@ class SettingsScreen extends ConsumerWidget {
                             Telling.instance.log(
                               'Debug signal initiated',
                               level: LogLevel.debug,
-                              type: LogType.event,
+                              type: LogType.general,
                             );
                           },
                         ),
@@ -338,7 +338,7 @@ class SettingsScreen extends ConsumerWidget {
                               Telling.instance.log(
                                 'Connection failed',
                                 level: LogLevel.error,
-                                type: LogType.exception,
+                                type: LogType.general,
                                 error: e,
                                 stackTrace: stack,
                                 metadata: {
@@ -401,7 +401,7 @@ class SettingsScreen extends ConsumerWidget {
                             Telling.instance.log(
                               'API Request: GET /api/v1/users',
                               level: LogLevel.info,
-                              type: LogType.network,
+                              type: LogType.analytics,
                               metadata: {
                                 'status': 200,
                                 'duration_ms': 145,

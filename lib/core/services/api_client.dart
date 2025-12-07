@@ -98,7 +98,7 @@ class ApiClient {
       if (response.statusCode >= 400) {
         Telling.instance.log(
           'API Error: $method ${url.path}',
-          type: LogType.network,
+          type: LogType.crash,
           metadata: {
             'method': method,
             'url': url.toString(),
@@ -116,7 +116,7 @@ class ApiClient {
       final duration = DateTime.now().difference(startTime);
       Telling.instance.log(
         'API Error: $method ${url.path}',
-        type: LogType.network,
+        type: LogType.crash,
         level: LogLevel.error,
         error: e,
         stackTrace: stack,
