@@ -2,7 +2,7 @@ name: telling
 description: "An analytics dashboard built with Flutter. This application serves as the command center for monitoring logs, events, and crashes sent from the `telling_logger` SDK."
 publish_to: 'none'
 
-version: 1.0.0+9
+version: 1.0.0+10
 
 environment:
   sdk: ^3.9.2
