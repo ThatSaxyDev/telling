@@ -118,6 +118,21 @@ final activeUsersProvider = FutureProvider<List<ActiveUserStat>>((ref) async {
   );
 });
 
+// Lifecycle events provider
+final lifecycleEventsProvider = FutureProvider<LifecycleEvents>((ref) async {
+  final repository = ref.watch(analyticsRepositoryProvider);
+  final hours = ref.watch(analyticsTimeRangeProvider);
+  final projectState = ref.watch(projectProvider);
+
+  final projectId = projectState.selectedProject?.id;
+
+  if (projectId == null) {
+    throw Exception('Project not selected');
+  }
+
+  return repository.getLifecycleEvents(projectId: projectId, hours: hours);
+});
+
 // Performance metrics provider
 final performanceMetricsProvider = FutureProvider<PerformanceMetrics>((
   ref,

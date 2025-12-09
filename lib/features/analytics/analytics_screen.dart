@@ -195,6 +195,11 @@ class AnalyticsScreen extends ConsumerWidget {
 
                     const SizedBox(height: 32),
 
+                    // Lifecycle Events Section
+                    _buildLifecycleSection(ref, isMobile),
+
+                    const SizedBox(height: 32),
+
                     // Performance Metrics Section
                     // _buildPerformanceMetricsSection(performanceAsync, isMobile),
                     // const SizedBox(height: 32),
@@ -342,6 +347,58 @@ class AnalyticsScreen extends ConsumerWidget {
           ),
         ),
         data: (users) => _ActiveUsersList(users: users),
+      ),
+    );
+  }
+
+  Widget _buildLifecycleSection(WidgetRef ref, bool isMobile) {
+    final lifecycleAsync = ref.watch(lifecycleEventsProvider);
+
+    return _SectionCard(
+      title: 'ENGAGEMENT_METRICS',
+      icon: Icons.trending_up,
+      child: lifecycleAsync.when(
+        loading: () => const SizedBox(
+          height: 120,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (err, stack) => SizedBox(
+          height: 120,
+          child: Center(
+            child: Text(
+              ErrorFormatter.format(err),
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        ),
+        data: (lifecycle) => GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: isMobile ? 3 : 3,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: isMobile ? 1.0 : 1.8,
+          children: [
+            _MetricCard(
+              icon: Icons.download,
+              label: 'NEW_INSTALLS',
+              value: lifecycle.firstOpen.toString(),
+              code: 'LCE-01',
+            ),
+            _MetricCard(
+              icon: Icons.launch,
+              label: 'APP_OPENS',
+              value: lifecycle.appOpen.toString(),
+              code: 'LCE-02',
+            ),
+            _MetricCard(
+              icon: Icons.system_update,
+              label: 'APP_UPDATES',
+              value: lifecycle.appUpdate.toString(),
+              code: 'LCE-03',
+            ),
+          ],
+        ),
       ),
     );
   }

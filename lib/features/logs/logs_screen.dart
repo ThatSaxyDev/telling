@@ -16,8 +16,6 @@ import '../../shared/widgets/app_button.dart';
 
 import 'widgets/log_filter_bar.dart';
 
-
-
 class LogsScreen extends ConsumerWidget {
   const LogsScreen({super.key});
 
@@ -38,7 +36,7 @@ class LogsScreen extends ConsumerWidget {
     final isSessionGrouped = ref.watch(isSessionGroupedProvider);
     final logsAsync = ref.watch(filteredLogsProvider);
     // final sessionsAsync = ref.watch(sessionsProvider);
-    
+
     // Responsive padding
     final horizontalPadding = context.responsive<double>(
       mobile: 12.0,
@@ -384,8 +382,12 @@ class LogsScreen extends ConsumerWidget {
               : AppButton(
                   text: 'PREVIOUS',
                   onPressed: page > 1 ? () => notifier.previousPage() : null,
-                  backgroundColor: page > 1 ? AppColors.white : AppColors.darkSlate,
-                  foregroundColor: page > 1 ? AppColors.primary : AppColors.slate,
+                  backgroundColor: page > 1
+                      ? AppColors.white
+                      : AppColors.darkSlate,
+                  foregroundColor: page > 1
+                      ? AppColors.primary
+                      : AppColors.slate,
                   width: 160,
                   height: 48,
                 ),
@@ -424,8 +426,12 @@ class LogsScreen extends ConsumerWidget {
               : AppButton(
                   text: 'NEXT',
                   onPressed: hasMore ? () => notifier.nextPage() : null,
-                  backgroundColor: hasMore ? AppColors.white : AppColors.darkSlate,
-                  foregroundColor: hasMore ? AppColors.primary : AppColors.slate,
+                  backgroundColor: hasMore
+                      ? AppColors.white
+                      : AppColors.darkSlate,
+                  foregroundColor: hasMore
+                      ? AppColors.primary
+                      : AppColors.slate,
                   width: 160,
                   height: 48,
                 ),
@@ -484,19 +490,11 @@ class LogsScreen extends ConsumerWidget {
                 color: AppColors.slate,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    log.icon,
-                    color: color,
-                    size: 20,
-                  ),
+                  child: Icon(log.icon, color: color, size: 20),
                 ),
               )
             else
-              Icon(
-                log.icon,
-                color: color,
-                size: 18,
-              ),
+              Icon(log.icon, color: color, size: 18),
             SizedBox(width: isMobile ? 8 : 16),
 
             // Content
@@ -506,9 +504,11 @@ class LogsScreen extends ConsumerWidget {
                 children: [
                   Text(
                     log.message.toUpperCase(),
-                    style: (isMobile ? AppTextStyles.labelSmall : AppTextStyles.labelLarge).copyWith(
-                      color: AppColors.white,
-                    ),
+                    style:
+                        (isMobile
+                                ? AppTextStyles.labelSmall
+                                : AppTextStyles.labelLarge)
+                            .copyWith(color: AppColors.white),
                     maxLines: isMobile ? 2 : 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -527,7 +527,8 @@ class LogsScreen extends ConsumerWidget {
                             ),
                             if (log.device != null)
                               Text(
-                                '${log.device!.platform} :: ${log.device!.deviceModel}'.toUpperCase(),
+                                '${log.device!.platform} :: ${log.device!.deviceModel}'
+                                    .toUpperCase(),
                                 style: AppTextStyles.labelSmall.copyWith(
                                   color: AppColors.slate,
                                   fontSize: 10,
@@ -556,7 +557,8 @@ class LogsScreen extends ConsumerWidget {
                               const SizedBox(width: 12),
                               Flexible(
                                 child: Text(
-                                  '${log.device!.platform} :: ${log.device!.deviceModel}'.toUpperCase(),
+                                  '${log.device!.platform} :: ${log.device!.deviceModel}'
+                                      .toUpperCase(),
                                   style: AppTextStyles.labelSmall.copyWith(
                                     color: AppColors.slate,
                                   ),
@@ -608,7 +610,7 @@ class LogsScreen extends ConsumerWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final color = _getLevelColor(log.level);
-    
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -655,7 +657,11 @@ class LogsScreen extends ConsumerWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(log.icon, color: color, size: isMobile ? 14 : 16),
+                          Icon(
+                            log.icon,
+                            color: color,
+                            size: isMobile ? 14 : 16,
+                          ),
                           SizedBox(width: isMobile ? 4 : 8),
                           Text(
                             log.level.toString().split('.').last.toUpperCase(),
@@ -734,9 +740,9 @@ class LogsScreen extends ConsumerWidget {
                         ),
                         isMobile: isMobile,
                       ),
-                      
+
                       SizedBox(height: isMobile ? 12 : 16),
-                      
+
                       // Timestamp & ID Row
                       isMobile
                           ? Column(
@@ -785,12 +791,28 @@ class LogsScreen extends ConsumerWidget {
                           label: 'DEVICE INFO',
                           child: Column(
                             children: [
-                              _buildDeviceInfoRow('Platform', log.device!.platform, isMobile),
-                              _buildDeviceInfoRow('Model', log.device!.deviceModel, isMobile),
+                              _buildDeviceInfoRow(
+                                'Platform',
+                                log.device!.platform,
+                                isMobile,
+                              ),
+                              _buildDeviceInfoRow(
+                                'Model',
+                                log.device!.deviceModel,
+                                isMobile,
+                              ),
                               if (log.device!.osVersion != null)
-                                _buildDeviceInfoRow('OS Version', log.device!.osVersion!, isMobile),
+                                _buildDeviceInfoRow(
+                                  'OS Version',
+                                  log.device!.osVersion!,
+                                  isMobile,
+                                ),
                               if (log.device!.appVersion != null)
-                                _buildDeviceInfoRow('App Version', log.device!.appVersion!, isMobile),
+                                _buildDeviceInfoRow(
+                                  'App Version',
+                                  log.device!.appVersion!,
+                                  isMobile,
+                                ),
                             ],
                           ),
                           isMobile: isMobile,
@@ -798,7 +820,8 @@ class LogsScreen extends ConsumerWidget {
                       ],
 
                       // Stack Trace
-                      if (log.stackTrace != null && log.stackTrace!.isNotEmpty) ...[
+                      if (log.stackTrace != null &&
+                          log.stackTrace!.isNotEmpty) ...[
                         SizedBox(height: isMobile ? 12 : 16),
                         _buildDetailCard(
                           label: 'STACK TRACE',
@@ -824,30 +847,112 @@ class LogsScreen extends ConsumerWidget {
                         ),
                       ],
 
-                      // Metadata
-                      if (log.metadata.isNotEmpty) ...[
+                      // Breadcrumbs (for crash logs)
+                      if (log.metadata['breadcrumbs'] != null &&
+                          log.metadata['breadcrumbs'] is List &&
+                          (log.metadata['breadcrumbs'] as List).isNotEmpty) ...[
                         SizedBox(height: isMobile ? 12 : 16),
                         _buildDetailCard(
-                          label: 'METADATA',
-                          child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(isMobile ? 10 : 12),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: SelectableText(
-                              const JsonEncoder.withIndent('  ').convert(log.metadata),
-                              style: TextStyle(
-                                fontFamily: 'monospace',
-                                fontSize: isMobile ? 10 : 12,
-                                color: AppColors.secondary,
-                                height: 1.4,
-                              ),
-                            ),
+                          label: 'ACTIVITY TRAIL (BREADCRUMBS)',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (final breadcrumb
+                                  in (log.metadata['breadcrumbs'] as List)
+                                      .reversed)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.subdirectory_arrow_right,
+                                        size: isMobile ? 14 : 16,
+                                        color: AppColors.slate,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              (breadcrumb['message'] ??
+                                                      'Unknown')
+                                                  .toString(),
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                    color: AppColors.white,
+                                                    fontSize: isMobile
+                                                        ? 11
+                                                        : 12,
+                                                  ),
+                                            ),
+                                            if (breadcrumb['timestamp'] != null)
+                                              Text(
+                                                breadcrumb['timestamp']
+                                                    .toString()
+                                                    .substring(11, 19),
+                                                style: AppTextStyles.labelSmall
+                                                    .copyWith(
+                                                      color: AppColors.slate,
+                                                      fontSize: isMobile
+                                                          ? 9
+                                                          : 10,
+                                                    ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                           ),
                           isMobile: isMobile,
                         ),
+                      ],
+
+                      // Metadata (excluding breadcrumbs which are shown above)
+                      if (log.metadata.isNotEmpty) ...[
+                        () {
+                          // Filter out breadcrumbs from metadata display
+                          final displayMetadata = Map<String, dynamic>.from(
+                            log.metadata,
+                          )..remove('breadcrumbs');
+                          if (displayMetadata.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return Column(
+                            children: [
+                              SizedBox(height: isMobile ? 12 : 16),
+                              _buildDetailCard(
+                                label: 'METADATA',
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.all(isMobile ? 10 : 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: SelectableText(
+                                    const JsonEncoder.withIndent(
+                                      '  ',
+                                    ).convert(displayMetadata),
+                                    style: TextStyle(
+                                      fontFamily: 'monospace',
+                                      fontSize: isMobile ? 10 : 12,
+                                      color: AppColors.secondary,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                                isMobile: isMobile,
+                              ),
+                            ],
+                          );
+                        }(),
                       ],
                     ],
                   ),
@@ -875,7 +980,9 @@ class LogsScreen extends ConsumerWidget {
                             SnackBar(
                               content: Text(
                                 'MESSAGE COPIED',
-                                style: AppTextStyles.labelSmall.copyWith(color: AppColors.white),
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: AppColors.white,
+                                ),
                               ),
                               backgroundColor: AppColors.darkSlate,
                               duration: const Duration(seconds: 2),
@@ -897,7 +1004,9 @@ class LogsScreen extends ConsumerWidget {
                             SnackBar(
                               content: Text(
                                 'FULL LOG COPIED',
-                                style: AppTextStyles.labelSmall.copyWith(color: AppColors.white),
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: AppColors.white,
+                                ),
                               ),
                               backgroundColor: AppColors.darkSlate,
                               duration: const Duration(seconds: 2),
@@ -918,8 +1027,10 @@ class LogsScreen extends ConsumerWidget {
   }
 
   String _formatTimestamp(DateTime timestamp) {
-    final date = '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}';
-    final time = '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}';
+    final date =
+        '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')}';
+    final time =
+        '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}';
     return '$date  $time';
   }
 
@@ -927,38 +1038,39 @@ class LogsScreen extends ConsumerWidget {
     final buffer = StringBuffer();
     buffer.writeln('=== LOG DETAILS ===');
     buffer.writeln('ID: ${log.id}');
-    buffer.writeln('Level: ${log.level.toString().split('.').last.toUpperCase()}');
-    buffer.writeln('Type: ${log.type.when(
-      general: () => 'GENERAL',
-      analytics: () => 'ANALYTICS',
-      crash: () => 'CRASH',
-      performance: () => 'PERFORMANCE',
-    )}');
+    buffer.writeln(
+      'Level: ${log.level.toString().split('.').last.toUpperCase()}',
+    );
+    buffer.writeln(
+      'Type: ${log.type.when(general: () => 'GENERAL', analytics: () => 'ANALYTICS', crash: () => 'CRASH', performance: () => 'PERFORMANCE')}',
+    );
     buffer.writeln('Timestamp: ${log.timestamp.toIso8601String()}');
     buffer.writeln('');
     buffer.writeln('Message: ${log.message}');
-    
+
     if (log.device != null) {
       buffer.writeln('');
       buffer.writeln('=== DEVICE INFO ===');
       buffer.writeln('Platform: ${log.device!.platform}');
       buffer.writeln('Model: ${log.device!.deviceModel}');
-      if (log.device!.osVersion != null) buffer.writeln('OS Version: ${log.device!.osVersion}');
-      if (log.device!.appVersion != null) buffer.writeln('App Version: ${log.device!.appVersion}');
+      if (log.device!.osVersion != null)
+        buffer.writeln('OS Version: ${log.device!.osVersion}');
+      if (log.device!.appVersion != null)
+        buffer.writeln('App Version: ${log.device!.appVersion}');
     }
-    
+
     if (log.stackTrace != null) {
       buffer.writeln('');
       buffer.writeln('=== STACK TRACE ===');
       buffer.writeln(log.stackTrace);
     }
-    
+
     if (log.metadata.isNotEmpty) {
       buffer.writeln('');
       buffer.writeln('=== METADATA ===');
       buffer.writeln(const JsonEncoder.withIndent('  ').convert(log.metadata));
     }
-    
+
     return buffer.toString();
   }
 
@@ -972,7 +1084,11 @@ class LogsScreen extends ConsumerWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
-        border: Border.all(color: isError ? AppColors.error.withAlpha(77) : AppColors.slate.withAlpha(51)),
+        border: Border.all(
+          color: isError
+              ? AppColors.error.withAlpha(77)
+              : AppColors.slate.withAlpha(51),
+        ),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Column(
@@ -986,15 +1102,21 @@ class LogsScreen extends ConsumerWidget {
               vertical: isMobile ? 6 : 8,
             ),
             decoration: BoxDecoration(
-              color: isError ? AppColors.error.withAlpha(13) : AppColors.backgroundDark,
+              color: isError
+                  ? AppColors.error.withAlpha(13)
+                  : AppColors.backgroundDark,
               border: Border(
-                bottom: BorderSide(color: isError ? AppColors.error.withAlpha(51) : AppColors.slate.withAlpha(51)),
+                bottom: BorderSide(
+                  color: isError
+                      ? AppColors.error.withAlpha(51)
+                      : AppColors.slate.withAlpha(51),
+                ),
               ),
             ),
             child: Text(
               label,
               style: AppTextStyles.labelSmall.copyWith(
-                color: isError ? AppColors.error : AppColors.primary,
+                color: isError ? AppColors.error : AppColors.slate,
                 fontWeight: FontWeight.bold,
                 fontSize: isMobile ? 10 : 11,
                 letterSpacing: 1.2,
@@ -1002,10 +1124,7 @@ class LogsScreen extends ConsumerWidget {
             ),
           ),
           // Card content
-          Padding(
-            padding: EdgeInsets.all(isMobile ? 10 : 12),
-            child: child,
-          ),
+          Padding(padding: EdgeInsets.all(isMobile ? 10 : 12), child: child),
         ],
       ),
     );
@@ -1127,5 +1246,4 @@ class LogsScreen extends ConsumerWidget {
       ),
     );
   }
-
 }

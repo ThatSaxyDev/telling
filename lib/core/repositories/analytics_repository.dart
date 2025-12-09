@@ -309,6 +309,31 @@ class AnalyticsRepository {
     }
   }
 
+  /// Get lifecycle events (first_open, app_open, app_update) for dashboard
+  Future<LifecycleEvents> getLifecycleEvents({
+    required String projectId,
+    int hours = 24,
+  }) async {
+    try {
+      final response = await _client.get(
+        Uri.parse(
+          '$baseUrl/analytics/lifecycle?projectId=$projectId&hours=$hours',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return LifecycleEvents.fromJson(jsonDecode(response.body));
+      } else {
+        throw AnalyticsRepositoryException(
+          'Failed to load lifecycle events',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw AnalyticsRepositoryException(_sanitizeError(e));
+    }
+  }
+
   String _sanitizeError(Object e) {
     final message = e.toString();
     if (message.contains('ClientException') ||

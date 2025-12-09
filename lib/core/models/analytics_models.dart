@@ -246,3 +246,27 @@ class NamedFunnelData {
     );
   }
 }
+
+/// Lifecycle events for engagement analytics
+class LifecycleEvents {
+  final int periodHours;
+  final int firstOpen; // New installs
+  final int appOpen; // App launches
+  final int appUpdate; // App updates
+
+  LifecycleEvents({
+    required this.periodHours,
+    required this.firstOpen,
+    required this.appOpen,
+    required this.appUpdate,
+  });
+
+  factory LifecycleEvents.fromJson(Map<String, dynamic> json) {
+    return LifecycleEvents(
+      periodHours: json['period_hours'] ?? 24,
+      firstOpen: json['first_open'] ?? 0,
+      appOpen: json['app_open'] ?? 0,
+      appUpdate: json['app_update'] ?? 0,
+    );
+  }
+}
