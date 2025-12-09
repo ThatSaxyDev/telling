@@ -58,6 +58,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .read(authProvider.notifier)
           .login(_emailController.text, _passwordController.text);
 
+      // Check if demo login succeeded (userId is null but user is authenticated)
+      final authState = ref.read(authProvider);
+      if (mounted && userId == null && authState.isAuthenticated) {
+        // Demo login succeeded - go directly to projects
+        Telling.instance.event(
+          'Action: Demo Login Success',
+          properties: {'email': _emailController.text},
+        );
+        context.go('/projects');
+        return;
+      }
+
       if (mounted && userId != null) {
         Telling.instance.event(
           'Action: Login Success (OTP Sent)',
@@ -76,7 +88,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           '/verify-otp',
           extra: {'userId': userId, 'email': _emailController.text},
         );
-      } else if (mounted) {
+      } else if (mounted && !authState.isAuthenticated) {
         Telling.instance.event(
           'Action: Login Failed',
           properties: {'email': _emailController.text},

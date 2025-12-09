@@ -67,6 +67,38 @@ class AuthNotifier extends Notifier<AuthState> {
 
     try {
       final apiClient = ref.read(apiClientProvider);
+      
+      // Try demo login first (for Apple App Store review)
+      // This endpoint only works if demo credentials are configured on the server
+      try {
+        final demoResponse = await apiClient.post(
+          Uri.parse('$_baseUrl/demo-login'),
+          body: jsonEncode({'email': email, 'password': password}),
+        );
+
+        if (demoResponse.statusCode == 200) {
+          // Demo login succeeded - persist session directly (bypass OTP)
+          final data = jsonDecode(demoResponse.body);
+          final user = AuthUser.fromJson(data['user']);
+          final token = data['token'];
+
+          await _persistSession(user, token);
+          state = AuthState(user: user, token: token, isLoading: false);
+
+          Telling.instance.setUser(
+            userId: user.id,
+            userName: user.name,
+            userEmail: user.email,
+          );
+
+          // Return null to signal: already authenticated, go to projects
+          return null;
+        }
+      } catch (_) {
+        // Demo login not available or failed, continue to normal flow
+      }
+
+      // Normal login flow - returns userId for OTP verification
       final response = await apiClient.post(
         Uri.parse('$_baseUrl/login'),
         body: jsonEncode({'email': email, 'password': password}),

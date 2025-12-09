@@ -13,7 +13,6 @@ void main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Set preferred orientations for mobile
       if (Responsive.isNativeMobile) {
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.portraitUp,
@@ -21,13 +20,12 @@ void main() async {
           DeviceOrientation.landscapeLeft,
           DeviceOrientation.landscapeRight,
         ]);
-        
-        // Set system UI overlay style for immersive experience
+
         SystemChrome.setSystemUIOverlayStyle(
           const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: Brightness.light,
-            systemNavigationBarColor: Color(0xFF0D0D0D), // AppColors.surfaceDark
+            systemNavigationBarColor: Color(0xFF0D0D0D),
             systemNavigationBarIconBrightness: Brightness.light,
           ),
         );
