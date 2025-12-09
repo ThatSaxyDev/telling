@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/log_entry.dart';
+import '../../../core/models/log_model/log_model.dart';
 import '../../../core/providers/users_provider.dart';
 import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../logs/widgets/log_details_dialog.dart';
 
 class PaginatedLogsList extends ConsumerStatefulWidget {
   final String userId;
@@ -190,16 +192,18 @@ class _LogItem extends StatelessWidget {
         levelColor = AppColors.slate;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
-        border: Border(left: BorderSide(color: levelColor, width: 3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return GestureDetector(
+      onTap: () => LogDetailsDialog.show(context, LogModel.fromLogEntry(log)),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark,
+          border: Border(left: BorderSide(color: levelColor, width: 3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -257,6 +261,7 @@ class _LogItem extends StatelessWidget {
             ),
           ],
         ],
+        ),
       ),
     );
   }

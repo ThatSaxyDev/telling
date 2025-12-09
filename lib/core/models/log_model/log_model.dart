@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:telling/core/theme/app_colors.dart';
 import '../log_level/log_level.dart';
 import '../device_info/device_info.dart';
+import '../log_entry.dart';
 
 part 'log_model.freezed.dart';
 // part 'log_model.g.dart';
@@ -45,6 +46,23 @@ abstract class LogModel with _$LogModel {
       userId: json['userId'] as String?,
       userName: json['userName'] as String?,
       userEmail: json['userEmail'] as String?,
+    );
+  }
+
+  /// Convert a LogEntry to LogModel for use with LogDetailsDialog
+  factory LogModel.fromLogEntry(LogEntry entry) {
+    return LogModel(
+      id: entry.id.toString(),
+      message: entry.message,
+      level: LogLevel.fromString(entry.level),
+      type: LogType.fromString(entry.type),
+      timestamp: entry.timestamp,
+      stackTrace: entry.stackTrace,
+      metadata: entry.metadata ?? {},
+      device: entry.device != null ? DeviceInfo.fromJson(entry.device!) : null,
+      userId: entry.userId,
+      userName: entry.userName,
+      userEmail: entry.userEmail,
     );
   }
 }

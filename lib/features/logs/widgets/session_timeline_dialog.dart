@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/extensions/responsive_extension.dart';
 import '../../../../core/models/log_model/log_model.dart';
 import '../../../../core/providers/logs_provider.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -26,12 +27,24 @@ class SessionTimelineDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final logsAsync = ref.watch(sessionLogsProvider(sessionId));
+    final isMobile = context.isMobile;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Responsive dialog width
+    final dialogWidth = isMobile
+        ? screenWidth *
+              0.95 // 95% of screen on mobile
+        : 800.0;
 
     return Dialog(
       backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 8 : 40,
+        vertical: isMobile ? 24 : 40,
+      ),
       child: Container(
-        width: 800,
-        constraints: const BoxConstraints(maxHeight: 800),
+        width: dialogWidth,
+        constraints: BoxConstraints(maxHeight: isMobile ? 600 : 800),
         child: MilitaryHoverContainer(
           baseColor: AppColors.surfaceDark,
           hoverColor: AppColors.white,
@@ -45,44 +58,58 @@ class SessionTimelineDialog extends ConsumerWidget {
               children: [
                 // Header
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(isMobile ? 16 : 24),
                   decoration: const BoxDecoration(
                     border: Border(
                       bottom: BorderSide(color: AppColors.primary),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    spacing: 10,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // Top row: title and close button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          GlitchText(
-                            text: 'SESSION DEEP DIVE',
-                            style: AppTextStyles.headlineSmall,
+                          Expanded(
+                            child: GlitchText(
+                              text: isMobile
+                                  ? 'SESSION DIVE'
+                                  : 'SESSION DEEP DIVE',
+                              style: isMobile
+                                  ? AppTextStyles.titleMedium
+                                  : AppTextStyles.headlineSmall,
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              _buildBadge(
-                                Icons.person,
-                                userName ?? 'Unknown User',
-                              ),
-                              const SizedBox(width: 12),
-                              _buildBadge(
-                                Icons.timer,
-                                '${duration.inMinutes}m ${duration.inSeconds % 60}s',
-                              ),
-                              const SizedBox(width: 12),
-                              _buildBadge(Icons.list, '$eventCount EVENTS'),
-                            ],
+                          IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: AppColors.white,
+                              size: isMobile ? 20 : 24,
+                            ),
+                            onPressed: () => Navigator.pop(context),
                           ),
                         ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: AppColors.white),
-                        onPressed: () => Navigator.pop(context),
+                      SizedBox(height: isMobile ? 8 : 12),
+                      // Badges - Wrap on mobile
+                      Wrap(
+                        spacing: isMobile ? 8 : 12,
+                        runSpacing: 8,
+                        children: [
+                          _buildBadge(
+                            Icons.person,
+                            userName ?? 'Unknown',
+                            isMobile,
+                          ),
+                          _buildBadge(
+                            Icons.timer,
+                            '${duration.inMinutes}m ${duration.inSeconds % 60}s',
+                            isMobile,
+                          ),
+                          _buildBadge(Icons.list, '$eventCount EVT', isMobile,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -112,7 +139,7 @@ class SessionTimelineDialog extends ConsumerWidget {
                         );
                       }
                       return ListView.builder(
-                        padding: const EdgeInsets.all(32),
+                        padding: EdgeInsets.all(isMobile ? 16 : 32),
                         itemCount: logs.length,
                         itemBuilder: (context, index) {
                           final log = logs[index];
@@ -131,6 +158,7 @@ class SessionTimelineDialog extends ConsumerWidget {
                             log: log,
                             isLast: isLast,
                             timeGap: timeGap,
+                            isMobile: isMobile,
                           );
                         },
                       );
@@ -145,24 +173,28 @@ class SessionTimelineDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildBadge(IconData icon, String text) {
+  Widget _buildBadge(IconData icon, String text, bool isMobile) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 6 : 8,
+        vertical: isMobile ? 3 : 4,
+      ),
       decoration: BoxDecoration(
         color: AppColors.primary.withAlpha(26),
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: AppColors.primary.withAlpha(77)),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppColors.secondary),
-          const SizedBox(width: 6),
+          Icon(icon, size: isMobile ? 10 : 12, color: AppColors.secondary),
+          SizedBox(width: isMobile ? 4 : 6),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Urbanist',
               color: AppColors.secondary,
-              fontSize: 12,
+              fontSize: isMobile ? 10 : 12,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -176,8 +208,14 @@ class _TimelineNode extends StatelessWidget {
   final LogModel log;
   final bool isLast;
   final Duration? timeGap;
+  final bool isMobile;
 
-  const _TimelineNode({required this.log, required this.isLast, this.timeGap});
+  const _TimelineNode({
+    required this.log,
+    required this.isLast,
+    this.timeGap,
+    this.isMobile = false,
+  });
 
   Color _getLevelColor() {
     switch (log.level.toString().split('.').last.toUpperCase()) {
@@ -201,33 +239,33 @@ class _TimelineNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _getLevelColor();
-    final dateFormat = DateFormat('HH:mm:ss.SSS');
+    final dateFormat = DateFormat(isMobile ? 'HH:mm:ss' : 'HH:mm:ss.SSS');
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Time Column
+          // Time Column - narrower on mobile
           SizedBox(
-            width: 80,
+            width: isMobile ? 60 : 80,
             child: Text(
               dateFormat.format(log.timestamp),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Urbanist',
                 color: AppColors.slate,
-                fontSize: 12,
+                fontSize: isMobile ? 10 : 12,
               ),
               textAlign: TextAlign.right,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isMobile ? 10 : 16),
 
           // Line & Node Column
           Column(
             children: [
               Container(
-                width: 12,
-                height: 12,
+                width: isMobile ? 10 : 12,
+                height: isMobile ? 10 : 12,
                 decoration: BoxDecoration(
                   color: color,
                   shape: BoxShape.circle,
@@ -250,7 +288,7 @@ class _TimelineNode extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isMobile ? 10 : 16),
 
           // Content Column
           Expanded(

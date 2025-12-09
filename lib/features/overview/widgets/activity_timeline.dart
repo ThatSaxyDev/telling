@@ -12,6 +12,7 @@ import '../../../core/extensions/responsive_extension.dart';
 import '../../../shared/widgets/military_decorations.dart';
 import '../../../shared/widgets/military_loader.dart';
 import '../../../shared/painters/corner_bracket_painter.dart';
+import '../../logs/widgets/log_details_dialog.dart';
 
 class ActivityTimeline extends ConsumerStatefulWidget {
   const ActivityTimeline({super.key});
@@ -402,11 +403,13 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
     final typeColor = _getTypeColor(log.type);
     final timeStr = _formatTime(log.timestamp);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: isMobile ? 8 : 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return GestureDetector(
+      onTap: () => LogDetailsDialog.show(context, log),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: isMobile ? 8 : 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Tactical dot with hex design
           SizedBox(
             width: isMobile ? 16 : 20,
@@ -612,6 +615,7 @@ class _ActivityTimelineState extends ConsumerState<ActivityTimeline> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
