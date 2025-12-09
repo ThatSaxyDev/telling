@@ -33,6 +33,11 @@ class BottomNav extends ConsumerWidget {
     _NavItemData(icon: Icons.radar, label: 'Command', route: '/'),
     _NavItemData(icon: Icons.list_alt, label: 'Logs', route: '/logs'),
     _NavItemData(icon: Icons.people_alt, label: 'Users', route: '/users'),
+    _NavItemData(
+      icon: Icons.analytics,
+      label: 'Analytics',
+      route: '/analytics',
+    ),
     _NavItemData(icon: Icons.filter_list, label: 'Funnels', route: '/funnelytics'),
     _NavItemData(icon: Icons.settings, label: 'Settings', route: '/settings'),
   ];

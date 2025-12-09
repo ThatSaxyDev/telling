@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:telling/shared/widgets/app_button.dart';
+import '../../../core/extensions/responsive_extension.dart';
 import '../../../core/providers/analytics_provider.dart';
 import '../../../core/models/analytics_models.dart';
 import '../../../core/theme/app_colors.dart';
@@ -24,7 +25,14 @@ class AnalyticsScreen extends ConsumerWidget {
     final usersAsync = ref.watch(activeUsersProvider);
     // final performanceAsync = ref.watch(performanceMetricsProvider);
 
-    final isMobile = MediaQuery.of(context).size.width < 900;
+    // Use responsive extension for cleaner breakpoints
+    final isMobile = context.isMobile;
+    final isTablet = context.isTablet;
+
+    // Responsive values
+    final horizontalPadding = context.horizontalPadding;
+    final verticalPadding = context.verticalPadding;
+    final headerIconSize = context.responsive<double>(mobile: 24, desktop: 32);
 
     return Stack(
       children: [
@@ -48,7 +56,10 @@ class AnalyticsScreen extends ConsumerWidget {
           children: [
             // Header with Time Range Selector
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding,
+              ),
               decoration: BoxDecoration(
                 color: AppColors.surfaceDark.withAlpha(230),
                 border: Border(
@@ -61,16 +72,20 @@ class AnalyticsScreen extends ConsumerWidget {
                   // Title
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.analytics,
                         color: AppColors.slate,
-                        size: 32,
+                        size: headerIconSize,
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: isMobile ? 8 : 16),
                       Flexible(
                         child: GlitchText(
-                          text: 'ANALYTICS_MODULE',
+                          text: isMobile ? 'ANALYTICS' : 'ANALYTICS_MODULE',
                           style: isMobile
+                              ? AppTextStyles.titleSmall.copyWith(
+                                  fontFamily: 'Syne',
+                                )
+                              : isTablet
                               ? AppTextStyles.titleMedium.copyWith(
                                   fontFamily: 'Syne',
                                 )
@@ -94,15 +109,15 @@ class AnalyticsScreen extends ConsumerWidget {
                           ref.invalidate(activeUsersProvider);
                           // ref.invalidate(performanceMetricsProvider);
                         },
-                        width: isMobile ? 48 : null,
-                        height: isMobile ? 48 : null,
+                        width: isMobile ? 40 : (isTablet ? 48 : null),
+                        height: isMobile ? 40 : (isTablet ? 48 : null),
                         padding: isMobile ? EdgeInsets.zero : null,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
 
-                  // Time Range Tabs
+                  // Time Range Tabs - Responsive sizing
                   Row(
                     children: [
                       _TimeRangeTab(
@@ -112,8 +127,9 @@ class AnalyticsScreen extends ConsumerWidget {
                         onTap: () => ref
                             .read(analyticsTimeRangeProvider.notifier)
                             .set(24),
+                        isMobile: isMobile,
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: isMobile ? 8 : 12),
                       _TimeRangeTab(
                         label: '07D',
                         hours: 168,
@@ -121,8 +137,9 @@ class AnalyticsScreen extends ConsumerWidget {
                         onTap: () => ref
                             .read(analyticsTimeRangeProvider.notifier)
                             .set(168),
+                        isMobile: isMobile,
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: isMobile ? 8 : 12),
                       _TimeRangeTab(
                         label: '30D',
                         hours: 720,
@@ -130,6 +147,7 @@ class AnalyticsScreen extends ConsumerWidget {
                         onTap: () => ref
                             .read(analyticsTimeRangeProvider.notifier)
                             .set(720),
+                        isMobile: isMobile,
                       ),
                     ],
                   ),
@@ -140,11 +158,14 @@ class AnalyticsScreen extends ConsumerWidget {
             // Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: verticalPadding,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Key Metrics Grid
+                    // Key Metrics - Horizontal scroll on mobile, grid on desktop
                     summaryAsync.when(
                       loading: () => const Center(
                         child: MilitaryLoader(label: 'ANALYZING DATA...'),
@@ -155,97 +176,154 @@ class AnalyticsScreen extends ConsumerWidget {
                           style: const TextStyle(color: AppColors.error),
                         ),
                       ),
-                      data: (summary) => GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: isMobile ? 2 : 4,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        childAspectRatio: isMobile ? 1.2 : 1.5,
-                        children: [
-                          _MetricCard(
-                            icon: Icons.description,
-                            label: 'TOTAL_LOGS',
-                            value: summary.totalLogs.toString(),
-                            trend: summary.logsTrend,
-                            code: 'LOG-01',
-                          ),
-                          _MetricCard(
-                            icon: Icons.error_outline,
-                            label: 'ERROR_RATE',
-                            value: '${summary.errorRate.toStringAsFixed(1)}%',
-                            isError: summary.errorRate > 5,
-                            code: 'ERR-02',
-                          ),
-                          _MetricCard(
-                            icon: Icons.timer,
-                            label: 'ACTV_SESS',
-                            value: summary.activeSessions.toString(),
-                            code: 'SES-03',
-                          ),
-                          _MetricCard(
-                            icon: Icons.people,
-                            label: 'ACTV_USRS',
-                            value: summary.activeUsers.toString(),
-                            code: 'USR-04',
-                          ),
-                        ],
-                      ),
+                      data: (summary) => isMobile
+                          // Mobile: Horizontal scrollable list
+                          ? SizedBox(
+                              height: 140,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  _HorizontalMetricCard(
+                                    icon: Icons.description,
+                                    label: 'TOTAL_LOGS',
+                                    value: summary.totalLogs.toString(),
+                                    trend: summary.logsTrend,
+                                    code: 'LOG-01',
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _HorizontalMetricCard(
+                                    icon: Icons.error_outline,
+                                    label: 'ERROR_RATE',
+                                    value:
+                                        '${summary.errorRate.toStringAsFixed(1)}%',
+                                    isError: summary.errorRate > 5,
+                                    code: 'ERR-02',
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _HorizontalMetricCard(
+                                    icon: Icons.timer,
+                                    label: 'ACTV_SESS',
+                                    value: summary.activeSessions.toString(),
+                                    code: 'SES-03',
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _HorizontalMetricCard(
+                                    icon: Icons.people,
+                                    label: 'ACTV_USRS',
+                                    value: summary.activeUsers.toString(),
+                                    code: 'USR-04',
+                                  ),
+                                ],
+                              ),
+                            )
+                          // Tablet/Desktop: Grid layout
+                          : GridView.count(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              crossAxisCount: isTablet ? 2 : 4,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: isTablet ? 1.3 : 1.5,
+                              children: [
+                                _MetricCard(
+                                  icon: Icons.description,
+                                  label: 'TOTAL_LOGS',
+                                  value: summary.totalLogs.toString(),
+                                  trend: summary.logsTrend,
+                                  code: 'LOG-01',
+                                ),
+                                _MetricCard(
+                                  icon: Icons.error_outline,
+                                  label: 'ERROR_RATE',
+                                  value:
+                                      '${summary.errorRate.toStringAsFixed(1)}%',
+                                  isError: summary.errorRate > 5,
+                                  code: 'ERR-02',
+                                ),
+                                _MetricCard(
+                                  icon: Icons.timer,
+                                  label: 'ACTV_SESS',
+                                  value: summary.activeSessions.toString(),
+                                  code: 'SES-03',
+                                ),
+                                _MetricCard(
+                                  icon: Icons.people,
+                                  label: 'ACTV_USRS',
+                                  value: summary.activeUsers.toString(),
+                                  code: 'USR-04',
+                                ),
+                              ],
+                            ),
                     ),
 
-                    const SizedBox(height: 32),
+                    SizedBox(height: isMobile ? 24 : 32),
 
                     // Lifecycle Events Section
-                    _buildLifecycleSection(ref, isMobile),
+                    _buildLifecycleSection(ref, isMobile, isTablet),
 
-                    const SizedBox(height: 32),
+                    SizedBox(height: isMobile ? 24 : 32),
 
                     // Performance Metrics Section
                     // _buildPerformanceMetricsSection(performanceAsync, isMobile),
                     // const SizedBox(height: 32),
 
-                    // Charts Row
-                    isMobile
+                    // Charts Row - Stack on mobile and tablet, side by side on desktop
+                    (isMobile || isTablet)
                         ? Column(
                             children: [
-                              _buildLogsTimelineSection(timelineAsync),
-                              const SizedBox(height: 24),
-                              _buildLogLevelsSection(levelsAsync),
+                              _buildLogsTimelineSection(
+                                timelineAsync,
+                                isMobile,
+                              ),
+                              SizedBox(height: isMobile ? 16 : 24),
+                              _buildLogLevelsSection(levelsAsync, isMobile),
                             ],
                           )
                         : Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: _buildLogsTimelineSection(timelineAsync),
+                                child: _buildLogsTimelineSection(
+                                  timelineAsync,
+                                  isMobile,
+                                ),
                               ),
                               const SizedBox(width: 24),
                               Expanded(
-                                child: _buildLogLevelsSection(levelsAsync),
+                                child: _buildLogLevelsSection(
+                                  levelsAsync,
+                                  isMobile,
+                                ),
                               ),
                             ],
                           ),
 
-                    const SizedBox(height: 32),
+                    SizedBox(height: isMobile ? 24 : 32),
 
-                    // Insights Row
-                    isMobile
+                    // Insights Row - Stack on mobile and tablet, side by side on desktop
+                    (isMobile || isTablet)
                         ? Column(
                             children: [
-                              _buildTopErrorsSection(errorsAsync),
-                              const SizedBox(height: 24),
-                              _buildActiveUsersSection(usersAsync),
+                              _buildTopErrorsSection(errorsAsync, isMobile),
+                              SizedBox(height: isMobile ? 16 : 24),
+                              _buildActiveUsersSection(usersAsync, isMobile),
                             ],
                           )
                         : Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: _buildTopErrorsSection(errorsAsync),
+                                child: _buildTopErrorsSection(
+                                  errorsAsync,
+                                  isMobile,
+                                ),
                               ),
                               const SizedBox(width: 24),
                               Expanded(
-                                child: _buildActiveUsersSection(usersAsync),
+                                child: _buildActiveUsersSection(
+                                  usersAsync,
+                                  isMobile,
+                                ),
                               ),
                             ],
                           ),
@@ -259,17 +337,19 @@ class AnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLogsTimelineSection(AsyncValue timelineAsync) {
+  Widget _buildLogsTimelineSection(AsyncValue timelineAsync, bool isMobile) {
+    final chartHeight = isMobile ? 260.0 : 300.0;
     return _SectionCard(
-      title: 'LOGS_TIMELINE_VISUALIZATION',
+      title: isMobile ? 'LOGS_TIMELINE' : 'LOGS_TIMELINE_VISUALIZATION',
       icon: Icons.show_chart,
+      isMobile: isMobile,
       child: timelineAsync.when(
-        loading: () => const SizedBox(
-          height: 300,
-          child: Center(child: CircularProgressIndicator()),
+        loading: () => SizedBox(
+          height: chartHeight,
+          child: const Center(child: CircularProgressIndicator()),
         ),
         error: (err, stack) => SizedBox(
-          height: 300,
+          height: chartHeight,
           child: Center(
             child: Text(
               ErrorFormatter.format(err),
@@ -277,22 +357,25 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (timeline) => _LogsTimelineChart(data: timeline),
+        data: (timeline) =>
+            _LogsTimelineChart(data: timeline, isMobile: isMobile),
       ),
     );
   }
 
-  Widget _buildLogLevelsSection(AsyncValue levelsAsync) {
+  Widget _buildLogLevelsSection(AsyncValue levelsAsync, bool isMobile) {
+    final chartHeight = isMobile ? 260.0 : 300.0;
     return _SectionCard(
-      title: 'LOG_LEVEL_DISTRIBUTION',
+      title: isMobile ? 'LOG_LEVELS' : 'LOG_LEVEL_DISTRIBUTION',
       icon: Icons.pie_chart,
+      isMobile: isMobile,
       child: levelsAsync.when(
-        loading: () => const SizedBox(
-          height: 300,
-          child: Center(child: CircularProgressIndicator()),
+        loading: () => SizedBox(
+          height: chartHeight,
+          child: const Center(child: CircularProgressIndicator()),
         ),
         error: (err, stack) => SizedBox(
-          height: 300,
+          height: chartHeight,
           child: Center(
             child: Text(
               ErrorFormatter.format(err),
@@ -300,22 +383,24 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (levels) => _LogLevelChart(data: levels),
+        data: (levels) => _LogLevelChart(data: levels, isMobile: isMobile),
       ),
     );
   }
 
-  Widget _buildTopErrorsSection(AsyncValue errorsAsync) {
+  Widget _buildTopErrorsSection(AsyncValue errorsAsync, bool isMobile) {
+    final chartHeight = isMobile ? 260.0 : 300.0;
     return _SectionCard(
-      title: 'CRITICAL_ERRORS_REPORT',
+      title: isMobile ? 'ERRORS' : 'CRITICAL_ERRORS_REPORT',
       icon: Icons.bug_report,
+      isMobile: isMobile,
       child: errorsAsync.when(
-        loading: () => const SizedBox(
-          height: 300,
-          child: Center(child: CircularProgressIndicator()),
+        loading: () => SizedBox(
+          height: chartHeight,
+          child: const Center(child: CircularProgressIndicator()),
         ),
         error: (err, stack) => SizedBox(
-          height: 300,
+          height: chartHeight,
           child: Center(
             child: Text(
               ErrorFormatter.format(err),
@@ -323,22 +408,24 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (errors) => _TopErrorsList(errors: errors),
+        data: (errors) => _TopErrorsList(errors: errors, isMobile: isMobile),
       ),
     );
   }
 
-  Widget _buildActiveUsersSection(AsyncValue usersAsync) {
+  Widget _buildActiveUsersSection(AsyncValue usersAsync, bool isMobile) {
+    final chartHeight = isMobile ? 260.0 : 300.0;
     return _SectionCard(
-      title: 'USER_ACTIVITY_TRACKING',
+      title: isMobile ? 'USERS' : 'USER_ACTIVITY_TRACKING',
       icon: Icons.leaderboard,
+      isMobile: isMobile,
       child: usersAsync.when(
-        loading: () => const SizedBox(
-          height: 300,
-          child: Center(child: CircularProgressIndicator()),
+        loading: () => SizedBox(
+          height: chartHeight,
+          child: const Center(child: CircularProgressIndicator()),
         ),
         error: (err, stack) => SizedBox(
-          height: 300,
+          height: chartHeight,
           child: Center(
             child: Text(
               ErrorFormatter.format(err),
@@ -346,24 +433,26 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (users) => _ActiveUsersList(users: users),
+        data: (users) => _ActiveUsersList(users: users, isMobile: isMobile),
       ),
     );
   }
 
-  Widget _buildLifecycleSection(WidgetRef ref, bool isMobile) {
+  Widget _buildLifecycleSection(WidgetRef ref, bool isMobile, bool isTablet) {
     final lifecycleAsync = ref.watch(lifecycleEventsProvider);
+    final sectionHeight = isMobile ? 100.0 : 120.0;
 
     return _SectionCard(
-      title: 'ENGAGEMENT_METRICS',
+      title: isMobile ? 'ENGAGEMENT' : 'ENGAGEMENT_METRICS',
       icon: Icons.trending_up,
+      isMobile: isMobile,
       child: lifecycleAsync.when(
-        loading: () => const SizedBox(
-          height: 120,
-          child: Center(child: CircularProgressIndicator()),
+        loading: () => SizedBox(
+          height: sectionHeight,
+          child: const Center(child: CircularProgressIndicator()),
         ),
         error: (err, stack) => SizedBox(
-          height: 120,
+          height: sectionHeight,
           child: Center(
             child: Text(
               ErrorFormatter.format(err),
@@ -371,34 +460,61 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (lifecycle) => GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: isMobile ? 3 : 3,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: isMobile ? 1.0 : 1.8,
-          children: [
-            _MetricCard(
-              icon: Icons.download,
-              label: 'NEW_INSTALLS',
-              value: lifecycle.firstOpen.toString(),
-              code: 'LCE-01',
-            ),
-            _MetricCard(
-              icon: Icons.launch,
-              label: 'APP_OPENS',
-              value: lifecycle.appOpen.toString(),
-              code: 'LCE-02',
-            ),
-            _MetricCard(
-              icon: Icons.system_update,
-              label: 'APP_UPDATES',
-              value: lifecycle.appUpdate.toString(),
-              code: 'LCE-03',
-            ),
-          ],
-        ),
+        data: (lifecycle) => isMobile
+            // Mobile: Vertical list for better readability
+            ? Column(
+                children: [
+                  _CompactMetricRow(
+                    icon: Icons.download,
+                    label: 'NEW_INSTALLS',
+                    value: lifecycle.firstOpen.toString(),
+                    code: 'LCE-01',
+                  ),
+                  const SizedBox(height: 8),
+                  _CompactMetricRow(
+                    icon: Icons.launch,
+                    label: 'APP_OPENS',
+                    value: lifecycle.appOpen.toString(),
+                    code: 'LCE-02',
+                  ),
+                  const SizedBox(height: 8),
+                  _CompactMetricRow(
+                    icon: Icons.system_update,
+                    label: 'APP_UPDATES',
+                    value: lifecycle.appUpdate.toString(),
+                    code: 'LCE-03',
+                  ),
+                ],
+              )
+            // Desktop/Tablet: Horizontal grid
+            : GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 3,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: isTablet ? 1.0 : 1.5,
+                children: [
+                  _MetricCard(
+                    icon: Icons.download,
+                    label: 'NEW_INSTALLS',
+                    value: lifecycle.firstOpen.toString(),
+                    code: 'LCE-01',
+                  ),
+                  _MetricCard(
+                    icon: Icons.launch,
+                    label: 'APP_OPENS',
+                    value: lifecycle.appOpen.toString(),
+                    code: 'LCE-02',
+                  ),
+                  _MetricCard(
+                    icon: Icons.system_update,
+                    label: 'APP_UPDATES',
+                    value: lifecycle.appUpdate.toString(),
+                    code: 'LCE-03',
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -469,12 +585,14 @@ class _TimeRangeTab extends StatelessWidget {
   final int hours;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isMobile;
 
   const _TimeRangeTab({
     required this.label,
     required this.hours,
     required this.isSelected,
     required this.onTap,
+    this.isMobile = false,
   });
 
   @override
@@ -482,7 +600,10 @@ class _TimeRangeTab extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 16 : 24,
+          vertical: isMobile ? 10 : 12,
+        ),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.white : Colors.transparent,
           border: Border.all(
@@ -495,7 +616,8 @@ class _TimeRangeTab extends StatelessWidget {
             fontFamily: 'Urbanist',
             color: isSelected ? AppColors.primary : AppColors.slate,
             fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
+            letterSpacing: isMobile ? 1.0 : 1.5,
+            fontSize: isMobile ? 12 : 14,
           ),
         ),
       ),
@@ -503,7 +625,7 @@ class _TimeRangeTab extends StatelessWidget {
   }
 }
 
-// Metric Card with Corner Brackets
+// Metric Card with Corner Brackets (for tablet/desktop grid)
 class _MetricCard extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -633,16 +755,211 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
+// Compact Metric Row for mobile vertical lists
+class _CompactMetricRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final String code;
+
+  const _CompactMetricRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.code = 'DAT-00',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withAlpha(204),
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+      ),
+      child: Row(
+        children: [
+          // Icon
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.white.withAlpha(13),
+              border: Border.all(color: AppColors.slate.withAlpha(51)),
+            ),
+            child: Icon(icon, color: AppColors.white, size: 18),
+          ),
+          const SizedBox(width: 12),
+          // Label
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.slate,
+                fontSize: 11,
+                letterSpacing: 1.0,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Urbanist',
+              ),
+            ),
+          ),
+          // Value
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Urbanist',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Code badge
+          Text(
+            code,
+            style: TextStyle(
+              fontFamily: 'Urbanist',
+              fontSize: 8,
+              color: AppColors.slate.withAlpha(128),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Horizontal Metric Card for mobile horizontal scrollable list
+class _HorizontalMetricCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final int? trend;
+  final bool isError;
+  final String code;
+
+  const _HorizontalMetricCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.trend,
+    this.isError = false,
+    this.code = 'DAT-00',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withAlpha(204),
+        border: Border.all(
+          color: isError
+              ? AppColors.error.withAlpha(77)
+              : AppColors.slate.withAlpha(77),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Top row: icon, code, and trend
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(
+                icon,
+                color: isError ? AppColors.error : AppColors.white,
+                size: 20,
+              ),
+              if (trend != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: (trend! > 0 ? Colors.green : Colors.red).withAlpha(
+                      26,
+                    ),
+                    border: Border.all(
+                      color: (trend! > 0 ? Colors.green : Colors.red).withAlpha(
+                        77,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        trend! > 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                        size: 10,
+                        color: trend! > 0 ? Colors.green : Colors.red,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${trend!.abs()}%',
+                        style: TextStyle(
+                          fontFamily: 'Urbanist',
+                          fontSize: 9,
+                          color: trend! > 0 ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Text(
+                  code,
+                  style: TextStyle(
+                    fontFamily: 'Urbanist',
+                    fontSize: 8,
+                    color: AppColors.slate.withAlpha(128),
+                  ),
+                ),
+            ],
+          ),
+          // Value
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'Urbanist',
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: isError ? AppColors.error : AppColors.white,
+              letterSpacing: -1,
+            ),
+          ),
+          // Label
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.slate,
+              fontSize: 10,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // Section Card Container
 class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget child;
+  final bool isMobile;
 
   const _SectionCard({
     required this.title,
     required this.icon,
     required this.child,
+    this.isMobile = false,
   });
 
   @override
@@ -657,7 +974,7 @@ class _SectionCard extends StatelessWidget {
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             decoration: BoxDecoration(
               color: AppColors.white.withAlpha(13),
               border: Border(
@@ -666,29 +983,32 @@ class _SectionCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(icon, color: AppColors.white, size: 16),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2.0,
-                    fontFamily: 'Urbanist',
+                Icon(icon, color: AppColors.white, size: isMobile ? 14 : 16),
+                SizedBox(width: isMobile ? 8 : 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: isMobile ? 10 : 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: isMobile ? 1.0 : 2.0,
+                      fontFamily: 'Urbanist',
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                SizedBox(width: isMobile ? 4 : 8),
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: isMobile ? 6 : 8,
+                  height: isMobile ? 6 : 8,
                   color: AppColors.white.withAlpha(128),
                 ),
               ],
             ),
           ),
           // Content
-          Padding(padding: const EdgeInsets.all(16), child: child),
+          Padding(padding: EdgeInsets.all(isMobile ? 12 : 16), child: child),
         ],
       ),
     );
@@ -698,8 +1018,9 @@ class _SectionCard extends StatelessWidget {
 // Logs Timeline Chart - Enhanced with stacked bars by log level
 class _LogsTimelineChart extends StatefulWidget {
   final List<LogTimelinePoint> data;
+  final bool isMobile;
 
-  const _LogsTimelineChart({required this.data});
+  const _LogsTimelineChart({required this.data, this.isMobile = false});
 
   @override
   State<_LogsTimelineChart> createState() => _LogsTimelineChartState();
@@ -1033,8 +1354,9 @@ class _LogsTimelineChartState extends State<_LogsTimelineChart> {
 // Log Level Chart - Enhanced with percentages and clickable filtering
 class _LogLevelChart extends ConsumerWidget {
   final List<LogLevelStat> data;
+  final bool isMobile;
 
-  const _LogLevelChart({required this.data});
+  const _LogLevelChart({required this.data, this.isMobile = false});
 
   Color _getLevelColor(String level) {
     switch (level.toLowerCase()) {
@@ -1239,8 +1561,9 @@ class _LogLevelChart extends ConsumerWidget {
 // Top Errors List - Enhanced with clickable navigation and visual indicators
 class _TopErrorsList extends ConsumerWidget {
   final List<TopErrorItem> errors;
+  final bool isMobile;
 
-  const _TopErrorsList({required this.errors});
+  const _TopErrorsList({required this.errors, this.isMobile = false});
 
   String _getRelativeTime(DateTime dateTime) {
     final now = DateTime.now();
@@ -1625,8 +1948,9 @@ class _TopErrorsList extends ConsumerWidget {
 // Active Users List - Enhanced with email, timestamps, and activity indicators
 class _ActiveUsersList extends ConsumerWidget {
   final List<ActiveUserStat> users;
+  final bool isMobile;
 
-  const _ActiveUsersList({required this.users});
+  const _ActiveUsersList({required this.users, this.isMobile = false});
 
   String _getRelativeTime(DateTime dateTime) {
     final now = DateTime.now();

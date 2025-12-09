@@ -905,10 +905,10 @@ packages:
     dependency: "direct main"
     description:
       name: telling_logger
-      sha256: "0c84ff23bd3b65fb3da424187221f3958df66d09d8ecc43fde161904b5201b64"
+      sha256: bc44684a2be54a80ade184eae6543c294fafd35f4e2557244054a724a7d2920b
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.1"
+    version: "1.2.2"
   term_glyph:
     dependency: transitive
     description:
