@@ -44,182 +44,210 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      body: Stack(
-        children: [
-          // Background Grid
-          const Positioned.fill(
-            child: GridBackground(color: Color(0xFF222222), spacing: 40),
-          ),
+      body: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        child: Stack(
+          children: [
+            // Background Grid
+            const Positioned.fill(
+              child: GridBackground(color: Color(0xFF222222), spacing: 40),
+            ),
 
-          // Content
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
-              final isMobile = width < 600;
-              final isTablet = width >= 600 && width < 900;
+            // Content
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final isMobile = width < 600;
+                final isTablet = width >= 600 && width < 900;
 
-              // Responsive values
-              final double contentMaxWidth = isMobile
-                  ? width
-                  : (isTablet ? 700 : 1000);
-              final double horizontalPadding = isMobile ? 16 : 24;
-              final double verticalPadding = isMobile ? 16 : 24;
-              final double gridMaxCrossAxisExtent = isMobile
-                  ? 400
-                  : 300; // Full width on mobile
-              final double childAspectRatio = isMobile ? 1.4 : 1.2;
-
-              return SafeArea(
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Center(
-                      child: Container(
-                        constraints: BoxConstraints(maxWidth: contentMaxWidth),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
-                          vertical: verticalPadding,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Header
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.grid_view,
-                                  color: AppColors.primary,
-                                  size: 24,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TypingText(
-                                    text: isMobile
-                                        ? 'PROJECTS'
-                                        : 'PROJECT SELECTION',
-                                    style: AppTextStyles.titleLarge.copyWith(
-                                      color: AppColors.white,
-                                      letterSpacing: 2,
-                                      fontSize: isMobile ? 20 : 24,
-                                    ),
-                                    duration: const Duration(milliseconds: 50),
-                                  ),
-                                ),
-                                if (!isMobile) const Spacer(),
-                                if (isMobile) const SizedBox(width: 12),
-                                AppButton(
-                                  text: isMobile ? '' : 'LOGOUT',
-                                  icon: Icons.logout,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  onPressed: () {
-                                    ref.read(authProvider.notifier).logout();
-                                    ref.read(projectProvider.notifier).reset();
-                                    context.go('/login');
-                                  },
-                                  backgroundColor: AppColors.error.withAlpha(
-                                    26,
-                                  ),
-                                  borderColor: AppColors.error,
-                                  foregroundColor: AppColors.error,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              height: 1,
-                              color: AppColors.primary.withAlpha(128),
-                            ),
-                            const SizedBox(height: 32),
-
-                            // Error Message
-                            if (projectState.error != null)
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 24),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColors.error),
-                                  color: AppColors.error.withAlpha(26),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.error_outline,
-                                      color: AppColors.error,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        projectState.error!,
-                                        style: const TextStyle(
-                                          color: AppColors.error,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                            // Projects Grid
-                            if (projectState.isLoading &&
-                                projectState.projects.isEmpty)
-                              const Center(
-                                child: MilitaryLoader(
-                                  label: 'LOADING PROJECTS...',
-                                ),
-                              )
-                            else
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    SliverGridDelegateWithMaxCrossAxisExtent(
-                                      maxCrossAxisExtent:
-                                          gridMaxCrossAxisExtent,
-                                      childAspectRatio: childAspectRatio,
-                                      crossAxisSpacing: 16,
-                                      mainAxisSpacing: 16,
-                                    ),
-                                itemCount: projectState.projects.length + 1,
-                                itemBuilder: (context, index) {
-                                  // Add New Project Card
-                                  if (index == projectState.projects.length) {
-                                    final isLimitReached =
-                                        projectState.projects.length >= 3;
-                                    return _buildAddProjectCard(
-                                      context,
-                                      ref,
-                                      isLimitReached,
-                                    );
-                                  }
-
-                                  final project = projectState.projects[index];
-                                  return _buildProjectCard(
-                                    context,
-                                    ref,
-                                    project,
-                                  );
-                                },
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
+                // Responsive values
+                final double contentMaxWidth = isMobile
+                    ? width
+                    : (isTablet ? 700 : 1000);
+                final double horizontalPadding = isMobile ? 16 : 24;
+                final double verticalPadding = isMobile ? 16 : 24;
+                final double gridMaxCrossAxisExtent = isMobile
+                    ? 400
+                    : 300; // Full width on mobile
+                final double childAspectRatio = isMobile ? 1.4 : 1.2;
+        
+                // Build the main content
+                final contentWidget = Container(
+                  constraints: BoxConstraints(maxWidth: contentMaxWidth),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: verticalPadding,
                   ),
-                ),
-              );
-            },
-          ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.grid_view,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TypingText(
+                              text: isMobile ? 'PROJECTS' : 'PROJECT SELECTION',
+                              style: AppTextStyles.titleLarge.copyWith(
+                                color: AppColors.white,
+                                letterSpacing: 2,
+                                fontSize: isMobile ? 20 : 24,
+                              ),
+                              duration: const Duration(milliseconds: 50),
+                            ),
+                          ),
+                          if (!isMobile) const Spacer(),
+                          if (isMobile) const SizedBox(width: 12),
+                          AppButton(
+                            text: isMobile ? '' : 'LOGOUT',
+                            icon: Icons.logout,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            onPressed: () {
+                              ref.read(authProvider.notifier).logout();
+                              ref.read(projectProvider.notifier).reset();
+                              context.go('/login');
+                            },
+                            backgroundColor: AppColors.error.withAlpha(26),
+                            borderColor: AppColors.error,
+                            foregroundColor: AppColors.error,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 1,
+                        color: AppColors.primary.withAlpha(128),
+                      ),
+                      const SizedBox(height: 32),
 
-          // Scanline Overlay
-          const Positioned.fill(
-            child: IgnorePointer(child: Scanline(color: Color(0x0DFFFFFF))),
-          ),
-        ],
+                      // Error Message
+                      if (projectState.error != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.error),
+                            color: AppColors.error.withAlpha(26),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: AppColors.error,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  projectState.error!,
+                                  style: const TextStyle(
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+        
+                      // Projects Grid/List
+                      if (projectState.isLoading &&
+                          projectState.projects.isEmpty)
+                        const Center(
+                          child: MilitaryLoader(label: 'LOADING PROJECTS...'),
+                        )
+                      else if (isMobile)
+                        // Mobile: Use single column ListView
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: projectState.projects.length + 1,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            if (index == projectState.projects.length) {
+                              final isLimitReached =
+                                  projectState.projects.length >= 3;
+                              return _buildAddProjectCard(
+                                context,
+                                ref,
+                                isLimitReached,
+                                isMobile: true,
+                              );
+                            }
+                            final project = projectState.projects[index];
+                            return _buildProjectCard(
+                              context,
+                              ref,
+                              project,
+                              isMobile: true,
+                            );
+                          },
+                        )
+                      else
+                        // Tablet/Desktop: Use Grid
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: gridMaxCrossAxisExtent,
+                                childAspectRatio: childAspectRatio,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                          itemCount: projectState.projects.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == projectState.projects.length) {
+                              final isLimitReached =
+                                  projectState.projects.length >= 3;
+                              return _buildAddProjectCard(
+                                context,
+                                ref,
+                                isLimitReached,
+                                isMobile: false,
+                              );
+                            }
+                            final project = projectState.projects[index];
+                            return _buildProjectCard(
+                              context,
+                              ref,
+                              project,
+                              isMobile: false,
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                );
+
+                // Mobile: No vertical centering (content at top)
+                // Desktop/Tablet: Vertical centering
+                return SafeArea(
+                  child: SingleChildScrollView(
+                    child: isMobile
+                        ? Center(child: contentWidget)
+                        : ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: Center(child: contentWidget),
+                          ),
+                  ),
+                );
+              },
+            ),
+
+            // Scanline Overlay
+            const Positioned.fill(
+              child: IgnorePointer(child: Scanline(color: Color(0x0DFFFFFF))),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -227,47 +255,45 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   Widget _buildProjectCard(
     BuildContext context,
     WidgetRef ref,
-    Project project,
-  ) {
-    return MilitaryHoverContainer(
-      baseColor: AppColors.surfaceDark,
-      hoverColor: AppColors.primary.withAlpha(26),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.slate.withAlpha(77)),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.surfaceDark,
-              AppColors.surfaceDark.withAlpha(200),
-              AppColors.primary.withAlpha(10),
-            ],
-            stops: const [0.0, 0.7, 1.0],
-          ),
+    Project project, {
+    bool isMobile = false,
+  }) {
+    final content = Container(
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.surfaceDark,
+            AppColors.surfaceDark.withAlpha(200),
+            AppColors.primary.withAlpha(10),
+          ],
+          stops: const [0.0, 0.7, 1.0],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      ),
+      child: isMobile
+          ? // Mobile: Horizontal layout
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withAlpha(26),
-                    border: Border.all(color: AppColors.primary.withAlpha(77)),
+                    color: AppColors.slate.withAlpha(26),
+                    border: Border.all(color: AppColors.slate.withAlpha(77)),
                   ),
                   child: const Icon(
                     Icons.folder,
-                    color: AppColors.primary,
-                    size: 16,
+                    color: AppColors.slate,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         project.name.toUpperCase(),
@@ -278,7 +304,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         'ID: ${project.id.substring(0, 8)}',
                         style: AppTextStyles.labelSmall.copyWith(
@@ -289,6 +315,21 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                AppButton(
+                  text: 'OPEN',
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  onPressed: () {
+                    Telling.instance.trackFunnel(
+                      funnelName: FunnelConstants.onboardingFunnel,
+                      stepName: FunnelConstants.projectSelected,
+                      step: 8,
+                      properties: {'project_name': project.name},
+                    );
+                    ref.read(projectProvider.notifier).selectProject(project);
+                    context.go('/');
+                  },
+                ),
                 IconButton(
                   icon: const Icon(
                     Icons.delete_outline,
@@ -297,88 +338,182 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   ),
                   onPressed: () => _confirmDelete(context, ref, project),
                   tooltip: 'DELETE PROJECT',
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            )
+          : // Desktop/Tablet: Vertical layout
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.slate.withAlpha(26),
+                        border: Border.all(
+                          color: AppColors.slate.withAlpha(77),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.folder,
+                        color: AppColors.slate,
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            project.name.toUpperCase(),
+                            style: AppTextStyles.titleMedium.copyWith(
+                              color: AppColors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'ID: ${project.id.substring(0, 8)}',
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: AppColors.slate,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: AppColors.slate,
+                      ),
+                      onPressed: () => _confirmDelete(context, ref, project),
+                      tooltip: 'DELETE PROJECT',
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  child: AppButton(
+                    text: 'ENTER SYSTEM',
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    onPressed: () {
+                      Telling.instance.trackFunnel(
+                        funnelName: FunnelConstants.onboardingFunnel,
+                        stepName: FunnelConstants.projectSelected,
+                        step: 8,
+                        properties: {'project_name': project.name},
+                      );
+                      ref.read(projectProvider.notifier).selectProject(project);
+                      context.go('/');
+                    },
+                  ),
                 ),
               ],
             ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                text: 'ENTER SYSTEM',
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                onPressed: () {
-                  // Step 8: Project Selected (Onboarding Funnel)
-                  Telling.instance.trackFunnel(
-                    funnelName: FunnelConstants.onboardingFunnel,
-                    stepName: FunnelConstants.projectSelected,
-                    step: 8,
-                    properties: {'project_name': project.name},
-                  );
-                  ref.read(projectProvider.notifier).selectProject(project);
-                  context.go('/');
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+    );
+
+    return MilitaryHoverContainer(
+      baseColor: AppColors.surfaceDark,
+      hoverColor: AppColors.primary.withAlpha(26),
+      child: content,
     );
   }
 
   Widget _buildAddProjectCard(
     BuildContext context,
     WidgetRef ref,
-    bool isLimitReached,
-  ) {
+    bool isLimitReached, {
+    bool isMobile = false,
+  }) {
+    final content = Container(
+      padding: isMobile ? const EdgeInsets.symmetric(vertical: 20) : null,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isLimitReached
+              ? AppColors.slate.withAlpha(51)
+              : AppColors.slate.withAlpha(128),
+          style: BorderStyle.solid,
+        ),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isLimitReached
+              ? [
+                  AppColors.backgroundDark.withAlpha(128),
+                  AppColors.backgroundDark.withAlpha(128),
+                ]
+              : [
+                  AppColors.surfaceDark.withAlpha(77),
+                  AppColors.surfaceDark.withAlpha(26),
+                ],
+        ),
+      ),
+      child: isMobile
+          ? // Mobile: Horizontal layout
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add_circle_outline,
+                  size: 24,
+                  color: isLimitReached
+                      ? AppColors.slate.withAlpha(77)
+                      : AppColors.slate,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  isLimitReached
+                      ? 'LIMIT REACHED (3/3)'
+                      : 'INITIATE NEW PROJECT',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: isLimitReached
+                        ? AppColors.slate.withAlpha(77)
+                        : AppColors.slate,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            )
+          : // Desktop/Tablet: Vertical layout
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 32,
+                  color: isLimitReached
+                      ? AppColors.slate.withAlpha(77)
+                      : AppColors.slate,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isLimitReached
+                      ? 'LIMIT REACHED (3/3)'
+                      : 'INITIATE NEW PROJECT',
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: isLimitReached
+                        ? AppColors.slate.withAlpha(77)
+                        : AppColors.slate,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
+    );
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: isLimitReached ? null : () => _showCreateDialog(context, ref),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: isLimitReached
-                  ? AppColors.slate.withAlpha(51)
-                  : AppColors.slate.withAlpha(128),
-              style: BorderStyle.solid,
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isLimitReached
-                  ? [
-                      AppColors.backgroundDark.withAlpha(128),
-                      AppColors.backgroundDark.withAlpha(128),
-                    ]
-                  : [
-                      AppColors.surfaceDark.withAlpha(77),
-                      AppColors.surfaceDark.withAlpha(26),
-                    ],
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.add,
-                size: 32,
-                color: isLimitReached
-                    ? AppColors.slate.withAlpha(77)
-                    : AppColors.slate,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                isLimitReached ? 'LIMIT REACHED (3/3)' : 'INITIATE NEW PROJECT',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: isLimitReached
-                      ? AppColors.slate.withAlpha(77)
-                      : AppColors.slate,
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: content,
       ),
     );
   }
@@ -392,87 +527,140 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     );
 
     final controller = TextEditingController();
+    bool isLoading = false;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.slate.withAlpha(77)),
-        ),
-        title: const Text(
-          'INITIATE NEW PROJECT',
-          style: TextStyle(
-            fontFamily: 'Urbanist',
-            color: AppColors.white,
-            fontSize: 16,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: AppColors.slate.withAlpha(77)),
           ),
-        ),
-        content: TextField(
-          controller: controller,
-          cursorColor: AppColors.secondary,
-          style: const TextStyle(
-            color: AppColors.white,
-            fontFamily: 'Urbanist',
-          ),
-          decoration: const InputDecoration(
-            labelText: 'PROJECT CODENAME',
-            labelStyle: TextStyle(
-              color: AppColors.slate,
+          title: const Text(
+            'INITIATE NEW PROJECT',
+            style: TextStyle(
               fontFamily: 'Urbanist',
-            ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.slate),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.white),
+              color: AppColors.white,
+              fontSize: 16,
             ),
           ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'ABORT',
-              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                cursorColor: AppColors.secondary,
+                enabled: !isLoading,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontFamily: 'Urbanist',
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'PROJECT CODENAME',
+                  labelStyle: TextStyle(
+                    color: AppColors.slate,
+                    fontFamily: 'Urbanist',
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.slate),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.white),
+                  ),
+                  disabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.slate),
+                  ),
+                ),
+                autofocus: true,
+              ),
+              if (isLoading) ...[
+                const SizedBox(height: 16),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'CREATING PROJECT...',
+                      style: TextStyle(
+                        color: AppColors.slate,
+                        fontFamily: 'Urbanist',
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              if (controller.text.isNotEmpty) {
-                // Step 3: Create Project Submitted
-                Telling.instance.trackFunnel(
-                  funnelName: FunnelConstants.projectCreationFunnel,
-                  stepName: FunnelConstants.createProjectSubmitted,
-                  step: 3,
-                  properties: {'project_name': controller.text},
-                );
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+              child: Text(
+                'ABORT',
+                style: TextStyle(
+                  color: isLoading
+                      ? AppColors.slate.withAlpha(77)
+                      : AppColors.slate,
+                  fontFamily: 'Urbanist',
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      if (controller.text.isNotEmpty) {
+                        setState(() => isLoading = true);
 
-                await ref
-                    .read(projectProvider.notifier)
-                    .createProject(controller.text);
-                
-                if (context.mounted) {
-                  final error = ref.read(projectProvider).error;
-                  if (error == null) {
-                    // Step 4: Project Created Successfully
-                    Telling.instance.trackFunnel(
-                      funnelName: FunnelConstants.projectCreationFunnel,
-                      stepName: FunnelConstants.projectCreated,
-                      step: 4,
-                      properties: {'project_name': controller.text},
-                    );
-                  }
-                  Navigator.pop(context);
-                }
-              }
-            },
-            child: const Text(
-              'EXECUTE',
-              style: TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
+                        // Step 3: Create Project Submitted
+                        Telling.instance.trackFunnel(
+                          funnelName: FunnelConstants.projectCreationFunnel,
+                          stepName: FunnelConstants.createProjectSubmitted,
+                          step: 3,
+                          properties: {'project_name': controller.text},
+                        );
+
+                        await ref
+                            .read(projectProvider.notifier)
+                            .createProject(controller.text);
+
+                        if (context.mounted) {
+                          final error = ref.read(projectProvider).error;
+                          if (error == null) {
+                            // Step 4: Project Created Successfully
+                            Telling.instance.trackFunnel(
+                              funnelName: FunnelConstants.projectCreationFunnel,
+                              stepName: FunnelConstants.projectCreated,
+                              step: 4,
+                              properties: {'project_name': controller.text},
+                            );
+                          }
+                          Navigator.pop(context);
+                        }
+                      }
+                    },
+              child: Text(
+                'EXECUTE',
+                style: TextStyle(
+                  color: isLoading
+                      ? AppColors.white.withAlpha(77)
+                      : AppColors.white,
+                  fontFamily: 'Urbanist',
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
