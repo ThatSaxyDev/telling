@@ -835,7 +835,7 @@ class LogsScreen extends ConsumerWidget {
                             child: SelectableText(
                               log.stackTrace!,
                               style: TextStyle(
-                                fontFamily: 'monospace',
+                                fontFamily: 'Urbanist',
                                 fontSize: isMobile ? 10 : 12,
                                 color: AppColors.error.withAlpha(204),
                                 height: 1.4,
@@ -941,7 +941,7 @@ class LogsScreen extends ConsumerWidget {
                                       '  ',
                                     ).convert(displayMetadata),
                                     style: TextStyle(
-                                      fontFamily: 'monospace',
+                                      fontFamily: 'Urbanist',
                                       fontSize: isMobile ? 10 : 12,
                                       color: AppColors.secondary,
                                       height: 1.4,

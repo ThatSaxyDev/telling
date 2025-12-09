@@ -221,7 +221,7 @@ class LogDetailsDialog extends StatelessWidget {
                           child: SelectableText(
                             log.stackTrace!,
                             style: TextStyle(
-                              fontFamily: 'monospace',
+                              fontFamily: 'Urbanist',
                               fontSize: isMobile ? 10 : 12,
                               color: AppColors.error.withAlpha(204),
                               height: 1.4,
@@ -412,7 +412,7 @@ class LogDetailsDialog extends StatelessWidget {
             child: SelectableText(
               const JsonEncoder.withIndent('  ').convert(displayMetadata),
               style: TextStyle(
-                fontFamily: 'monospace',
+                fontFamily: 'Urbanist',
                 fontSize: isMobile ? 10 : 12,
                 color: AppColors.secondary,
                 height: 1.4,
