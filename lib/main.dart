@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,8 @@ import 'package:telling_logger/telling_logger.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/responsive.dart';
+import 'core/services/version_check_service.dart';
+import 'features/force_update/force_update_screen.dart';
 
 void main() async {
   runZonedGuarded(
@@ -37,6 +40,20 @@ void main() async {
       );
 
       Telling.instance.enableCrashReporting();
+
+      // Check for force update (only on native mobile)
+      if (Platform.isIOS || Platform.isAndroid) {
+        final versionCheck = await VersionCheckService.check();
+        if (versionCheck.requiresUpdate) {
+          runApp(
+            ForceUpdateScreen(
+              message: versionCheck.message ?? 'Please update to continue.',
+              storeUrl: versionCheck.storeUrl ?? '',
+            ),
+          );
+          return;
+        }
+      }
 
       runApp(const ProviderScope(child: MainApp()));
     },

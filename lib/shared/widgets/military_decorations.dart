@@ -337,10 +337,8 @@ class _ScanlineState extends State<Scanline>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    )..repeat();
+    _controller = AnimationController(vsync: this, duration: widget.duration)
+      ..repeat();
   }
 
   @override
@@ -377,29 +375,23 @@ class _ScanlinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.transparent,
-          color,
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromLTWH(
-        0,
-        size.height * progress - 100, // Move the gradient
-        size.width,
-        200, // Height of the scanline
-      ));
+      ..shader =
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.transparent, color, Colors.transparent],
+            stops: const [0.0, 0.5, 1.0],
+          ).createShader(
+            Rect.fromLTWH(
+              0,
+              size.height * progress - 100, // Move the gradient
+              size.width,
+              200, // Height of the scanline
+            ),
+          );
 
     canvas.drawRect(
-      Rect.fromLTWH(
-        0,
-        size.height * progress - 100,
-        size.width,
-        200,
-      ),
+      Rect.fromLTWH(0, size.height * progress - 100, size.width, 200),
       paint,
     );
   }
@@ -505,7 +497,7 @@ class _CrosshairPainter extends CustomPainter {
       Offset(center.dx, center.dy + length),
       paint,
     );
-    
+
     // Center dot
     canvas.drawCircle(center, 1, Paint()..color = color);
   }
@@ -519,12 +511,14 @@ class GlitchText extends StatefulWidget {
   final String text;
   final TextStyle style;
   final double glitchAmount;
+  final TextAlign? textAlign;
 
   const GlitchText({
     super.key,
     required this.text,
     required this.style,
     this.glitchAmount = 1.0,
+    this.textAlign,
   });
 
   @override
@@ -606,6 +600,7 @@ class _GlitchTextState extends State<GlitchText>
             offset: Offset(_offset1X, _offset1Y),
             child: Text(
               widget.text,
+              textAlign: widget.textAlign,
               style: widget.style.copyWith(color: Colors.cyan.withAlpha(179)),
             ),
           ),
@@ -616,12 +611,13 @@ class _GlitchTextState extends State<GlitchText>
             offset: Offset(_offset2X, _offset2Y),
             child: Text(
               widget.text,
+              textAlign: widget.textAlign,
               style: widget.style.copyWith(color: Colors.red.withAlpha(179)),
             ),
           ),
 
         // Main Text
-        Text(widget.text, style: widget.style),
+        Text(widget.text, textAlign: widget.textAlign, style: widget.style),
       ],
     );
   }
@@ -824,8 +820,7 @@ class _MilitaryHoverContainerState extends State<MilitaryHoverContainer>
                           ? widget.hoverColor.withAlpha(20)
                           : Colors.transparent,
                       border: Border.all(
-                        color: (_colorAnim.value ?? widget.baseColor)
-                            .withAlpha(
+                        color: (_colorAnim.value ?? widget.baseColor).withAlpha(
                           _isHovered ? 153 : 51,
                         ),
                         width: 1,
