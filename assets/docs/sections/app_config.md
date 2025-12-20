@@ -22,3 +22,37 @@ When your app launches, the Telling SDK checks the current app version against t
 1. **SemVer Compliance**: Ensure your app uses Semantic Versioning (`X.Y.Z`).
 2. **Grace Periods**: When releasing a new version, consider making the update **non-blocking** for a few days before enforcing it.
 3. **Emergency Fixes**: If you release a critical bug fix (e.g., `1.0.5`), set the minimum version to `1.0.5` and enable **Blocking Update** to ensure all users get the fix immediately.
+
+## Implementation Guide
+
+To enforce these rules in your app, use the `telling_logger` SDK version 1.3.0+.
+
+### 1. Check for Updates
+
+```dart
+// Check on app startup
+final result = await Telling.instance.checkVersion();
+
+if (result.requiresUpdate) {
+  // Update is available
+}
+```
+
+### 2. Show Update Screen
+
+Use the built-in widget for a seamless experience:
+
+```dart
+if (result.requiresUpdate) {
+  runApp(MaterialApp(
+    home: TellingForceUpdateScreen(
+      result: result,
+      primaryColor: Colors.blue, 
+      onSkip: () {
+        // Navigate to home for optional updates
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
+      },
+    ),
+  ));
+}
+```
