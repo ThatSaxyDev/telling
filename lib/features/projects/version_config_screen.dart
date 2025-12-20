@@ -1,21 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:telling/shared/widgets/military_loader.dart';
 import '../../core/providers/project_config_provider.dart';
 import '../../core/providers/project_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
 
-class VersionConfigScreen extends ConsumerStatefulWidget {
+/// Wrapper widget that handles Project ID changes.
+/// This ensures a fresh form state is created whenever the project changes.
+class VersionConfigScreen extends ConsumerWidget {
   const VersionConfigScreen({super.key});
 
   @override
-  ConsumerState<VersionConfigScreen> createState() =>
-      _VersionConfigScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final projectState = ref.watch(projectProvider);
+    final project = projectState.selectedProject;
+
+    if (project == null) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
+          ),
+          title: const Text('VERSION_CONFIG'),
+        ),
+        body: const Center(
+          child: Text(
+            'NO_PROJECT_SELECTED',
+            style: TextStyle(fontFamily: 'Urbanist', color: AppColors.slate),
+          ),
+        ),
+      );
+    }
+
+    // Keyed Subtree Pattern essentially:
+    // When project.id changes, the Key changes.
+    // Flutter disposes the old _VersionConfigContentState and creates a new one.
+    // This gives us a fresh initState() for free.
+    return _VersionConfigContent(
+      key: ValueKey(project.id),
+      projectId: project.id,
+      projectName: project.name,
+    );
+  }
 }
 
-class _VersionConfigScreenState extends ConsumerState<VersionConfigScreen> {
+/// The actual form content.
+/// Created fresh for each project.
+class _VersionConfigContent extends ConsumerStatefulWidget {
+  final String projectId;
+  final String projectName;
+
+  const _VersionConfigContent({
+    super.key,
+    required this.projectId,
+    required this.projectName,
+  });
+
+  @override
+  ConsumerState<_VersionConfigContent> createState() =>
+      _VersionConfigContentState();
+}
+
+class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _minIosVersionController;
@@ -115,31 +165,7 @@ class _VersionConfigScreenState extends ConsumerState<VersionConfigScreen> {
   @override
   Widget build(BuildContext context) {
     final configState = ref.watch(projectConfigProvider);
-    final projectState = ref.watch(projectProvider);
-    final project = projectState.selectedProject;
     final isMobile = MediaQuery.of(context).size.width < 600;
-
-    if (project == null) {
-      return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
-          title: const Text('VERSION_CONFIG'),
-        ),
-        body: const Center(
-          child: Text(
-            'NO_PROJECT_SELECTED',
-            style: TextStyle(fontFamily: 'Urbanist', color: AppColors.slate),
-          ),
-        ),
-      );
-    }
-
-    if (!configState.isLoading && configState.error == null) {
-      _initializeControllers(configState.config);
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -147,9 +173,13 @@ class _VersionConfigScreenState extends ConsumerState<VersionConfigScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'VERSION_CONFIG',
-          style: TextStyle(fontFamily: 'Urbanist', letterSpacing: 1.5),
+          style: TextStyle(
+            fontFamily: 'Urbanist',
+            letterSpacing: isMobile ? 1.0 : 1.5,
+            fontSize: isMobile ? 16 : null,
+          ),
         ),
         actions: [
           if (!_isEditMode)
@@ -196,288 +226,301 @@ class _VersionConfigScreenState extends ConsumerState<VersionConfigScreen> {
           ),
         ],
       ),
-      body: configState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : configState.error != null
-          ? Center(
+      body: _buildBody(context, configState, isMobile),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    ProjectConfigState configState,
+    bool isMobile,
+  ) {
+    if (configState.isLoading) {
+      return const Center(child: MilitaryLoader(label: 'LOADING CONFIG...'));
+    }
+
+    if (configState.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error, size: 64, color: AppColors.error),
+            const SizedBox(height: 16),
+            Text(
+              'Error: ${configState.error}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.slate),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () =>
+                  ref.read(projectConfigProvider.notifier).loadConfig(),
+              child: const Text('RETRY'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Initialize controllers like admin pattern - this is safe because _initialized flag guards it
+    _initializeControllers(configState.config);
+
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 16 : 24,
+          vertical: isMobile ? 16 : 24,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Form(
+              key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.error, size: 64, color: AppColors.error),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error: ${configState.error}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.slate),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: () =>
-                        ref.read(projectConfigProvider.notifier).loadConfig(),
-                    child: const Text('RETRY'),
-                  ),
-                ],
-              ),
-            )
-          : GestureDetector(
-              onTap: () => FocusScope.of(context).unfocus(),
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 16 : 24,
-                  vertical: isMobile ? 16 : 24,
-                ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 800),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  // Header
+                  MilitaryHoverContainer(
+                    child: Padding(
+                      padding: EdgeInsets.all(isMobile ? 16 : 20),
+                      child: Row(
                         children: [
-                          // Header
-                          MilitaryHoverContainer(
-                            child: Padding(
-                              padding: EdgeInsets.all(isMobile ? 16 : 20),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.system_update,
-                                    color: AppColors.secondary,
-                                    size: isMobile ? 32 : 48,
-                                  ),
-                                  SizedBox(width: isMobile ? 12 : 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'FORCE_UPDATE_CONFIG',
-                                          style: AppTextStyles.displaySmall
-                                              .copyWith(
-                                                fontSize: isMobile ? 16 : 20,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Configure minimum app versions for ${project.name}',
-                                          style: AppTextStyles.bodySmall
-                                              .copyWith(color: AppColors.slate),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          Icon(
+                            Icons.system_update,
+                            color: AppColors.secondary,
+                            size: isMobile ? 32 : 48,
                           ),
-                          SizedBox(height: isMobile ? 20 : 24),
-
-                          // Version Section
-                          Text(
-                            'MINIMUM_VERSIONS',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.slate,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          MilitaryHoverContainer(
-                            child: Padding(
-                              padding: EdgeInsets.all(isMobile ? 16 : 20),
-                              child: Column(
-                                children: [
-                                  _buildTextField(
-                                    controller: _minIosVersionController,
-                                    label: 'MIN_IOS_VERSION',
-                                    icon: Icons.apple,
-                                    hint: 'e.g., 1.0.0',
-                                    onChanged: (_) => _onFieldChanged(),
-                                    validator: _validateVersion,
-                                    readOnly: !_isEditMode,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildTextField(
-                                    controller: _minAndroidVersionController,
-                                    label: 'MIN_ANDROID_VERSION',
-                                    icon: Icons.android,
-                                    hint: 'e.g., 1.0.0',
-                                    onChanged: (_) => _onFieldChanged(),
-                                    validator: _validateVersion,
-                                    readOnly: !_isEditMode,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: isMobile ? 20 : 24),
-
-                          // Store URLs Section
-                          Text(
-                            'STORE_URLS',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.slate,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          MilitaryHoverContainer(
-                            child: Padding(
-                              padding: EdgeInsets.all(isMobile ? 16 : 20),
-                              child: Column(
-                                children: [
-                                  _buildTextField(
-                                    controller: _iosStoreUrlController,
-                                    label: 'IOS_STORE_URL',
-                                    icon: Icons.apple,
-                                    hint: 'https://apps.apple.com/...',
-                                    maxLines: 2,
-                                    onChanged: (_) => _onFieldChanged(),
-                                    readOnly: !_isEditMode,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _buildTextField(
-                                    controller: _androidStoreUrlController,
-                                    label: 'ANDROID_STORE_URL',
-                                    icon: Icons.android,
-                                    hint: 'https://play.google.com/...',
-                                    maxLines: 2,
-                                    onChanged: (_) => _onFieldChanged(),
-                                    readOnly: !_isEditMode,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: isMobile ? 20 : 24),
-
-                          // Message Section
-                          Text(
-                            'UPDATE_MESSAGE',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.slate,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          MilitaryHoverContainer(
-                            child: Padding(
-                              padding: EdgeInsets.all(isMobile ? 16 : 20),
-                              child: _buildTextField(
-                                controller: _forceUpdateMessageController,
-                                label: 'FORCE_UPDATE_MESSAGE',
-                                icon: Icons.message,
-                                hint:
-                                    'Message shown to users when update is required',
-                                maxLines: 3,
-                                onChanged: (_) => _onFieldChanged(),
-                                readOnly: !_isEditMode,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: isMobile ? 20 : 24),
-
-                          // Compulsory Toggle
-                          Text(
-                            'UPDATE_BEHAVIOR',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.slate,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          MilitaryHoverContainer(
-                            child: Padding(
-                              padding: EdgeInsets.all(isMobile ? 16 : 20),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _isUpdateRequired
-                                        ? Icons.block
-                                        : Icons.skip_next,
-                                    color: _isUpdateRequired
-                                        ? AppColors.error
-                                        : AppColors.secondary,
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'UPDATE_IS_COMPULSORY',
-                                          style: AppTextStyles.bodyMedium
-                                              .copyWith(color: AppColors.white),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _isUpdateRequired
-                                              ? 'Users cannot skip the update'
-                                              : 'Users can choose to update later',
-                                          style: AppTextStyles.bodySmall
-                                              .copyWith(color: AppColors.slate),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Switch(
-                                    value: _isUpdateRequired,
-                                    onChanged: _isEditMode
-                                        ? (value) {
-                                            setState(
-                                              () => _isUpdateRequired = value,
-                                            );
-                                            _onFieldChanged();
-                                          }
-                                        : null,
-                                    activeThumbColor: AppColors.error,
-                                    inactiveThumbColor: AppColors.secondary,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: isMobile ? 24 : 32),
-
-                          // Save Button
-                          if (_isEditMode)
-                            SizedBox(
-                              width: double.infinity,
-                              child: FilledButton.icon(
-                                onPressed:
-                                    (_hasChanges && !configState.isLoading)
-                                    ? _saveConfig
-                                    : null,
-                                icon: configState.isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Icon(Icons.save),
-                                label: Text(
-                                  configState.isLoading
-                                      ? 'SAVING...'
-                                      : 'SAVE_CONFIGURATION',
-                                ),
-                                style: FilledButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: isMobile ? 14 : 16,
+                          SizedBox(width: isMobile ? 12 : 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'FORCE_UPDATE_CONFIG',
+                                  style: AppTextStyles.displaySmall.copyWith(
+                                    fontSize: isMobile ? 16 : 20,
                                   ),
                                 ),
-                              ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Configure minimum app versions for ${widget.projectName}',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.slate,
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                ),
+                  SizedBox(height: isMobile ? 20 : 24),
+
+                  // Version Section
+                  Text(
+                    'MINIMUM_VERSIONS',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: AppColors.slate,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  MilitaryHoverContainer(
+                    child: Padding(
+                      padding: EdgeInsets.all(isMobile ? 16 : 20),
+                      child: Column(
+                        children: [
+                          _buildTextField(
+                            controller: _minIosVersionController,
+                            label: 'MIN_IOS_VERSION',
+                            icon: Icons.apple,
+                            hint: 'e.g., 1.0.0',
+                            onChanged: (_) => _onFieldChanged(),
+                            validator: _validateVersion,
+                            readOnly: !_isEditMode,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            controller: _minAndroidVersionController,
+                            label: 'MIN_ANDROID_VERSION',
+                            icon: Icons.android,
+                            hint: 'e.g., 1.0.0',
+                            onChanged: (_) => _onFieldChanged(),
+                            validator: _validateVersion,
+                            readOnly: !_isEditMode,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: isMobile ? 20 : 24),
+
+                  // Store URLs Section
+                  Text(
+                    'STORE_URLS',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: AppColors.slate,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  MilitaryHoverContainer(
+                    child: Padding(
+                      padding: EdgeInsets.all(isMobile ? 16 : 20),
+                      child: Column(
+                        children: [
+                          _buildTextField(
+                            controller: _iosStoreUrlController,
+                            label: 'IOS_STORE_URL',
+                            icon: Icons.apple,
+                            hint: 'https://apps.apple.com/...',
+                            maxLines: 2,
+                            onChanged: (_) => _onFieldChanged(),
+                            readOnly: !_isEditMode,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            controller: _androidStoreUrlController,
+                            label: 'ANDROID_STORE_URL',
+                            icon: Icons.android,
+                            hint: 'https://play.google.com/...',
+                            maxLines: 2,
+                            onChanged: (_) => _onFieldChanged(),
+                            readOnly: !_isEditMode,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: isMobile ? 20 : 24),
+
+                  // Message Section
+                  Text(
+                    'UPDATE_MESSAGE',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: AppColors.slate,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  MilitaryHoverContainer(
+                    child: Padding(
+                      padding: EdgeInsets.all(isMobile ? 16 : 20),
+                      child: _buildTextField(
+                        controller: _forceUpdateMessageController,
+                        label: 'FORCE_UPDATE_MESSAGE',
+                        icon: Icons.message,
+                        hint: 'Message shown to users when update is required',
+                        maxLines: 3,
+                        onChanged: (_) => _onFieldChanged(),
+                        readOnly: !_isEditMode,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: isMobile ? 20 : 24),
+
+                  // Compulsory Toggle
+                  Text(
+                    'UPDATE_BEHAVIOR',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: AppColors.slate,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  MilitaryHoverContainer(
+                    child: Padding(
+                      padding: EdgeInsets.all(isMobile ? 16 : 20),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isUpdateRequired ? Icons.block : Icons.skip_next,
+                            color: _isUpdateRequired
+                                ? AppColors.error
+                                : AppColors.secondary,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'UPDATE_IS${_isUpdateRequired ? '' : '_NOT'}_COMPULSORY',
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _isUpdateRequired
+                                      ? 'Users cannot skip the update'
+                                      : 'Users can choose to update later',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.slate,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _isUpdateRequired,
+                            onChanged: _isEditMode
+                                ? (value) {
+                                    setState(() => _isUpdateRequired = value);
+                                    _onFieldChanged();
+                                  }
+                                : null,
+                            activeThumbColor: AppColors.error,
+                            inactiveThumbColor: AppColors.secondary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: isMobile ? 24 : 32),
+
+                  // Save Button
+                  if (_isEditMode)
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: (_hasChanges && !configState.isLoading)
+                            ? _saveConfig
+                            : null,
+                        icon: configState.isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              )
+                            : const Icon(Icons.save),
+                        label: Text(
+                          configState.isLoading
+                              ? 'SAVING...'
+                              : 'SAVE_CONFIGURATION',
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.secondary,
+                          foregroundColor: AppColors.primary,
+                          disabledBackgroundColor: AppColors.secondary
+                              .withAlpha(50),
+                          padding: EdgeInsets.symmetric(
+                            vertical: isMobile ? 14 : 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
+          ),
+        ),
+      ),
     );
   }
 
