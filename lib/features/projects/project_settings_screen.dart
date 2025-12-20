@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/providers/project_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/military_decorations.dart';
@@ -25,7 +26,7 @@ class ProjectSettingsScreen extends ConsumerWidget {
       );
     }
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,6 +138,65 @@ class ProjectSettingsScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Version Config Button
+          MilitaryHoverContainer(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => context.push('/projects/version-config'),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withAlpha(26),
+                          border: Border.all(
+                            color: AppColors.secondary.withAlpha(77),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.system_update,
+                          color: AppColors.secondary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'VERSION_CONFIG',
+                              style: TextStyle(
+                                fontFamily: 'Urbanist',
+                                color: AppColors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Configure force update settings for your app',
+                              style: TextStyle(
+                                fontFamily: 'Urbanist',
+                                color: AppColors.slate.withAlpha(179),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: AppColors.slate),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

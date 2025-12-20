@@ -91,6 +91,72 @@ class SettingsScreen extends ConsumerWidget {
           ),
           SizedBox(height: sectionSpacing),
 
+          // Version Config Section
+          MilitaryHoverContainer(
+            baseColor: AppColors.surfaceDark,
+            showGrid: false,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => context.push('/projects/version-config'),
+                child: Container(
+                  padding: EdgeInsets.all(sectionPadding),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.slate.withAlpha(77)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(isMobile ? 10 : 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withAlpha(26),
+                          border: Border.all(
+                            color: AppColors.secondary.withAlpha(77),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.system_update,
+                          color: AppColors.secondary,
+                          size: isMobile ? 20 : 24,
+                        ),
+                      ),
+                      SizedBox(width: isMobile ? 12 : 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'VERSION_CONFIG',
+                              style:
+                                  (isMobile
+                                          ? AppTextStyles.titleSmall
+                                          : AppTextStyles.titleMedium)
+                                      .copyWith(color: AppColors.secondary),
+                            ),
+                            SizedBox(height: isMobile ? 4 : 6),
+                            Text(
+                              'Configure force update settings for your app',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.slate,
+                                fontSize: isMobile ? 11 : 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: AppColors.slate,
+                        size: isMobile ? 20 : 24,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: sectionSpacing),
+
           // Profile Section
           const ProfileSection(),
           SizedBox(height: sectionSpacing),

@@ -13,7 +13,10 @@ class ApiConfig {
   static const String usersPath = '$baseUrl/users';
   static const String sessionsPath = '$baseUrl/sessions';
   static const String statsPath = '$baseUrl/stats';
+  static const String projectConfigPath =
+      '$baseUrl/project'; // For version config
 
   // For development, you can switch between local and production
   // static const String baseUrl = 'http://localhost:8080/api/v1';
 }
+

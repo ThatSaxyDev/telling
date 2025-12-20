@@ -17,6 +17,7 @@ import '../../features/users/users_screen.dart';
 import '../../features/users/user_details_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/projects/project_settings_screen.dart';
+import '../../features/projects/version_config_screen.dart';
 import '../../features/projects/projects_screen.dart';
 import '../../shared/widgets/dashboard_layout.dart';
 import '../providers/auth_provider.dart';
@@ -163,6 +164,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'project_settings',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const ProjectSettingsScreen()),
+          ),
+          GoRoute(
+            path: '/projects/version-config',
+            name: 'version_config',
+            pageBuilder: (context, state) =>
+                NoTransitionPage(child: const VersionConfigScreen()),
           ),
         ],
       ),
