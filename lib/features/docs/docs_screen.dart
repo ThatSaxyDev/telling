@@ -70,6 +70,11 @@ class _DocsScreenState extends State<DocsScreen> {
       icon: Icons.settings_outlined,
     ),
     _DocsSection(
+      title: 'App Config & Updates',
+      file: 'app_config.md',
+      icon: Icons.system_update_outlined,
+    ),
+    _DocsSection(
       title: 'Best Practices',
       file: 'best_practices.md',
       icon: Icons.verified_outlined,
