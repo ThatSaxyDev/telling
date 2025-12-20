@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,7 +43,7 @@ void main() async {
       Telling.instance.enableCrashReporting();
 
       // Check for force update (only on native mobile)
-      if (Platform.isIOS || Platform.isAndroid) {
+      if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
         final versionCheck = await VersionCheckService.check();
         if (versionCheck.requiresUpdate) {
           runApp(
