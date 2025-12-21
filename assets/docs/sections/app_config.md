@@ -15,7 +15,7 @@ When your app launches, the Telling SDK checks the current app version against t
 - **Force Update Message**: The message displayed to users on the update screen (e.g., "A critical security update is available.").
 - **Blocking Update**: 
     - **Enabled**: Users CANNOT dismiss the update screen. They must update to continue.
-    - **Disabled**: Users see a "Not Now" button and can skip the update.
+    - **Disabled**: Users see a "Later" button and can skip the update.
 
 ## Best Practices
 
@@ -25,34 +25,42 @@ When your app launches, the Telling SDK checks the current app version against t
 
 ## Implementation Guide
 
-To enforce these rules in your app, use the `telling_logger` SDK version 1.3.0+.
+To enforce these rules in your app, use the `telling_logger` SDK version 1.4.0+.
 
 ### 1. Check for Updates
 
 ```dart
-// Check on app startup
+// Check on app startup (e.g., in main.dart or Splash Screen)
 final result = await Telling.instance.checkVersion();
 
 if (result.requiresUpdate) {
-  // Update is available
+  if (result.isRequired) {
+    // Blocking update - show non-dismissible UI
+  } else {
+    // Optional update - user can skip
+  }
 }
 ```
 
-### 2. Show Update Screen
+### 2. Handle Optional Updates with Snooze
 
-Use the built-in widget for a seamless experience:
+When the user skips an optional update, call `snoozeUpdate()` to suppress the prompt for a few days:
 
 ```dart
-if (result.requiresUpdate) {
-  runApp(MaterialApp(
-    home: TellingForceUpdateScreen(
-      result: result,
-      primaryColor: Colors.blue, 
-      onSkip: () {
-        // Navigate to home for optional updates
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
-      },
-    ),
-  ));
+if (result.requiresUpdate && !result.isRequired) {
+  final skipped = await showUpdateDialog();
+  
+  if (skipped && result.minVersion != null) {
+    await Telling.instance.snoozeUpdate(
+      days: 3, // 0 = no snooze, 1-3 = days to suppress
+      minVersion: result.minVersion!,
+    );
+  }
 }
 ```
+
+**Snooze Behavior:**
+- **0 days**: No snooze, prompt every app launch
+- **1-3 days**: Suppress prompt until snooze expires
+- **Version change**: Snooze resets when you update the minimum version
+
