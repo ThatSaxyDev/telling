@@ -90,8 +90,38 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
 
     // Load config on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Listen for config changes and update controllers when config loads
+      ref.listenManual(projectConfigProvider, (previous, next) {
+        // Only update if we just finished loading (was loading, now not loading)
+        // and there's actual config data
+        if (previous?.isLoading == true &&
+            !next.isLoading &&
+            next.config.isNotEmpty &&
+            next.error == null) {
+          _populateControllers(next.config);
+        }
+      });
       ref.read(projectConfigProvider.notifier).loadConfig();
     });
+  }
+
+  /// Populate controllers with config values and trigger UI update
+  void _populateControllers(Map<String, String> config) {
+    _minIosVersionController.text = config['min_ios_version'] ?? '';
+    _minAndroidVersionController.text = config['min_android_version'] ?? '';
+    _iosStoreUrlController.text = config['ios_store_url'] ?? '';
+    _androidStoreUrlController.text = config['android_store_url'] ?? '';
+    _forceUpdateMessageController.text =
+        config['force_update_message'] ??
+        'Please update to continue using the app.';
+
+    if (mounted) {
+      setState(() {
+        _isUpdateRequired =
+            (config['is_update_required'] ?? 'true').toLowerCase() == 'true';
+        _initialized = true;
+      });
+    }
   }
 
   @override
@@ -106,17 +136,7 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
 
   void _initializeControllers(Map<String, String> config) {
     if (_initialized) return;
-    _initialized = true;
-
-    _minIosVersionController.text = config['min_ios_version'] ?? '';
-    _minAndroidVersionController.text = config['min_android_version'] ?? '';
-    _iosStoreUrlController.text = config['ios_store_url'] ?? '';
-    _androidStoreUrlController.text = config['android_store_url'] ?? '';
-    _forceUpdateMessageController.text =
-        config['force_update_message'] ??
-        'Please update to continue using the app.';
-    _isUpdateRequired =
-        (config['is_update_required'] ?? 'true').toLowerCase() == 'true';
+    _populateControllers(config);
   }
 
   void _onFieldChanged() {
@@ -147,15 +167,21 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
         _isEditMode = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('VERSION_CONFIG_SAVED'),
+        SnackBar(
+          content: Text(
+            'VERSION_CONFIG_SAVED',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.white),
+          ),
           backgroundColor: Color(0xFF2D5A2D),
         ),
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('FAILED_TO_SAVE_CONFIG'),
+        SnackBar(
+          content: Text(
+            'FAILED_TO_SAVE_CONFIG',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.white),
+          ),
           backgroundColor: AppColors.error,
         ),
       );
