@@ -64,3 +64,26 @@ if (result.requiresUpdate && !result.isRequired) {
 - **1-3 days**: Suppress prompt until snooze expires
 - **Version change**: Snooze resets when you update the minimum version
 
+### 3. Track Update Acceptance
+
+When the user accepts an update, call `acceptUpdate()` before opening the store URL:
+
+```dart
+if (shouldUpdate == true) {
+  await Telling.instance.acceptUpdate(minVersion: result.minVersion);
+  launchUrl(Uri.parse(result.storeUrl!));
+}
+```
+
+## Automatic Analytics
+
+The SDK automatically tracks update-related events—no manual logging required:
+
+| Event | When Logged | Properties |
+|-------|-------------|------------|
+| `update_check_completed` | Every `checkVersion()` call | `requires_update`, `is_required`, `min_version`, `current_version`, `is_snoozed` |
+| `update_prompted` | When update is required (not snoozed) | `is_required`, `min_version`, `current_version` |
+| `update_snoozed` | When `snoozeUpdate()` is called | `snooze_days`, `min_version`, `current_version` |
+| `update_accepted` | When `acceptUpdate()` is called | `min_version`, `current_version` |
+
+This gives you a complete funnel: **check → prompt → (snooze OR accept)**.
