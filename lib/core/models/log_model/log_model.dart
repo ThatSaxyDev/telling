@@ -4,6 +4,7 @@ import 'package:telling/core/theme/app_colors.dart';
 import '../log_level/log_level.dart';
 import '../device_info/device_info.dart';
 import '../log_entry.dart';
+import '../stack_trace_frame/stack_trace_frame.dart';
 
 part 'log_model.freezed.dart';
 // part 'log_model.g.dart';
@@ -94,6 +95,22 @@ extension LogModelX on LogModel {
         return AppColors.slate;
       default:
         return AppColors.slate;
+    }
+  }
+
+  /// Parsed structured stack trace frames from metadata.
+  /// Returns null if not available (fallback to raw stackTrace).
+  List<StackTraceFrame>? get stackTraceElements {
+    final elements = metadata['stackTraceElements'];
+    if (elements == null || elements is! List) return null;
+
+    try {
+      return elements
+          .cast<Map<String, dynamic>>()
+          .map((e) => StackTraceFrame.fromJson(e))
+          .toList();
+    } catch (_) {
+      return null;
     }
   }
 }

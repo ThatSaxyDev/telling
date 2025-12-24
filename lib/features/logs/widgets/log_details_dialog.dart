@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../../core/extensions/responsive_extension.dart';
 import '../../../core/models/log_level/log_level.dart';
 import '../../../core/models/log_model/log_model.dart';
+import '../../../core/models/stack_trace_frame/stack_trace_frame.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
@@ -107,12 +108,12 @@ class LogDetailsDialog extends StatelessWidget {
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
         horizontal: isMobile ? 8 : 40,
-        vertical: isMobile ? 16 : 40,
+        vertical: isMobile ? 16 : 24,
       ),
       child: Container(
-        width: isMobile ? screenWidth : 650,
+        width: isMobile ? screenWidth : 850,
         constraints: BoxConstraints(
-          maxHeight: isMobile ? screenHeight * 0.9 : 800,
+          maxHeight: isMobile ? screenHeight * 0.9 : screenHeight * 0.8,
         ),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.primary, width: 1),
@@ -206,28 +207,19 @@ class LogDetailsDialog extends StatelessWidget {
                       ),
                     ],
 
-                    // Stack Trace
-                    if (log.stackTrace != null && log.stackTrace!.isNotEmpty) ...[
+                    // Stack Trace - structured frames if available, raw fallback
+                    if ((log.stackTrace != null &&
+                            log.stackTrace!.isNotEmpty) ||
+                        log.stackTraceElements != null) ...[
                       SizedBox(height: isMobile ? 12 : 16),
                       _buildDetailCard(
                         label: 'STACK TRACE',
-                        child: Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(isMobile ? 10 : 12),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: SelectableText(
-                            log.stackTrace!,
-                            style: TextStyle(
-                              fontFamily: 'Urbanist',
-                              fontSize: isMobile ? 10 : 12,
-                              color: AppColors.error.withAlpha(204),
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
+                        child: log.stackTraceElements != null
+                            ? _buildStructuredStackTrace(
+                                log.stackTraceElements!,
+                                isMobile,
+                              )
+                            : _buildRawStackTrace(log.stackTrace!, isMobile),
                         isMobile: isMobile,
                         isError: true,
                       ),
@@ -317,7 +309,7 @@ class LogDetailsDialog extends StatelessWidget {
               style: AppTextStyles.labelSmall.copyWith(
                 color: AppColors.secondary,
                 fontWeight: FontWeight.bold,
-                fontSize: isMobile ? 10 : 12,
+                fontSize: isMobile ? 10 : 13,
               ),
             ),
           ),
@@ -369,7 +361,7 @@ class LogDetailsDialog extends StatelessWidget {
                           (breadcrumb['message'] ?? 'Unknown').toString(),
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.white,
-                            fontSize: isMobile ? 11 : 12,
+                            fontSize: isMobile ? 11 : 14,
                           ),
                         ),
                         if (breadcrumb['timestamp'] != null)
@@ -377,7 +369,7 @@ class LogDetailsDialog extends StatelessWidget {
                             breadcrumb['timestamp'].toString().substring(11, 19),
                             style: AppTextStyles.labelSmall.copyWith(
                               color: AppColors.slate,
-                              fontSize: isMobile ? 9 : 10,
+                              fontSize: isMobile ? 9 : 12,
                             ),
                           ),
                       ],
@@ -393,8 +385,11 @@ class LogDetailsDialog extends StatelessWidget {
   }
 
   Widget _buildMetadataSection(bool isMobile) {
-    // Filter out breadcrumbs from metadata display
-    final displayMetadata = Map<String, dynamic>.from(log.metadata)..remove('breadcrumbs');
+    // Filter out breadcrumbs and stackTraceElements from metadata display
+    // (they have their own dedicated UI sections)
+    final displayMetadata = Map<String, dynamic>.from(log.metadata)
+      ..remove('breadcrumbs')
+      ..remove('stackTraceElements');
     if (displayMetadata.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -413,9 +408,9 @@ class LogDetailsDialog extends StatelessWidget {
               const JsonEncoder.withIndent('  ').convert(displayMetadata),
               style: TextStyle(
                 fontFamily: 'Urbanist',
-                fontSize: isMobile ? 10 : 12,
+                fontSize: isMobile ? 10 : 14,
                 color: AppColors.secondary,
-                height: 1.4,
+                height: 1.5,
               ),
             ),
           ),
@@ -522,7 +517,7 @@ class LogDetailsDialog extends StatelessWidget {
               style: AppTextStyles.labelSmall.copyWith(
                 color: isError ? AppColors.error : AppColors.slate,
                 fontWeight: FontWeight.bold,
-                fontSize: isMobile ? 10 : 11,
+                fontSize: isMobile ? 10 : 13,
                 letterSpacing: 1.2,
               ),
             ),
@@ -558,16 +553,16 @@ class LogDetailsDialog extends StatelessWidget {
                   label,
                   style: AppTextStyles.labelSmall.copyWith(
                     color: AppColors.slate,
-                    fontSize: isMobile ? 9 : 10,
+                    fontSize: isMobile ? 9 : 12,
                     letterSpacing: 1,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 SelectableText(
                   value,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.white,
-                    fontSize: isMobile ? 11 : 12,
+                    fontSize: isMobile ? 11 : 14,
                   ),
                 ),
               ],
@@ -590,7 +585,7 @@ class LogDetailsDialog extends StatelessWidget {
               label.toUpperCase(),
               style: AppTextStyles.labelSmall.copyWith(
                 color: AppColors.slate,
-                fontSize: isMobile ? 9 : 10,
+                fontSize: isMobile ? 9 : 12,
                 letterSpacing: 0.5,
               ),
             ),
@@ -600,7 +595,7 @@ class LogDetailsDialog extends StatelessWidget {
               value,
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.white,
-                fontSize: isMobile ? 11 : 12,
+                fontSize: isMobile ? 11 : 14,
               ),
             ),
           ),
@@ -646,6 +641,95 @@ class LogDetailsDialog extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Renders structured stack trace frames as a list
+  Widget _buildStructuredStackTrace(
+    List<StackTraceFrame> frames,
+    bool isMobile,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 8 : 12),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < frames.length; i++)
+            Padding(
+              padding: EdgeInsets.only(bottom: i < frames.length - 1 ? 8 : 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Frame index
+                  SizedBox(
+                    width: isMobile ? 24 : 32,
+                    child: Text(
+                      '#$i',
+                      style: TextStyle(
+                        fontFamily: 'Urbanist',
+                        fontSize: isMobile ? 10 : 13,
+                        color: AppColors.slate,
+                      ),
+                    ),
+                  ),
+                  // Frame details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Method name (class.method or just method)
+                        SelectableText(
+                          frames[i].displayName,
+                          style: TextStyle(
+                            fontFamily: 'Urbanist',
+                            fontSize: isMobile ? 11 : 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.error.withAlpha(230),
+                          ),
+                        ),
+                        // File:line
+                        SelectableText(
+                          '${frames[i].shortFile}:${frames[i].line}',
+                          style: TextStyle(
+                            fontFamily: 'Urbanist',
+                            fontSize: isMobile ? 9 : 12,
+                            color: AppColors.slate,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Renders raw stack trace as a monospace text block (fallback)
+  Widget _buildRawStackTrace(String stackTrace, bool isMobile) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 10 : 12),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: SelectableText(
+        stackTrace,
+        style: TextStyle(
+          fontFamily: 'Urbanist',
+          fontSize: isMobile ? 10 : 14,
+          color: AppColors.error.withAlpha(204),
+          height: 1.5,
         ),
       ),
     );
