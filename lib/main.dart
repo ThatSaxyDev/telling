@@ -55,14 +55,14 @@ void main() async {
           );
           return;
         }
+
+        OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+
+        OneSignal.initialize('aa70cb56-bec5-4bbc-a480-fd8985a035ed');
+        // Use this method to prompt for push notifications.
+        // We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
+        OneSignal.Notifications.requestPermission(false);
       }
-
-      OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
-      OneSignal.initialize('aa70cb56-bec5-4bbc-a480-fd8985a035ed');
-      // Use this method to prompt for push notifications.
-      // We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
-      OneSignal.Notifications.requestPermission(false);
 
       runApp(const ProviderScope(child: MainApp()));
     },

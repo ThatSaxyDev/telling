@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,8 +60,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
           .verifyOtp(widget.userId, _otpController.text);
 
       if (success && mounted) {
-        //!
-        OneSignal.login(widget.userId);
+        if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+          OneSignal.login(widget.userId);
+        }
 
         Telling.instance.event(
           'Action: Verify OTP Success',

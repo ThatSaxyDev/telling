@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -58,8 +60,9 @@ class AuthNotifier extends Notifier<AuthState> {
           userEmail: user.email,
         );
 
-        // Link push subscription to user for returning users
-        OneSignal.login(user.id);
+        if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+          OneSignal.login(user.id);
+        }
       } catch (e) {
         await logout();
       }
