@@ -235,7 +235,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               context.go('/register');
                             },
                             child: Text(
-                              isMobile ? 'REGISTER' : 'REQUEST_CLEARANCE (REGISTER)',
+                              isMobile
+                                  ? 'REGISTER'
+                                  : 'REQUEST_CLEARANCE (REGISTER)',
                               style: TextStyle(
                                 fontFamily: 'Urbanist',
                                 color: AppColors.white,

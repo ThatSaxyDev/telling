@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../models/auth_user.dart';
@@ -56,6 +57,9 @@ class AuthNotifier extends Notifier<AuthState> {
           userName: user.name,
           userEmail: user.email,
         );
+
+        // Link push subscription to user for returning users
+        OneSignal.login(user.id);
       } catch (e) {
         await logout();
       }
@@ -67,7 +71,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
     try {
       final apiClient = ref.read(apiClientProvider);
-      
+
       // Try demo login first (for Apple App Store review)
       // This endpoint only works if demo credentials are configured on the server
       try {
