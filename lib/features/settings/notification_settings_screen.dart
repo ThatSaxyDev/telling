@@ -52,7 +52,9 @@ class _NotificationSettingsScreenState
     if (projectId != null && projectId != _lastProjectId) {
       _lastProjectId = projectId;
       Future.microtask(() {
-        ref.read(notificationSettingsProvider.notifier).fetchSettings(projectId);
+        ref
+            .read(notificationSettingsProvider.notifier)
+            .fetchSettings(projectId);
       });
     }
 
@@ -64,6 +66,22 @@ class _NotificationSettingsScreenState
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundDark,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.white),
+          onPressed: () => context.pop(),
+        ),
+        centerTitle: false,
+        title: Text(
+          'NOTIFICATIONS_CONFIG',
+          style: TextStyle(
+            fontFamily: 'Urbanist',
+            letterSpacing: isMobile ? 1.0 : 1.5,
+            fontSize: isMobile ? 16 : null,
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           const Positioned.fill(
@@ -74,39 +92,12 @@ class _NotificationSettingsScreenState
             ),
           ),
           SafeArea(
+            top: false, // AppBar handles safe area at top
             child: SingleChildScrollView(
               padding: EdgeInsets.all(isMobile ? 16 : 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: AppColors.white,
-                        ),
-                        onPressed: () => context.pop(),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.notifications,
-                        color: AppColors.secondary,
-                        size: isMobile ? 24 : 32,
-                      ),
-                      const SizedBox(width: 12),
-                      GlitchText(
-                        text: 'NOTIFICATIONS',
-                        style: isMobile
-                            ? AppTextStyles.titleSmall
-                            : AppTextStyles.headlineSmall,
-                        glitchAmount: 2.0,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
                   // OS Permission Banner
                   if (!_osPermissionGranted)
                     _buildPermissionBanner(sectionPadding, isMobile),
@@ -147,7 +138,8 @@ class _NotificationSettingsScreenState
                         children: [
                           _buildToggle(
                             label: 'ENABLED',
-                            subtitle: 'Receive push notifications on this device',
+                            subtitle:
+                                'Receive push notifications on this device',
                             value: settingsState.settings!.pushEnabled,
                             onChanged: (v) => _updateSetting(
                               projectId,
@@ -185,7 +177,8 @@ class _NotificationSettingsScreenState
                             _buildDropdown(
                               label: 'DIGEST_FREQUENCY',
                               subtitle: 'How often to receive digest summaries',
-                              value: settingsState.settings!.pushDigestFrequency,
+                              value:
+                                  settingsState.settings!.pushDigestFrequency,
                               items: const [
                                 DropdownMenuItem(
                                   value: 'daily',

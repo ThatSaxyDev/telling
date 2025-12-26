@@ -192,7 +192,7 @@ class SettingsScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'NOTIFICATION_SETTINGS',
+                              'NOTIFICATIONS_CONFIG',
                               style:
                                   (isMobile
                                           ? AppTextStyles.titleSmall

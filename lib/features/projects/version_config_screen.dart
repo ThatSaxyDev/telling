@@ -199,6 +199,7 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
+        centerTitle: false,
         title: Text(
           'VERSION_CONFIG',
           style: TextStyle(
