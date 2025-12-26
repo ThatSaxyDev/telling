@@ -8,5 +8,9 @@
 	<array>
 		<string>group.dev.kiishi.telling.onesignal</string>
 	</array>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:telling.cv</string>
+	</array>
 </dict>
 </plist>

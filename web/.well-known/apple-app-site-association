@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "27LSZPF3J7.dev.kiishi.telling",
+        "paths": ["*"]
+      }
+    ]
+  }
+}
