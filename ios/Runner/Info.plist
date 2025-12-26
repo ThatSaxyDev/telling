@@ -28,6 +28,8 @@
 	<false/>
 	<key>NSUserNotificationsUsageDescription</key>
 <string>Telling uses notifications to keep you informed about errors, warnings, and important events from your monitored applications.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Telling uses location to optimize notification delivery times based on your timezone.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>sms</string>
