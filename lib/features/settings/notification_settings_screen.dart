@@ -113,8 +113,8 @@ class _NotificationSettingsScreenState
 
                   if (!_osPermissionGranted) const SizedBox(height: 16),
 
-                  // Loading state
-                  if (settingsState.isLoading)
+                  // Loading state - only on initial fetch
+                  if (settingsState.isLoading && settingsState.settings == null)
                     const Center(
                       child: MilitaryLoader(size: 40, label: 'LOADING...'),
                     ),

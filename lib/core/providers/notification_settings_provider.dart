@@ -65,7 +65,7 @@ class NotificationSettingsNotifier extends Notifier<NotificationSettingsState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: 'Unable to load settings. Please check your connection.',
       );
     }
   }
@@ -102,7 +102,7 @@ class NotificationSettingsNotifier extends Notifier<NotificationSettingsState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: 'Unable to save settings. Please try again.',
       );
       return false;
     }
