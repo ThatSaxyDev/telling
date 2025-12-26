@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/project_provider.dart';
 import '../providers/logs_provider.dart';
+import '../providers/analytics_provider.dart';
 import '../router/app_router.dart';
 import '../../features/logs/widgets/log_details_dialog.dart';
 
@@ -107,6 +108,15 @@ class DeepLinkNotifier extends Notifier<DeepLinkState> {
         break;
 
       case 'digest':
+        // Get the period type from notification data (daily or weekly)
+        final period = data['period'] as String?;
+        debugPrint('DeepLink: Digest notification, period: $period');
+
+        // Set the appropriate time range
+        // daily = 24 hours, weekly = 168 hours (7 days)
+        final timeRangeHours = period == 'weekly' ? 168 : 24;
+        ref.read(analyticsTimeRangeProvider.notifier).set(timeRangeHours);
+        
         // Navigate to analytics screen
         router.go('/analytics');
         break;
