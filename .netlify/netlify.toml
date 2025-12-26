@@ -1,5 +1,4 @@
 plugins = []
-redirects = []
 
 [functions]
 
@@ -28,3 +27,15 @@ for = "/.well-known/apple-app-site-association"
 
 [headers.values]
 Content-Type = "application/json"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

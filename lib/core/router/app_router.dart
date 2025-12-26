@@ -21,6 +21,8 @@ import '../../features/projects/project_settings_screen.dart';
 import '../../features/projects/version_config_screen.dart';
 import '../../features/projects/projects_screen.dart';
 import '../../shared/widgets/dashboard_layout.dart';
+import '../../features/deep_link/deep_link_handler_screen.dart';
+import '../../features/deep_link/analytics_deep_link_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/project_provider.dart';
 
@@ -50,13 +52,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == '/privacy' ||
           state.matchedLocation == '/docs';
 
+      // Deep link routes should be allowed through (they handle auth internally)
+      final isDeepLinkRoute =
+          state.matchedLocation.startsWith('/log/') ||
+          state.matchedLocation.startsWith('/digest');
+
       final isOnProjectsScreen = state.matchedLocation == '/projects';
 
       // Logged in but on landing page? Go to projects
       if (isLoggedIn && isOnLanding) return '/projects';
 
       // Not logged in and not on any auth/public screen? Go to landing
-      if (!isLoggedIn && !isAuthRoute && !isPublicRoute && !isOnLanding) {
+      // Allow deep link routes through - they handle auth internally
+      if (!isLoggedIn &&
+          !isAuthRoute &&
+          !isPublicRoute &&
+          !isOnLanding &&
+          !isDeepLinkRoute) {
         return '/landing';
       }
 
@@ -64,7 +76,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (isLoggedIn && isAuthRoute) return '/projects';
 
       // Logged in but no project selected and not on projects screen? Force project selection
-      if (isLoggedIn && !hasSelectedProject && !isOnProjectsScreen) {
+      // Exception: deep link routes handle project selection internally
+      if (isLoggedIn &&
+          !hasSelectedProject &&
+          !isOnProjectsScreen &&
+          !isDeepLinkRoute) {
         return '/projects';
       }
 
@@ -100,6 +116,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const PrivacyPolicyScreen(),
       ),
       GoRoute(path: '/docs', builder: (context, state) => const DocsScreen()),
+      // Deep link handler for /log/:logId URLs (from emails, shared links)
+      GoRoute(
+        path: '/log/:logId',
+        builder: (context, state) {
+          final logId = state.pathParameters['logId']!;
+          final projectId = state.uri.queryParameters['project'];
+          return DeepLinkHandlerScreen(logId: logId, projectId: projectId);
+        },
+      ),
+      // Deep link handler for /digest URLs (from digest emails)
+      GoRoute(
+        path: '/digest',
+        builder: (context, state) {
+          final projectId = state.uri.queryParameters['project'];
+          final period = state.uri.queryParameters['period'];
+          return AnalyticsDeepLinkScreen(projectId: projectId, period: period);
+        },
+      ),
       ShellRoute(
         builder: (context, state, child) {
           return DashboardLayout(

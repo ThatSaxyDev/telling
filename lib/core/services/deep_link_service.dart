@@ -69,9 +69,36 @@ class DeepLinkNotifier extends Notifier<DeepLinkState> {
     // Wait for app to be ready
     await Future.delayed(const Duration(milliseconds: 500));
 
+    // Wait for projects to load (they auto-load when authenticated)
+    var projectState = ref.read(projectProvider);
+
+    // If projects are loading, wait for them
+    int maxWaitAttempts = 20; // 10 seconds max
+    while (projectState.isLoading && maxWaitAttempts > 0) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      projectState = ref.read(projectProvider);
+      maxWaitAttempts--;
+    }
+
+    // If projects list is empty and not loading, trigger a load
+    if (projectState.projects.isEmpty && !projectState.isLoading) {
+      debugPrint('DeepLink: Projects empty, triggering load');
+      await ref.read(projectProvider.notifier).loadProjects();
+      projectState = ref.read(projectProvider);
+
+      // Wait a bit more for load to complete
+      maxWaitAttempts = 10;
+      while (projectState.isLoading && maxWaitAttempts > 0) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        projectState = ref.read(projectProvider);
+        maxWaitAttempts--;
+      }
+    }
+
+    debugPrint('DeepLink: Projects loaded: ${projectState.projects.length}');
+
     // Select the project first
     final projectNotifier = ref.read(projectProvider.notifier);
-    final projectState = ref.read(projectProvider);
 
     // Find the project by ID
     try {

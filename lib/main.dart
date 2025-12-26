@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:telling_logger/telling_logger.dart';
@@ -14,11 +15,18 @@ import 'core/services/version_check_service.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/providers/auth_provider.dart';
 import 'features/force_update/force_update_screen.dart';
+import 'features/deep_link/deep_link_handler_screen.dart';
 
 void main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      
+      // Use path-based URLs for web (removes # from URLs)
+      // Required for deep links like /log/:id and /digest to work
+      if (kIsWeb) {
+        usePathUrlStrategy();
+      }
 
       if (Responsive.isNativeMobile) {
         await SystemChrome.setPreferredOrientations([
@@ -138,6 +146,20 @@ class _MainAppState extends ConsumerState<MainApp> {
           // User just logged in, try processing any pending deep links
           final deepLinkState = ref.read(deepLinkProvider);
           if (deepLinkState.pendingData != null && !deepLinkState.isProcessed) {
+            Future.delayed(const Duration(milliseconds: 1000), () {
+              if (mounted) {
+                ref
+                    .read(deepLinkProvider.notifier)
+                    .processPendingDeepLink(context);
+              }
+            });
+          }
+          
+          // Also check for pending URL deep links (from /log/:logId route)
+          if (PendingUrlDeepLink.data != null) {
+            final urlData = PendingUrlDeepLink.data!;
+            PendingUrlDeepLink.clear();
+            ref.read(deepLinkProvider.notifier).storePendingDeepLink(urlData);
             Future.delayed(const Duration(milliseconds: 1000), () {
               if (mounted) {
                 ref
