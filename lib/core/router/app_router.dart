@@ -16,6 +16,7 @@ import '../../features/funnel/named_funnel_screen.dart';
 import '../../features/users/users_screen.dart';
 import '../../features/users/user_details_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/settings/notification_settings_screen.dart';
 import '../../features/projects/project_settings_screen.dart';
 import '../../features/projects/version_config_screen.dart';
 import '../../features/projects/projects_screen.dart';
@@ -170,6 +171,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'version_config',
             pageBuilder: (context, state) =>
                 NoTransitionPage(child: const VersionConfigScreen()),
+          ),
+          GoRoute(
+            path: '/projects/notifications',
+            name: 'notification_settings',
+            pageBuilder: (context, state) =>
+                NoTransitionPage(child: const NotificationSettingsScreen()),
           ),
         ],
       ),

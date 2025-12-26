@@ -15,6 +15,7 @@ class ApiConfig {
   static const String statsPath = '$baseUrl/stats';
   static const String projectConfigPath =
       '$baseUrl/project'; // For version config
+  static const String notificationsPath = '$baseUrl/notifications';
 
   // For development, you can switch between local and production
   // static const String baseUrl = 'http://localhost:8080/api/v1';
