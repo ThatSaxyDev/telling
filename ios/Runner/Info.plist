@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSUserNotificationsUsageDescription</key>
+<string>Telling uses notifications to keep you informed about errors, warnings, and important events from your monitored applications.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>sms</string>
