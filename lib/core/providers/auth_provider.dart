@@ -138,6 +138,11 @@ class AuthNotifier extends Notifier<AuthState> {
     // Clear user context in Telling SDK before logout
     Telling.instance.clearUser();
 
+    // Disassociate device from user in OneSignal
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      OneSignal.logout();
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     await prefs.remove('auth_user');
@@ -266,6 +271,11 @@ class AuthNotifier extends Notifier<AuthState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
     await prefs.setString('auth_user', jsonEncode(user.toJson()));
+
+    // Associate device with user in OneSignal
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      OneSignal.login(user.id);
+    }
   }
 
   String _sanitizeError(Object e) {

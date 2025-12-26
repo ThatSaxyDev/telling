@@ -12,6 +12,7 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/responsive.dart';
 import 'core/services/version_check_service.dart';
 import 'core/services/deep_link_service.dart';
+import 'core/providers/auth_provider.dart';
 import 'features/force_update/force_update_screen.dart';
 
 void main() async {
@@ -126,6 +127,27 @@ class _MainAppState extends ConsumerState<MainApp> {
     // Check for pending deep link from cold start
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _processPendingDeepLink();
+      
+      // Listen for auth state changes to re-process pending deep links after login
+      ref.listen<AuthState>(authProvider, (previous, next) {
+        final wasNotAuthenticated =
+            previous == null || !previous.isAuthenticated;
+        final isNowAuthenticated = next.isAuthenticated;
+
+        if (wasNotAuthenticated && isNowAuthenticated) {
+          // User just logged in, try processing any pending deep links
+          final deepLinkState = ref.read(deepLinkProvider);
+          if (deepLinkState.pendingData != null && !deepLinkState.isProcessed) {
+            Future.delayed(const Duration(milliseconds: 1000), () {
+              if (mounted) {
+                ref
+                    .read(deepLinkProvider.notifier)
+                    .processPendingDeepLink(context);
+              }
+            });
+          }
+        }
+      });
     });
   }
 

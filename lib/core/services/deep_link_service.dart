@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/project_provider.dart';
 import '../providers/logs_provider.dart';
 import '../providers/analytics_provider.dart';
+import '../providers/auth_provider.dart';
 import '../router/app_router.dart';
 import '../../features/logs/widgets/log_details_dialog.dart';
 
@@ -44,7 +45,17 @@ class DeepLinkNotifier extends Notifier<DeepLinkState> {
     final data = state.pendingData;
     if (data == null || state.isProcessed) return;
 
-    // Mark as processed
+    // Check if user is authenticated
+    final authState = ref.read(authProvider);
+    if (!authState.isAuthenticated) {
+      debugPrint(
+        'DeepLink: User not authenticated, deferring deep link processing',
+      );
+      // Don't mark as processed - will retry after login
+      return;
+    }
+
+    // Mark as processed (only after auth check passes)
     state = state.copyWith(isProcessed: true);
 
     final type = data['type'] as String?;
