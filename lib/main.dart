@@ -11,6 +11,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/responsive.dart';
 import 'core/services/version_check_service.dart';
+import 'core/services/deep_link_service.dart';
 import 'features/force_update/force_update_screen.dart';
 
 void main() async {
@@ -62,6 +63,20 @@ void main() async {
         // Use this method to prompt for push notifications.
         // We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
         OneSignal.Notifications.requestPermission(false);
+
+        // Handle notification clicks for deep linking
+        OneSignal.Notifications.addClickListener((event) {
+          final data = event.notification.additionalData;
+          if (data != null) {
+            // Store for later handling
+            _pendingDeepLinkData = Map<String, dynamic>.from(data);
+
+            // If app is already running, trigger processing via callback
+            if (_onNotificationClick != null) {
+              _onNotificationClick!(Map<String, dynamic>.from(data));
+            }
+          }
+        });
       }
 
       runApp(const ProviderScope(child: MainApp()));
@@ -78,11 +93,67 @@ void main() async {
   );
 }
 
-class MainApp extends ConsumerWidget {
+// Global storage for deep link data before app is ready
+Map<String, dynamic>? _pendingDeepLinkData;
+
+// Callback for when app is already running
+void Function(Map<String, dynamic>)? _onNotificationClick;
+
+class MainApp extends ConsumerStatefulWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends ConsumerState<MainApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Set up callback for notification clicks while app is running
+    _onNotificationClick = (data) {
+      ref.read(deepLinkProvider.notifier).storePendingDeepLink(data);
+
+      // Process after a short delay to ensure context is ready
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          ref.read(deepLinkProvider.notifier).processPendingDeepLink(context);
+        }
+      });
+    };
+
+    // Check for pending deep link from cold start
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _processPendingDeepLink();
+    });
+  }
+
+  @override
+  void dispose() {
+    _onNotificationClick = null;
+    super.dispose();
+  }
+
+  void _processPendingDeepLink() {
+    if (_pendingDeepLinkData != null) {
+      // Store in provider
+      ref
+          .read(deepLinkProvider.notifier)
+          .storePendingDeepLink(_pendingDeepLinkData!);
+      _pendingDeepLinkData = null;
+
+      // Delay to ensure router is ready, then process
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted) {
+          ref.read(deepLinkProvider.notifier).processPendingDeepLink(context);
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
@@ -109,3 +180,4 @@ class MainApp extends ConsumerWidget {
     );
   }
 }
+

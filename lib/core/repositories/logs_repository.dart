@@ -174,6 +174,27 @@ class LogsRepository {
     }
   }
 
+  /// Fetch a single log by UUID (for deep linking from notifications)
+  Future<LogModel> fetchLogByUuid(String uuid) async {
+    try {
+      final response = await _client.get(Uri.parse('$baseUrl/logs/uuid/$uuid'));
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return LogModel.fromJson(json);
+      } else if (response.statusCode == 404) {
+        throw LogsRepositoryException('Log not found', 404);
+      } else {
+        throw LogsRepositoryException(
+          'Failed to fetch log: ${response.statusCode}',
+          response.statusCode,
+        );
+      }
+    } catch (e) {
+      throw LogsRepositoryException(_sanitizeError(e));
+    }
+  }
+
   /// Delete a log by ID
   Future<void> deleteLog(String id) async {
     try {
