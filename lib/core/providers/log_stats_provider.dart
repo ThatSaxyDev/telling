@@ -43,8 +43,8 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
     ref.listen<AsyncValue<PusherEvent>>(pusherEventsProvider, (_, next) {
       next.whenData((event) {
         if (event.type == 'stats_updated') {
-          // Refresh stats when new logs are added
-          refresh();
+          // Update stats directly from event data (no HTTP round-trip needed)
+          _updateFromEvent(event.data);
         }
       });
     });
@@ -99,6 +99,21 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
     } else if (newStats.hasError) {
       state = newStats;
     }
+  }
+
+  /// Update stats directly from Pusher event data
+  void _updateFromEvent(Map<String, dynamic>? data) {
+    if (data == null) return;
+
+    state = AsyncValue.data(
+      LogStats(
+        totalLogs: data['totalLogs'] as int? ?? 0,
+        errorCount: data['errorCount'] as int? ?? 0,
+        warningCount: data['warningCount'] as int? ?? 0,
+        eventCount: data['eventCount'] as int? ?? 0,
+        performanceCount: data['performanceCount'] as int? ?? 0,
+      ),
+    );
   }
 }
 
