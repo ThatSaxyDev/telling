@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/providers/activity_timeline_provider.dart';
 import '../../core/providers/analytics_provider.dart';
-import '../../core/providers/filtered_logs_provider.dart';
-import '../../core/providers/log_stats_provider.dart';
-import '../../core/providers/logs_provider.dart';
 import '../../core/providers/users_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -135,14 +131,13 @@ class _SidebarNavState extends ConsumerState<SidebarNav> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: MilitaryHoverContainer(
         onTap: () {
+          // Note: logs, stats, and timeline are now handled by Pusher real-time updates
           switch (item.route) {
             case '/':
-              ref.invalidate(logStatsProvider);
-              ref.invalidate(activityTimelineProvider);
+              // Overview - handled by Pusher (logStatsProvider, activityTimelineProvider)
               break;
             case '/logs':
-              ref.invalidate(logsProvider);
-              ref.invalidate(filteredLogsProvider);
+              // Logs - handled by Pusher (logsProvider updates via log_created events)
               break;
             case '/users':
               ref.invalidate(usersListProvider);

@@ -39,6 +39,9 @@
 
   <title>Telling - Error Tracking & Analytics</title>
   <link rel="manifest" href="manifest.json">
+<!-- Pusher JS for real-time updates -->
+<script charset="utf-8" src="https://js.pusher.com/8.3.0/pusher.min.js"></script>
+
 <style>
   * {
     margin: 0;
@@ -144,12 +147,14 @@
     // Hide loading screen when Flutter is ready
     window.addEventListener('flutter-first-frame', function () {
       const loadingScreen = document.getElementById('loading-screen');
-      loadingScreen.classList.add('hidden');
+      if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
 
-      // Remove from DOM after transition
-      setTimeout(() => {
-        loadingScreen.remove();
-      }, 600);
+        // Remove from DOM after transition
+        setTimeout(() => {
+          loadingScreen.remove();
+        }, 600);
+      }
     });
 
     // Fallback: hide after 5 seconds if Flutter doesn't load

@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../services/pusher_service.dart';
 import 'logs_provider.dart';
 import 'auth_provider.dart';
 import 'project_provider.dart';
+import 'pusher_provider.dart';
 
 class LogStats {
   final int totalLogs;
@@ -34,22 +36,18 @@ class LogStatsNotifier extends AsyncNotifier<LogStats> {
 
   @override
   Future<LogStats> build() async {
-    // Keep provider alive for 2 minutes after last listener
-    // This prevents loading flicker when navigating between screens
-    // final link = ref.keepAlive();
-
-    // // Auto-cancel the keepAlive after 2 minutes
-    // Timer(const Duration(minutes: 2), () {
-    //   link.close();
-    // });
-    
     // Watch project provider to refetch when project changes
     ref.watch(projectProvider);
     
-    // NOTE: Auto-polling disabled to reduce API usage
-    // Users can manually refresh using the refresh button
-    // To re-enable, uncomment the lines below:
-    // _startPolling();
+    // Listen to Pusher events for real-time stats updates
+    ref.listen<AsyncValue<PusherEvent>>(pusherEventsProvider, (_, next) {
+      next.whenData((event) {
+        if (event.type == 'stats_updated') {
+          // Refresh stats when new logs are added
+          refresh();
+        }
+      });
+    });
     
     // Clean up on dispose
     ref.onDispose(() {

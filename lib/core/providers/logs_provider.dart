@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/log_model/log_model.dart';
 import '../repositories/logs_repository.dart';
+import '../services/pusher_service.dart';
 import 'auth_provider.dart';
 import 'project_provider.dart';
+import 'pusher_provider.dart';
 import '../services/api_client.dart';
 
 // Repository provider
@@ -30,23 +32,26 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
   
   @override
   Future<List<LogModel>> build() async {
-    // Keep provider alive for 2 minutes after last listener
-    // This prevents loading flicker when navigating between screens
-    // while still allowing disposal after extended inactivity
-    // final link = ref.keepAlive();
-
-    // // Auto-cancel the keepAlive after 2 minutes
-    // Timer(const Duration(minutes: 2), () {
-    //   link.close();
-    // });
-    
     // Watch project provider to refetch when project changes
     ref.watch(projectProvider);
     
-    // NOTE: Auto-polling disabled to reduce API usage
-    // Users can manually refresh using the refresh button
-    // To re-enable, uncomment the lines below:
-    // _startPolling();
+    // Listen to Pusher events for real-time log updates
+    ref.listen<AsyncValue<PusherEvent>>(pusherEventsProvider, (_, next) {
+      next.whenData((event) {
+        if (event.type == 'log_created' && _page == 1 && _userId == null) {
+          // Only prepend new logs if we're on page 1 and no user filter
+          try {
+            final newLog = LogModel.fromJson(event.data);
+            state.whenData((logs) {
+              // Prepend new log and trim to limit
+              state = AsyncValue.data([newLog, ...logs.take(_limit - 1)]);
+            });
+          } catch (e) {
+            // Invalid log data from Pusher, ignore
+          }
+        }
+      });
+    });
     
     // Clean up on dispose
     ref.onDispose(() {

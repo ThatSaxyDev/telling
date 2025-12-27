@@ -28,6 +28,7 @@ dependencies:
   markdown: ^7.3.0
   package_info_plus: ^9.0.0
   onesignal_flutter: ^5.3.5
+  pusher_channels_flutter: ^2.6.0
 
 dev_dependencies:
   flutter_test:
