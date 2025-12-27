@@ -131,14 +131,7 @@ class _SidebarNavState extends ConsumerState<SidebarNav> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: MilitaryHoverContainer(
         onTap: () {
-          // Note: logs, stats, and timeline are now handled by Pusher real-time updates
           switch (item.route) {
-            case '/':
-              // Overview - handled by Pusher (logStatsProvider, activityTimelineProvider)
-              break;
-            case '/logs':
-              // Logs - handled by Pusher (logsProvider updates via log_created events)
-              break;
             case '/users':
               ref.invalidate(usersListProvider);
               break;
@@ -149,10 +142,6 @@ class _SidebarNavState extends ConsumerState<SidebarNav> {
               ref.invalidate(topErrorsProvider);
               ref.invalidate(activeUsersProvider);
               break;
-            // case '/funnel':
-            //   ref.invalidate(funnelDataProvider);
-            //   ref.invalidate(availableEventsProvider);
-            //   break;
             case '/funnelytics':
               ref.invalidate(namedFunnelDataProvider);
               break;

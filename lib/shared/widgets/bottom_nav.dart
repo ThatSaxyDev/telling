@@ -34,7 +34,11 @@ class BottomNav extends ConsumerWidget {
       label: 'Analytics',
       route: '/analytics',
     ),
-    _NavItemData(icon: Icons.filter_list, label: 'Funnels', route: '/funnelytics'),
+    _NavItemData(
+      icon: Icons.filter_list,
+      label: 'Funnels',
+      route: '/funnelytics',
+    ),
     _NavItemData(icon: Icons.settings, label: 'Settings', route: '/settings'),
   ];
 
@@ -46,10 +50,10 @@ class BottomNav extends ConsumerWidget {
       tablet: 70.0,
       desktop: 60.0,
     );
-    
+
     // Check if we should show labels (hide on very small screens)
     final showLabels = context.screenWidth > 320;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceDark,
@@ -102,7 +106,7 @@ class BottomNav extends ConsumerWidget {
       tablet: 26.0,
       desktop: 24.0,
     );
-    
+
     // Responsive label size
     final labelSize = context.responsive<double>(
       mobile: 10.0,
@@ -118,16 +122,8 @@ class BottomNav extends ConsumerWidget {
           if (context.isNativeMobile) {
             HapticFeedback.selectionClick();
           }
-          
-          // Invalidate providers based on route
-          // Note: logs, stats, and timeline are now handled by Pusher real-time updates
+
           switch (route) {
-            case '/':
-              // Overview - handled by Pusher (logStatsProvider, activityTimelineProvider)
-              break;
-            case '/logs':
-              // Logs - handled by Pusher (logsProvider updates via log_created events)
-              break;
             case '/users':
               ref.invalidate(usersListProvider);
               break;
