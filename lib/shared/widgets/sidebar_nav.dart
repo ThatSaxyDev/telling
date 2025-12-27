@@ -90,13 +90,10 @@ class _SidebarNavState extends ConsumerState<SidebarNav> {
               height: 48,
               color: AppColors.backgroundDark,
               child: Center(
-                child: Text(
-                  'T',
-                  style: AppTextStyles.titleLarge.copyWith(
-                    fontSize: 30,
-                    letterSpacing: 2,
-                    color: AppColors.white,
-                  ),
+                child: Image.asset(
+                  'assets/images/launchericon.png',
+                  width: 48,
+                  height: 48,
                 ),
               ),
             ),

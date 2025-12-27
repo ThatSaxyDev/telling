@@ -48,9 +48,10 @@ class _LandingScreenState extends State<LandingScreen>
       vsync: this,
     )..repeat(reverse: true);
 
-    _heroFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _heroController, curve: Curves.easeOut),
-    );
+    _heroFade = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _heroController, curve: Curves.easeOut));
 
     _heroSlide = Tween<Offset>(
       begin: const Offset(0, 0.15),
@@ -131,7 +132,7 @@ class _LandingScreenState extends State<LandingScreen>
             padding: EdgeInsets.symmetric(
               horizontal: isMobile ? 24 : 80,
               vertical: isMobile ? 16 : 20,
-            ),
+            ).copyWith(left: 20),
             decoration: BoxDecoration(
               color: AppColors.backgroundDark.withAlpha(100),
               border: Border(
@@ -142,36 +143,22 @@ class _LandingScreenState extends State<LandingScreen>
               ),
             ),
             child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Logo
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.white, width: 1.5),
-                ),
-                child: Text(
-                  'TELLING',
-                  style: TextStyle(
-                    fontFamily: 'Syne',
-                    color: AppColors.white,
-                    fontSize: isMobile ? 14 : 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Logo
+                Flexible(
+                  child: Image.asset(
+                    'assets/images/launchericon.png',
+                    width: 60,
+                    height: 60,
                   ),
                 ),
-              ),
-            ),
 
-            // CTA Buttons
-            if (!isMobile)
-              Row(
-                children: [
-                  _TopNavButton(
+                // CTA Buttons
+                if (!isMobile)
+                  Row(
+                    children: [
+                      _TopNavButton(
                         label: 'DOCS',
                         onPressed: () {
                           Telling.instance.event(
@@ -184,43 +171,43 @@ class _LandingScreenState extends State<LandingScreen>
                       ),
                       const SizedBox(width: 16),
                       _TopNavButton(
-                    label: 'INITIATE_ACCESS',
-                    onPressed: () {
-                      Telling.instance.event(
-                        'Interaction: Navigate to Login from TopNav',
-                        properties: {'source': 'top_nav'},
-                      );
-                      context.go('/login');
-                    },
-                    isPrimary: false,
+                        label: 'INITIATE_ACCESS',
+                        onPressed: () {
+                          Telling.instance.event(
+                            'Interaction: Navigate to Login from TopNav',
+                            properties: {'source': 'top_nav'},
+                          );
+                          context.go('/login');
+                        },
+                        isPrimary: false,
+                      ),
+                      const SizedBox(width: 16),
+                      _TopNavButton(
+                        label: 'REQUEST_CLEARANCE',
+                        onPressed: () {
+                          Telling.instance.event(
+                            'Interaction: Navigate to Register from TopNav',
+                            properties: {'source': 'top_nav'},
+                          );
+                          // Step 2: Get Started Clicked (Onboarding Funnel)
+                          Telling.instance.trackFunnel(
+                            funnelName: FunnelConstants.onboardingFunnel,
+                            stepName: FunnelConstants.getStartedClicked,
+                            step: 2,
+                            properties: {'source': 'top_nav'},
+                          );
+                          context.go('/register');
+                        },
+                        isPrimary: true,
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  _TopNavButton(
-                    label: 'REQUEST_CLEARANCE',
-                    onPressed: () {
-                      Telling.instance.event(
-                        'Interaction: Navigate to Register from TopNav',
-                        properties: {'source': 'top_nav'},
-                      );
-                      // Step 2: Get Started Clicked (Onboarding Funnel)
-                      Telling.instance.trackFunnel(
-                        funnelName: FunnelConstants.onboardingFunnel,
-                        stepName: FunnelConstants.getStartedClicked,
-                        step: 2,
-                        properties: {'source': 'top_nav'},
-                      );
-                      context.go('/register');
-                    },
-                    isPrimary: true,
-                  ),
-                ],
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 
   // Mobile App Layout - Single page, no scroll
@@ -358,22 +345,26 @@ class _LandingScreenState extends State<LandingScreen>
       {
         'icon': Icons.radar,
         'title': 'REAL-TIME_SURVEILLANCE',
-        'desc': 'Monitor application behavior with millisecond precision. Track every event in real-time.',
+        'desc':
+            'Monitor application behavior with millisecond precision. Track every event in real-time.',
       },
       {
         'icon': Icons.analytics_outlined,
         'title': 'DATA_INTELLIGENCE',
-        'desc': 'Transform raw logs into actionable insights. Visualize trends and patterns.',
+        'desc':
+            'Transform raw logs into actionable insights. Visualize trends and patterns.',
       },
       {
         'icon': Icons.security,
         'title': 'SECURE_DEPLOYMENT',
-        'desc': 'Military-grade encryption for all data transmission. Your logs stay private.',
+        'desc':
+            'Military-grade encryption for all data transmission. Your logs stay private.',
       },
       {
         'icon': Icons.speed,
         'title': 'RAPID_RESPONSE',
-        'desc': 'Instant alerts and notifications for critical events. Never miss an issue.',
+        'desc':
+            'Instant alerts and notifications for critical events. Never miss an issue.',
       },
     ];
 
@@ -412,30 +403,34 @@ class _LandingScreenState extends State<LandingScreen>
           isMobile
               ? Column(
                   children: features
-                      .map((f) => Padding(
-                            padding: const EdgeInsets.only(bottom: 24),
-                            child: _buildFeatureCard(
-                              f['icon'] as IconData,
-                              f['title'] as String,
-                              f['desc'] as String,
-                              isMobile,
-                            ),
-                          ))
+                      .map(
+                        (f) => Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: _buildFeatureCard(
+                            f['icon'] as IconData,
+                            f['title'] as String,
+                            f['desc'] as String,
+                            isMobile,
+                          ),
+                        ),
+                      )
                       .toList(),
                 )
               : Wrap(
                   spacing: 32,
                   runSpacing: 32,
                   children: features
-                      .map((f) => SizedBox(
-                            width: (MediaQuery.of(context).size.width - 192) / 2,
-                            child: _buildFeatureCard(
-                              f['icon'] as IconData,
-                              f['title'] as String,
-                              f['desc'] as String,
-                              isMobile,
-                            ),
-                          ))
+                      .map(
+                        (f) => SizedBox(
+                          width: (MediaQuery.of(context).size.width - 192) / 2,
+                          child: _buildFeatureCard(
+                            f['icon'] as IconData,
+                            f['title'] as String,
+                            f['desc'] as String,
+                            isMobile,
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
         ],
@@ -443,7 +438,12 @@ class _LandingScreenState extends State<LandingScreen>
     );
   }
 
-  Widget _buildFeatureCard(IconData icon, String title, String desc, bool isMobile) {
+  Widget _buildFeatureCard(
+    IconData icon,
+    String title,
+    String desc,
+    bool isMobile,
+  ) {
     return MilitaryHoverContainer(
       baseColor: AppColors.slate.withAlpha(128),
       hoverColor: AppColors.white,
@@ -456,11 +456,7 @@ class _LandingScreenState extends State<LandingScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              color: AppColors.white,
-              size: isMobile ? 32 : 40,
-            ),
+            Icon(icon, color: AppColors.white, size: isMobile ? 32 : 40),
             SizedBox(height: isMobile ? 20 : 24),
             Text(
               title,
@@ -522,7 +518,10 @@ class _LandingScreenState extends State<LandingScreen>
             constraints: const BoxConstraints(maxWidth: 800),
             padding: EdgeInsets.all(isMobile ? 24 : 40),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.slate.withAlpha(77), width: 2),
+              border: Border.all(
+                color: AppColors.slate.withAlpha(77),
+                width: 2,
+              ),
               color: AppColors.surfaceDark.withAlpha(153),
             ),
             child: Column(
@@ -576,7 +575,10 @@ class _LandingScreenState extends State<LandingScreen>
           padding: EdgeInsets.all(isMobile ? 32 : 48),
           decoration: BoxDecoration(
             color: AppColors.surfaceDark.withAlpha(230),
-            border: Border.all(color: AppColors.white.withAlpha(102), width: 2.5),
+            border: Border.all(
+              color: AppColors.white.withAlpha(102),
+              width: 2.5,
+            ),
           ),
           child: Column(
             children: [
@@ -713,7 +715,7 @@ class _LandingScreenState extends State<LandingScreen>
     final random = Random(index);
     final left = random.nextDouble() * size.width;
     final top = random.nextDouble() * size.height;
-    
+
     return Positioned(
       left: left,
       top: top,
@@ -770,7 +772,9 @@ class _LandingScreenState extends State<LandingScreen>
                 width: isMobile ? 6 : 8,
                 height: isMobile ? 6 : 8,
                 decoration: BoxDecoration(
-                  color: AppColors.white.withAlpha((255 * ((value * 2) % 1.0)).round()),
+                  color: AppColors.white.withAlpha(
+                    (255 * ((value * 2) % 1.0)).round(),
+                  ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -980,7 +984,9 @@ class _LandingScreenState extends State<LandingScreen>
               width: isMobile ? 8 : 10,
               height: isMobile ? 8 : 10,
               decoration: BoxDecoration(
-                color: AppColors.white.withAlpha((255 * ((value * 2) % 1.0)).round()),
+                color: AppColors.white.withAlpha(
+                  (255 * ((value * 2) % 1.0)).round(),
+                ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -1008,6 +1014,7 @@ class _LandingScreenState extends State<LandingScreen>
       ],
     );
   }
+
   Widget _buildFlutterBadge(bool isMobile) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -1184,7 +1191,9 @@ class _MilitaryButtonState extends State<_MilitaryButton>
           decoration: BoxDecoration(
             color: widget.isPrimary
                 ? AppColors.white
-                : (_isHovered ? AppColors.white.withAlpha(26) : Colors.transparent),
+                : (_isHovered
+                      ? AppColors.white.withAlpha(26)
+                      : Colors.transparent),
             border: Border.all(
               color: _isHovered ? AppColors.white : AppColors.slate,
               width: _isHovered ? 2.5 : 2,
@@ -1206,7 +1215,9 @@ class _MilitaryButtonState extends State<_MilitaryButton>
                           gradient: LinearGradient(
                             colors: [
                               Colors.transparent,
-                              (widget.isPrimary ? AppColors.primary : AppColors.white)
+                              (widget.isPrimary
+                                      ? AppColors.primary
+                                      : AppColors.white)
                                   .withAlpha(179),
                               Colors.transparent,
                             ],
@@ -1221,7 +1232,9 @@ class _MilitaryButtonState extends State<_MilitaryButton>
                   child: IgnorePointer(
                     child: CustomPaint(
                       painter: _PulsingCornerPainter(
-                        color: widget.isPrimary ? AppColors.primary : AppColors.white,
+                        color: widget.isPrimary
+                            ? AppColors.primary
+                            : AppColors.white,
                       ),
                     ),
                   ),
@@ -1319,8 +1332,12 @@ class _TopNavButtonState extends State<_TopNavButton> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
             color: widget.isPrimary
-                ? (_isHovered ? AppColors.white : AppColors.white.withAlpha(230))
-                : (_isHovered ? AppColors.white.withAlpha(26) : Colors.transparent),
+                ? (_isHovered
+                      ? AppColors.white
+                      : AppColors.white.withAlpha(230))
+                : (_isHovered
+                      ? AppColors.white.withAlpha(26)
+                      : Colors.transparent),
             border: Border.all(
               color: _isHovered ? AppColors.white : AppColors.slate,
               width: 1.5,
@@ -1343,4 +1360,3 @@ class _TopNavButtonState extends State<_TopNavButton> {
     );
   }
 }
-
