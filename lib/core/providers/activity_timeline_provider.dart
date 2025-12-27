@@ -21,14 +21,12 @@ class ActivityTimelineNotifier extends AsyncNotifier<List<LogModel>> {
     ref.listen<AsyncValue<PusherEvent>>(pusherEventsProvider, (_, next) {
       next.whenData((event) {
         if (event.type == 'log_created') {
-          // Prepend new log to timeline
           try {
             final newLog = LogModel.fromJson(event.data);
             state.whenData((logs) {
-              // Prepend and limit to 20 items
               state = AsyncValue.data([newLog, ...logs.take(19)]);
             });
-          } catch (e) {
+          } catch (_) {
             // Invalid log data, ignore
           }
         }

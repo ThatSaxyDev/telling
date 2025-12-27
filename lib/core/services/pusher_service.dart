@@ -11,11 +11,8 @@ class PusherEvent {
   final Map<String, dynamic> data;
   final DateTime receivedAt;
 
-  PusherEvent({
-    required this.type,
-    required this.data,
-    DateTime? receivedAt,
-  }) : receivedAt = receivedAt ?? DateTime.now();
+  PusherEvent({required this.type, required this.data, DateTime? receivedAt})
+    : receivedAt = receivedAt ?? DateTime.now();
 }
 
 /// Service for connecting to Pusher and receiving real-time events.
@@ -23,12 +20,12 @@ class PusherService {
   PusherChannelsFlutter? _pusher;
   String? _token;
   String? _projectId;
-  
+
   final _eventController = StreamController<PusherEvent>.broadcast();
-  
+
   /// Stream of events from the Pusher channel.
   Stream<PusherEvent> get events => _eventController.stream;
-  
+
   /// Whether the service is connected to Pusher.
   bool get isConnected => _pusher != null;
 
@@ -63,14 +60,13 @@ class PusherService {
 
       // Subscribe to private channel for this project
       final channelName = 'private-project-$projectId';
-      await _pusher!.subscribe(
-        channelName: channelName,
-        onEvent: _onEvent,
-      );
+      await _pusher!.subscribe(channelName: channelName, onEvent: _onEvent);
 
-      debugPrint('Pusher: Subscribed to $channelName');
+      if (kDebugMode) {
+        debugPrint('Pusher: Subscribed to $channelName');
+      }
     } catch (e) {
-      debugPrint('Pusher connection error: $e');
+      if (kDebugMode) debugPrint('Pusher connection error: $e');
       _pusher = null;
     }
   }
@@ -89,68 +85,74 @@ class PusherService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',
         },
-        body: jsonEncode({
-          'socket_id': socketId,
-          'channel_name': channelName,
-        }),
+        body: jsonEncode({'socket_id': socketId, 'channel_name': channelName}),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        debugPrint('Pusher auth success: $data');
+        if (kDebugMode) debugPrint('Pusher auth success: $data');
         return data;
       } else {
-        debugPrint('Pusher auth failed: ${response.statusCode} ${response.body}');
+        if (kDebugMode) {
+          debugPrint(
+            'Pusher auth failed: ${response.statusCode} ${response.body}',
+          );
+        }
         return {'error': 'Auth failed'};
       }
     } catch (e) {
-      debugPrint('Pusher auth error: $e');
+      if (kDebugMode) debugPrint('Pusher auth error: $e');
       return {'error': e.toString()};
     }
   }
 
   void _onConnectionStateChange(String currentState, String previousState) {
-    debugPrint('Pusher: $previousState -> $currentState');
+    if (kDebugMode) debugPrint('Pusher: $previousState -> $currentState');
   }
 
   void _onError(String message, int? code, dynamic e) {
-    debugPrint('Pusher error: $message (code: $code)');
+    if (kDebugMode) debugPrint('Pusher error: $message (code: $code)');
   }
 
   /// Handle incoming Pusher events.
   dynamic _onEvent(dynamic event) {
     // The event comes from Pusher SDK, not our custom PusherEvent class
-    debugPrint('Pusher event received: ${event.runtimeType}');
+    if (kDebugMode) debugPrint('Pusher event received: ${event.runtimeType}');
 
     try {
       // Access properties from the Pusher SDK event
       final eventName = event.eventName as String?;
       final dynamic rawData = event.data;
-      
+
       if (eventName == null) {
-        debugPrint('Pusher: No event name');
+        if (kDebugMode) debugPrint('Pusher: No event name');
         return null;
       }
-      
-      debugPrint('Pusher event: $eventName');
+
+      if (kDebugMode) debugPrint('Pusher event: $eventName');
 
       Map<String, dynamic> data;
-      
-      if (rawData is String) {
-        data = jsonDecode(rawData) as Map<String, dynamic>;
-      } else if (rawData is Map) {
-        data = Map<String, dynamic>.from(rawData);
-      } else {
-        debugPrint('Unexpected data type: ${rawData.runtimeType}');
+
+      // On web, even if rawData looks like a Map, it may be a JS interop object
+      // that doesn't properly cast. Always use JSON round-trip for safety.
+      try {
+        if (rawData is String) {
+          data = jsonDecode(rawData) as Map<String, dynamic>;
+        } else {
+          // Force JSON round-trip to convert JS objects to proper Dart Map
+          final jsonStr = jsonEncode(rawData);
+          data = jsonDecode(jsonStr) as Map<String, dynamic>;
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('Data conversion error: $e, type: ${rawData.runtimeType}');
+        }
         return null;
       }
-      
-      _eventController.add(PusherEvent(
-        type: eventName,
-        data: data,
-      ));
+
+      _eventController.add(PusherEvent(type: eventName, data: data));
     } catch (e) {
-      debugPrint('Event parse error: $e');
+      if (kDebugMode) debugPrint('Event parse error: $e');
     }
 
     return null;
@@ -161,11 +163,13 @@ class PusherService {
     if (_pusher != null) {
       try {
         if (_projectId != null) {
-          await _pusher!.unsubscribe(channelName: 'private-project-$_projectId');
+          await _pusher!.unsubscribe(
+            channelName: 'private-project-$_projectId',
+          );
         }
         await _pusher!.disconnect();
       } catch (e) {
-        debugPrint('Pusher disconnect error: $e');
+        if (kDebugMode) debugPrint('Pusher disconnect error: $e');
       }
     }
     _pusher = null;

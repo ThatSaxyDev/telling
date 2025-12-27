@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/log_model/log_model.dart';
 import '../repositories/logs_repository.dart';
@@ -41,9 +42,16 @@ class LogsNotifier extends AsyncNotifier<List<LogModel>> {
         if (event.type == 'log_created' && _page == 1 && _userId == null) {
           // Only prepend new logs if we're on page 1 and no user filter
           try {
-            final newLog = LogModel.fromJson(event.data);
+            // On web, event.data may be a JS object that doesn't cast properly
+            final Map<String, dynamic> logData;
+            if (event.data is Map<String, dynamic>) {
+              logData = event.data;
+            } else {
+              final jsonStr = jsonEncode(event.data);
+              logData = jsonDecode(jsonStr) as Map<String, dynamic>;
+            }
+            final newLog = LogModel.fromJson(logData);
             state.whenData((logs) {
-              // Prepend new log and trim to limit
               state = AsyncValue.data([newLog, ...logs.take(_limit - 1)]);
             });
           } catch (e) {
