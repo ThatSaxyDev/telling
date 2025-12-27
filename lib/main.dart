@@ -135,41 +135,6 @@ class _MainAppState extends ConsumerState<MainApp> {
     // Check for pending deep link from cold start
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _processPendingDeepLink();
-      
-      // Listen for auth state changes to re-process pending deep links after login
-      ref.listen<AuthState>(authProvider, (previous, next) {
-        final wasNotAuthenticated =
-            previous == null || !previous.isAuthenticated;
-        final isNowAuthenticated = next.isAuthenticated;
-
-        if (wasNotAuthenticated && isNowAuthenticated) {
-          // User just logged in, try processing any pending deep links
-          final deepLinkState = ref.read(deepLinkProvider);
-          if (deepLinkState.pendingData != null && !deepLinkState.isProcessed) {
-            Future.delayed(const Duration(milliseconds: 1000), () {
-              if (mounted) {
-                ref
-                    .read(deepLinkProvider.notifier)
-                    .processPendingDeepLink(context);
-              }
-            });
-          }
-          
-          // Also check for pending URL deep links (from /log/:logId route)
-          if (PendingUrlDeepLink.data != null) {
-            final urlData = PendingUrlDeepLink.data!;
-            PendingUrlDeepLink.clear();
-            ref.read(deepLinkProvider.notifier).storePendingDeepLink(urlData);
-            Future.delayed(const Duration(milliseconds: 1000), () {
-              if (mounted) {
-                ref
-                    .read(deepLinkProvider.notifier)
-                    .processPendingDeepLink(context);
-              }
-            });
-          }
-        }
-      });
     });
   }
 
@@ -196,8 +161,41 @@ class _MainAppState extends ConsumerState<MainApp> {
     }
   }
 
+  void _handleAuthStateChange(AuthState? previous, AuthState next) {
+    final wasNotAuthenticated = previous == null || !previous.isAuthenticated;
+    final isNowAuthenticated = next.isAuthenticated;
+
+    if (wasNotAuthenticated && isNowAuthenticated) {
+      // User just logged in, try processing any pending deep links
+      final deepLinkState = ref.read(deepLinkProvider);
+      if (deepLinkState.pendingData != null && !deepLinkState.isProcessed) {
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (mounted) {
+            ref.read(deepLinkProvider.notifier).processPendingDeepLink(context);
+          }
+        });
+      }
+
+      // Also check for pending URL deep links (from /log/:logId route)
+      if (PendingUrlDeepLink.data != null) {
+        final urlData = PendingUrlDeepLink.data!;
+        PendingUrlDeepLink.clear();
+        ref.read(deepLinkProvider.notifier).storePendingDeepLink(urlData);
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (mounted) {
+            ref.read(deepLinkProvider.notifier).processPendingDeepLink(context);
+          }
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Listen for auth state changes to re-process pending deep links after login
+    // Note: ref.listen must be called in build(), not initState()
+    ref.listen<AuthState>(authProvider, _handleAuthStateChange);
+
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
