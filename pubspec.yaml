@@ -1,6 +1,6 @@
 name: telling
 description: "An analytics dashboard built with Flutter. This application serves as the command center for monitoring logs, events, and crashes sent from the `telling_logger` SDK."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.3+29
 
@@ -27,7 +27,7 @@ dependencies:
   flutter_highlighter: ^0.1.1
   markdown: ^7.3.0
   package_info_plus: ^9.0.0
-  onesignal_flutter: ^5.3.5
+  onesignal_flutter: 5.3.5
   pusher_channels_flutter: ^2.6.0
 
 dev_dependencies:
@@ -40,22 +40,24 @@ dev_dependencies:
   json_serializable: ^6.11.2
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.4
-  
+
+dependency_overrides:
+  device_info_plus: 11.5.0
+
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/images/launchericon.png"
   min_sdk_android: 21
 
-
 flutter_native_splash:
-  color: "#000000" 
+  color: "#000000"
   image: "assets/images/launchericon.png"
-  icon_background_color: "#000000" 
+  icon_background_color: "#000000"
   fullscreen: false
   android: true
   ios: true
-  
+
   android_12:
     image: "assets/images/launchericon.png"
     icon_background_color: "#000000"
@@ -63,9 +65,7 @@ flutter_native_splash:
     icon_background_color_dark: "#000000"
 
 flutter:
-
   uses-material-design: true
-
 
   fonts:
     - family: Syne

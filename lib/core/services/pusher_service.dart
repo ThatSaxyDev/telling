@@ -80,7 +80,7 @@ class PusherService {
   ) async {
     try {
       final response = await http.post(
-        Uri.parse('https://tellingserver.globeapp.dev/pusher/auth'),
+        Uri.parse('https://telling-server.onrender.com/pusher/auth'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',

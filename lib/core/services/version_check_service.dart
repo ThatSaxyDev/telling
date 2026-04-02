@@ -18,7 +18,7 @@ class VersionCheckResult {
 
 /// Service for checking if app update is required
 class VersionCheckService {
-  static const String _baseUrl = 'https://tellingserver.globeapp.dev/api/v1';
+  static const String _baseUrl = 'https://telling-server.onrender.com/api/v1';
 
   /// Check if the app requires an update
   /// Returns VersionCheckResult with requiresUpdate = true if update needed
