@@ -3,7 +3,7 @@
 /// Central configuration for API endpoints
 class ApiConfig {
   // Base URL for the backend API
-  static const String baseUrl = 'https://telling-server.onrender.com/api/v1';
+  static const String baseUrl = 'https://telling-api.kiishi.space/api/v1';
   
   // Pusher configuration (key and cluster are safe to expose)
   static const String pusherKey = '69b1d46dd91791fb62f0';

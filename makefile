@@ -24,7 +24,7 @@ define loading
 endef
 
 
-.PHONY: analyze br build buildAPK cleanAndBuild cleanAndGet createLauncherIcons createSplashScreen pubGet runRelease gitFetchAndCheckoutStaging patrolSendToBank cleanIOS deploy ios_deploy android_deploy cleanSweepiOS
+.PHONY: analyze br build buildAPK cleanAndBuild cleanAndGet createLauncherIcons createSplashScreen pubGet runRelease gitFetchAndCheckoutStaging netdep patrolSendToBank cleanIOS deploy ios_deploy android_deploy cleanSweepiOS
 
 analyze:
 	flutter analyze
@@ -97,6 +97,11 @@ android_deploy:
 	$(call loading)
 	cd android && fastlane development
 	$(call box, ✅ Android Deployment Done!)
+
+netdep:
+	flutter build web
+	netlify deploy --prod --dir=build/web
+	$(call box,$(ORANGE)::: NETLIFY DEPLOY $(PURPLE)==>> $(GREEN)Done)
 
 patrolSendToBank:
 	patrol test -t integration_test/send_to_bank_test.dart

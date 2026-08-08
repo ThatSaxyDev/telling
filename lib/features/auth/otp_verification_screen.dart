@@ -274,7 +274,6 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          enableInteractiveSelection: false,
           controller: controller,
           style: const TextStyle(
             fontFamily: 'Urbanist',

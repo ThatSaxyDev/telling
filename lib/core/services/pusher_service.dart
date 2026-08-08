@@ -80,7 +80,7 @@ class PusherService {
   ) async {
     try {
       final response = await http.post(
-        Uri.parse('https://telling-server.onrender.com/pusher/auth'),
+        Uri.parse('https://telling-api.kiishi.space/pusher/auth'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token',
