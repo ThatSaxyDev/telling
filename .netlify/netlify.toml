@@ -2,10 +2,10 @@ plugins = []
 
 [functions]
 
-[functions.*]
+[functions."*"]
 
 [build]
-publish = "build/web"
+publish = "/Users/kiishidavid/Documents/Dev/Projects/MINE/thistelling/telling"
 publishOrigin = "default"
 
 [build.environment]
