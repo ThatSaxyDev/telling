@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/models/project.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/project_provider.dart';
 import '../../core/providers/analytics_provider.dart';
+import '../../core/providers/organization_provider.dart';
 import 'deep_link_handler_screen.dart';
 
 /// A screen that handles analytics deep links from digest emails.
@@ -113,6 +115,14 @@ class _AnalyticsDeepLinkScreenState extends ConsumerState<AnalyticsDeepLinkScree
 
       _updateStatus('Projects loaded: ${projectState.projects.length}');
 
+      // The link may target a project in another of the user's units —
+      // switch to the owning unit (and reload its projects) first.
+      if (widget.projectId != null &&
+          !projectState.projects.any((p) => p.id == widget.projectId)) {
+        await _switchToProjectUnit(widget.projectId!);
+        projectState = ref.read(projectProvider);
+      }
+
       // If still no projects, show error
       if (projectState.projects.isEmpty) {
         setState(() {
@@ -124,23 +134,19 @@ class _AnalyticsDeepLinkScreenState extends ConsumerState<AnalyticsDeepLinkScree
       // Auto-select the project from the deep link
       _updateStatus('Selecting project...');
       final projectNotifier = ref.read(projectProvider.notifier);
-      
+
+      Project? match;
       if (widget.projectId != null) {
-        try {
-          final project = projectState.projects.firstWhere(
-            (p) => p.id == widget.projectId,
-          );
-          debugPrint('AnalyticsDeepLink: Found project: ${project.name}');
-          projectNotifier.selectProject(project);
-        } catch (e) {
-          debugPrint('AnalyticsDeepLink: Project ${widget.projectId} not found, using first');
-          // Fall back to first project
-          projectNotifier.selectProject(projectState.projects.first);
+        for (final p in projectState.projects) {
+          if (p.id == widget.projectId) {
+            match = p;
+            break;
+          }
         }
-      } else {
-        // No project ID in deep link, use first project
-        projectNotifier.selectProject(projectState.projects.first);
       }
+      final selected = match ?? projectState.projects.first;
+      debugPrint('AnalyticsDeepLink: Selecting project: ${selected.name}');
+      projectNotifier.selectProject(selected);
 
       // Wait for project selection to take effect
       await Future.delayed(const Duration(milliseconds: 300));
@@ -170,6 +176,21 @@ class _AnalyticsDeepLinkScreenState extends ConsumerState<AnalyticsDeepLinkScree
         });
       }
     }
+  }
+
+  /// Switches to the unit owning [projectId] (when the user belongs to it)
+  /// and reloads its projects so the deep-linked project becomes selectable.
+  Future<void> _switchToProjectUnit(String projectId) async {
+    final orgNotifier = ref.read(organizationProvider.notifier);
+    final organizationId = await orgNotifier.resolveProjectUnit(projectId);
+    if (organizationId == null) return;
+
+    _updateStatus('Switching to owning unit...');
+    final switched = await orgNotifier.switchUnit(organizationId);
+    if (!switched) return;
+
+    ref.read(projectProvider.notifier).reset();
+    await ref.read(projectProvider.notifier).loadProjects();
   }
 
   void _storePendingDeepLink() {

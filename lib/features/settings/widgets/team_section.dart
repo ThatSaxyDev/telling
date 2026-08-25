@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/organization.dart';
 import '../../../core/providers/organization_provider.dart';
+import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
@@ -56,7 +57,7 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
         ),
         SizedBox(height: isMobile ? 12 : 16),
 
-        // Unit identity
+        // Active unit identity
         Row(
           children: [
             Expanded(
@@ -80,6 +81,10 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
             ],
           ],
         ),
+        SizedBox(height: isMobile ? 16 : 24),
+
+        // Unit switcher + add-unit actions
+        _buildUnitSwitcher(orgState, isMobile),
         SizedBox(height: isMobile ? 16 : 24),
 
         if (org.isOwner) ...[
@@ -112,6 +117,262 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
           letterSpacing: 1,
           fontSize: 10,
         ),
+      ),
+    );
+  }
+
+  /// Lists all units (tap to switch active) plus create/join actions.
+  Widget _buildUnitSwitcher(OrganizationState orgState, bool isMobile) {
+    final activeOrg = orgState.organization;
+    final units = orgState.units;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+        color: AppColors.backgroundDark.withAlpha(128),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'YOUR UNITS',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.slate,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...units.map(
+            (unit) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: InkWell(
+                onTap: unit.id == activeOrg?.id
+                    ? null
+                    : () => _switchTo(unit.id),
+                borderRadius: BorderRadius.zero,
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: unit.id == activeOrg?.id
+                          ? AppColors.secondary.withAlpha(128)
+                          : AppColors.slate.withAlpha(51),
+                    ),
+                    color: unit.id == activeOrg?.id
+                        ? AppColors.secondary.withAlpha(26)
+                        : Colors.transparent,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          unit.name.toUpperCase(),
+                          style: AppTextStyles.labelMedium.copyWith(
+                            color: AppColors.white,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (unit.id == activeOrg?.id)
+                        const Icon(
+                          Icons.check_circle_outline,
+                          size: 14,
+                          color: AppColors.secondary,
+                        )
+                      else
+                        const Icon(
+                          Icons.swap_horiz,
+                          size: 14,
+                          color: AppColors.slate,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              if (orgState.canCreateUnit)
+                TextButton.icon(
+                  onPressed: _showCreateUnitDialog,
+                  icon: const Icon(Icons.add_moderator,
+                      size: 16, color: AppColors.secondary),
+                  label: const Text(
+                    'CREATE NEW UNIT',
+                    style: TextStyle(
+                      color: AppColors.secondary,
+                      fontFamily: 'Urbanist',
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              TextButton.icon(
+                onPressed: _showJoinUnitDialog,
+                icon: const Icon(Icons.key,
+                    size: 16, color: AppColors.slate),
+                label: const Text(
+                  'JOIN WITH CODE',
+                  style: TextStyle(
+                    color: AppColors.slate,
+                    fontFamily: 'Urbanist',
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Text(
+            'You can command up to '
+            '${OrganizationState.maxOwnedUnits} units. Joining others is unlimited.',
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.slate,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _switchTo(String organizationId) async {
+    final switched =
+        await ref.read(organizationProvider.notifier).switchUnit(organizationId);
+    if (!switched) return;
+    // Projects are scoped per unit — drop the stale selection and reload.
+    final projects = ref.read(projectProvider.notifier);
+    projects.reset();
+    await projects.loadProjects();
+  }
+
+  void _showCreateUnitDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: AppColors.secondary),
+        ),
+        title: const Text(
+          'CREATE NEW UNIT',
+          style: TextStyle(
+            fontFamily: 'Urbanist',
+            color: AppColors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          cursorColor: AppColors.secondary,
+          style: const TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
+          decoration: const InputDecoration(
+            labelText: 'UNIT NAME (OPTIONAL)',
+            labelStyle: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.slate),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              await ref
+                  .read(organizationProvider.notifier)
+                  .createOrganization(name: controller.text.trim());
+              if (navigator.mounted) navigator.pop();
+            },
+            child: const Text(
+              'CREATE',
+              style: TextStyle(
+                color: AppColors.secondary,
+                fontFamily: 'Urbanist',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showJoinUnitDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: AppColors.slate.withAlpha(77)),
+        ),
+        title: const Text(
+          'JOIN UNIT',
+          style: TextStyle(
+            fontFamily: 'Urbanist',
+            color: AppColors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          cursorColor: AppColors.secondary,
+          textCapitalization: TextCapitalization.characters,
+          style: const TextStyle(
+            color: AppColors.white,
+            fontFamily: 'Urbanist',
+            letterSpacing: 2,
+          ),
+          decoration: const InputDecoration(
+            labelText: 'INVITE CODE',
+            labelStyle: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.slate),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final code = controller.text.trim();
+              if (code.isEmpty) return;
+              final navigator = Navigator.of(context);
+              await ref
+                  .read(organizationProvider.notifier)
+                  .joinOrganization(code);
+              if (navigator.mounted) navigator.pop();
+            },
+            child: const Text(
+              'JOIN',
+              style: TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
+            ),
+          ),
+        ],
       ),
     );
   }

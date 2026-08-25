@@ -130,42 +130,9 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Team banner
+                      // Team banner (+ unit switcher when in >1 unit)
                       if (orgName != null)
-                        Container(
-                          width: double.infinity,
-                          margin: const EdgeInsets.only(bottom: 24),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: AppColors.slate.withAlpha(77),
-                            ),
-                            color: AppColors.surfaceDark.withAlpha(128),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.shield_outlined,
-                                color: AppColors.secondary,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  '${orgName.toUpperCase()}  —  ${isOwner ? 'COMMANDER' : 'OPERATOR'}',
-                                  style: AppTextStyles.labelSmall.copyWith(
-                                    color: AppColors.slate,
-                                    letterSpacing: 1,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        _buildUnitBanner(context, ref, orgState, isOwner),
 
                       // Error Message
                       if (projectState.error != null)
@@ -213,7 +180,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                           itemBuilder: (context, index) {
                             if (index == projectState.projects.length) {
                               final isLimitReached =
-                                  projectState.projects.length >= 3;
+                                  projectState.projects.length >= 4;
                               return _buildAddProjectCard(
                                 context,
                                 ref,
@@ -247,7 +214,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                           itemBuilder: (context, index) {
                             if (index == projectState.projects.length) {
                               final isLimitReached =
-                                  projectState.projects.length >= 3;
+                                  projectState.projects.length >= 4;
                               return _buildAddProjectCard(
                                 context,
                                 ref,
@@ -292,6 +259,114 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildUnitBanner(
+    BuildContext context,
+    WidgetRef ref,
+    OrganizationState orgState,
+    bool isOwner,
+  ) {
+    final org = orgState.organization!;
+    final hasMultipleUnits = orgState.units.length > 1;
+
+    final banner = Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.slate.withAlpha(77)),
+        color: AppColors.surfaceDark.withAlpha(128),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.shield_outlined,
+            color: AppColors.secondary,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${org.name.toUpperCase()}  —  ${isOwner ? 'COMMANDER' : 'OPERATOR'}',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.slate,
+                letterSpacing: 1,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (hasMultipleUnits) ...[
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.swap_vert,
+              color: AppColors.slate,
+              size: 14,
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (!hasMultipleUnits) return banner;
+
+    return PopupMenuButton<String>(
+      tooltip: 'SWITCH_UNIT',
+      offset: const Offset(0, 40),
+      color: AppColors.surfaceDark,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: AppColors.slate.withAlpha(77)),
+      ),
+      constraints: const BoxConstraints(maxWidth: 320),
+      itemBuilder: (context) => [
+        for (final unit in orgState.units)
+          PopupMenuItem(
+            value: unit.id,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    unit.name.toUpperCase(),
+                    style: TextStyle(
+                      fontFamily: 'Urbanist',
+                      fontSize: 12,
+                      fontWeight: unit.id == org.id
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: AppColors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  unit.isOwner ? 'CMDR' : 'OPR',
+                  style: const TextStyle(
+                    fontFamily: 'Urbanist',
+                    fontSize: 10,
+                    color: AppColors.slate,
+                  ),
+                ),
+                if (unit.id == org.id) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check, size: 14, color: AppColors.secondary),
+                ],
+              ],
+            ),
+          ),
+      ],
+      onSelected: (unitId) async {
+        final switched =
+            await ref.read(organizationProvider.notifier).switchUnit(unitId);
+        if (switched) {
+          // Projects are scoped to the active unit — drop the stale
+          // selection and reload.
+          ref.read(projectProvider.notifier).reset();
+          await ref.read(projectProvider.notifier).loadProjects();
+        }
+      },
+      child: banner,
     );
   }
 
@@ -517,7 +592,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 const SizedBox(width: 12),
                 Text(
                   isLimitReached
-                      ? 'LIMIT REACHED (3/3)'
+                      ? 'LIMIT REACHED (4/4)'
                       : 'INITIATE NEW PROJECT',
                   style: AppTextStyles.labelMedium.copyWith(
                     color: isLimitReached
@@ -542,7 +617,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 const SizedBox(height: 12),
                 Text(
                   isLimitReached
-                      ? 'LIMIT REACHED (3/3)'
+                      ? 'LIMIT REACHED (4/4)'
                       : 'INITIATE NEW PROJECT',
                   style: AppTextStyles.labelSmall.copyWith(
                     color: isLimitReached

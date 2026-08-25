@@ -6,7 +6,12 @@ import '../services/api_client.dart';
 import 'auth_provider.dart';
 
 class OrganizationState {
-  final Organization? organization;
+  /// All units the user belongs to (commanded + joined).
+  final List<Organization> units;
+
+  /// Server-side active unit preference (scopes project APIs).
+  final String? activeUnitId;
+
   final bool isLoading;
   final bool isLoaded;
   final String? error;
@@ -15,7 +20,8 @@ class OrganizationState {
   final String? membersError;
 
   OrganizationState({
-    this.organization,
+    this.units = const [],
+    this.activeUnitId,
     this.isLoading = false,
     this.isLoaded = false,
     this.error,
@@ -24,10 +30,26 @@ class OrganizationState {
     this.membersError,
   });
 
+  /// A user may command at most this many units. Joining others is unlimited.
+  static const maxOwnedUnits = 2;
+
+  /// The ACTIVE unit — falls back to the first known unit.
+  Organization? get organization {
+    if (units.isEmpty) return null;
+    for (final unit in units) {
+      if (unit.id == activeUnitId) return unit;
+    }
+    return units.first;
+  }
+
   bool get isOwner => organization?.isOwner ?? false;
+  int get ownedCount => units.where((u) => u.isOwner).length;
+  bool get canCreateUnit => ownedCount < maxOwnedUnits;
 
   OrganizationState copyWith({
-    Organization? organization,
+    List<Organization>? units,
+    String? activeUnitId,
+    bool clearActiveUnitId = false,
     bool? isLoading,
     bool? isLoaded,
     String? error,
@@ -36,7 +58,8 @@ class OrganizationState {
     String? membersError,
   }) {
     return OrganizationState(
-      organization: organization ?? this.organization,
+      units: units ?? this.units,
+      activeUnitId: clearActiveUnitId ? null : (activeUnitId ?? this.activeUnitId),
       isLoading: isLoading ?? this.isLoading,
       isLoaded: isLoaded ?? this.isLoaded,
       error: error,
@@ -70,20 +93,25 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
       final response = await apiClient.get(Uri.parse(_baseUrl));
 
       if (response.statusCode == 200) {
-        final org = Organization.fromJson(jsonDecode(response.body));
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final units = (data['units'] as List<dynamic>? ?? [])
+            .map((e) => Organization.fromJson(e as Map<String, dynamic>))
+            .toList();
         state = state.copyWith(
-          organization: org,
+          units: units,
+          activeUnitId: data['activeUnitId'] as String?,
           isLoading: false,
           isLoaded: true,
           members: const [],
         );
-        if (org.isOwner) {
+        if (state.organization?.isOwner ?? false) {
           loadMembers();
         }
       } else if (response.statusCode == 404) {
-        // No team yet — new user onboarding
+        // No unit yet — new user onboarding
         state = state.copyWith(
-          organization: null,
+          units: const [],
+          clearActiveUnitId: true,
           isLoading: false,
           isLoaded: true,
         );
@@ -117,20 +145,14 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
       );
 
       if (response.statusCode == 200) {
-        final org = Organization.fromJson(jsonDecode(response.body));
-        state = state.copyWith(
-          organization: org,
-          isLoading: false,
-          isLoaded: true,
-        );
+        await load();
         return true;
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          error: _extractError(response.body) ?? 'Failed to create unit',
-        );
-        return false;
       }
+      state = state.copyWith(
+        isLoading: false,
+        error: _extractError(response.body) ?? 'Failed to create unit',
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _sanitizeError(e));
       return false;
@@ -153,17 +175,71 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
       if (response.statusCode == 200) {
         await load();
         return true;
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          error: _extractError(response.body) ?? 'Failed to join unit',
-        );
-        return false;
       }
+      state = state.copyWith(
+        isLoading: false,
+        error: _extractError(response.body) ?? 'Failed to join unit',
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _sanitizeError(e));
       return false;
     }
+  }
+
+  /// Switches the server-side ACTIVE unit and reloads its members.
+  /// Callers should reload projects afterwards (they are scoped per unit).
+  Future<bool> switchUnit(String organizationId) async {
+    final authState = ref.read(authProvider);
+    if (!authState.isAuthenticated) return false;
+    if (organizationId == state.activeUnitId) return true;
+
+    final apiClient = ref.read(apiClientProvider);
+
+    try {
+      final response = await apiClient.post(
+        Uri.parse('$_baseUrl/me/switch'),
+        body: jsonEncode({'organizationId': organizationId}),
+      );
+
+      if (response.statusCode == 200) {
+        state = state.copyWith(
+          activeUnitId: organizationId,
+          members: const [],
+        );
+        if (state.organization?.isOwner ?? false) {
+          loadMembers();
+        }
+        return true;
+      }
+      state = state.copyWith(
+        error: _extractError(response.body) ?? 'Failed to switch unit',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(error: _sanitizeError(e));
+      return false;
+    }
+  }
+
+  /// Returns the unit owning [projectId], provided the user belongs to it.
+  /// Used by deep links targeting a project outside the active unit.
+  Future<String?> resolveProjectUnit(String projectId) async {
+    final authState = ref.read(authProvider);
+    if (!authState.isAuthenticated) return null;
+
+    final apiClient = ref.read(apiClientProvider);
+
+    try {
+      final response = await apiClient.get(
+        Uri.parse('$_baseUrl/resolve-project/$projectId'),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data['organizationId'] as String?;
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<void> loadMembers() async {
@@ -233,16 +309,20 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
             : null;
         final org = state.organization;
         if (org != null) {
+          final updated = Organization(
+            id: org.id,
+            name: org.name,
+            slug: org.slug,
+            plan: org.plan,
+            role: org.role,
+            inviteCode: newCode,
+            inviteCodeExpiresAt: newExpiry,
+          );
           state = state.copyWith(
-            organization: Organization(
-              id: org.id,
-              name: org.name,
-              slug: org.slug,
-              plan: org.plan,
-              role: org.role,
-              inviteCode: newCode,
-              inviteCodeExpiresAt: newExpiry,
-            ),
+            units: [
+              for (final u in state.units)
+                if (u.id == org.id) updated else u,
+            ],
           );
         }
         return newCode;
@@ -314,12 +394,9 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
       final response = await apiClient.post(Uri.parse('$_baseUrl/leave'));
 
       if (response.statusCode == 200) {
-        // No unit now — clear state so the router sends the user to onboarding.
-        state = OrganizationState(
-          organization: null,
-          isLoading: false,
-          isLoaded: true,
-        );
+        // Reload remaining units. If none remain, the router sends the
+        // user back to onboarding.
+        await load();
         return true;
       }
       state = state.copyWith(

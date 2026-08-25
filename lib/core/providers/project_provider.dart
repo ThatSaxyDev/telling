@@ -95,7 +95,7 @@ class ProjectNotifier extends Notifier<ProjectState> {
           isLoading: false,
         );
       } else if (response.statusCode == 403) {
-        state = state.copyWith(isLoading: false, error: 'Project limit reached (Max 3)');
+        state = state.copyWith(isLoading: false, error: 'Project limit reached (Max 4)');
       } else {
         state = state.copyWith(isLoading: false, error: 'Failed to create project');
       }

@@ -12,7 +12,7 @@ class ProjectSelector extends ConsumerWidget {
     final projectState = ref.watch(projectProvider);
     final isOwner = ref.watch(organizationProvider).isOwner;
     final selectedProject = projectState.selectedProject;
-    final isLimitReached = projectState.projects.length >= 3;
+    final isLimitReached = projectState.projects.length >= 4;
 
     return PopupMenuButton<String>(
       tooltip: 'SELECT_PROJECT',
@@ -50,7 +50,7 @@ class ProjectSelector extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    isLimitReached ? 'LIMIT REACHED (3/3)' : 'NEW_PROJECT',
+                    isLimitReached ? 'LIMIT REACHED (4/4)' : 'NEW_PROJECT',
                     style: TextStyle(
                       fontFamily: 'Urbanist',
                       color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
