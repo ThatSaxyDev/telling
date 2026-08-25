@@ -25,12 +25,15 @@ import '../../features/deep_link/deep_link_handler_screen.dart';
 import '../../features/deep_link/analytics_deep_link_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/project_provider.dart';
+import '../providers/organization_provider.dart';
+import '../../features/auth/organization_onboarding_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final routerNotifier = ValueNotifier<int>(0);
 
   ref.listen(authProvider, (_, __) => routerNotifier.value++);
   ref.listen(projectProvider, (_, __) => routerNotifier.value++);
+  ref.listen(organizationProvider, (_, __) => routerNotifier.value++);
 
   return GoRouter(
     initialLocation: '/landing',
@@ -39,9 +42,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authProvider);
       final projectState = ref.read(projectProvider);
+      final orgState = ref.read(organizationProvider);
 
       final isLoggedIn = authState.isAuthenticated;
       final hasSelectedProject = projectState.selectedProject != null;
+      final hasOrganization = orgState.organization != null;
+      final orgLoaded = orgState.isLoaded;
       final isOnLanding = state.matchedLocation == '/landing';
       final isAuthRoute =
           state.matchedLocation == '/login' ||
@@ -58,6 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation.startsWith('/digest');
 
       final isOnProjectsScreen = state.matchedLocation == '/projects';
+      final isOnOnboarding = state.matchedLocation == '/onboarding';
 
       // Logged in but on landing page? Go to projects
       if (isLoggedIn && isOnLanding) return '/projects';
@@ -75,12 +82,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Logged in but on auth screens? Go to projects
       if (isLoggedIn && isAuthRoute) return '/projects';
 
+      // Logged in, no team yet (and we know it) → onboarding
+      if (isLoggedIn && orgLoaded && !hasOrganization && !isOnOnboarding) {
+        return '/onboarding';
+      }
+
+      // Logged in, has a team, but still on onboarding → projects
+      if (isLoggedIn && hasOrganization && isOnOnboarding) {
+        return '/projects';
+      }
+
       // Logged in but no project selected and not on projects screen? Force project selection
       // Exception: deep link routes handle project selection internally
       if (isLoggedIn &&
           !hasSelectedProject &&
           !isOnProjectsScreen &&
-          !isDeepLinkRoute) {
+          !isDeepLinkRoute &&
+          !isOnOnboarding) {
         return '/projects';
       }
 
@@ -105,6 +123,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             email: extras['email'] as String,
           );
         },
+      ),
+      // Organization onboarding (create or join a team)
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OrganizationOnboardingScreen(),
       ),
       // Projects Selection Screen (No Dashboard Layout)
       GoRoute(

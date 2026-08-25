@@ -11,6 +11,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/providers/project_provider.dart';
 import './widgets/api_key_display.dart';
 import './widgets/profile_section.dart';
+import './widgets/team_section.dart';
 import './widgets/password_reset_flow_widgets.dart';
 import '../../core/providers/user_profile_provider.dart';
 import './widgets/account_deletion_dialog.dart';
@@ -54,6 +55,20 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           SizedBox(height: isMobile ? 20 : 32),
+
+          // Team Section
+          MilitaryHoverContainer(
+            baseColor: AppColors.surfaceDark,
+            showGrid: false,
+            child: Container(
+              padding: EdgeInsets.all(sectionPadding),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.slate.withAlpha(77)),
+              ),
+              child: const TeamSection(),
+            ),
+          ),
+          SizedBox(height: sectionSpacing),
 
           // API Key Section
           MilitaryHoverContainer(

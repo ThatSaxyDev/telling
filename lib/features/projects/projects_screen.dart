@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:telling/core/models/project.dart';
 import 'package:telling/core/providers/auth_provider.dart';
 import '../../core/providers/project_provider.dart';
+import '../../core/providers/organization_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
@@ -41,6 +42,9 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     final projectState = ref.watch(projectProvider);
+    final orgState = ref.watch(organizationProvider);
+    final isOwner = orgState.isOwner;
+    final orgName = orgState.organization?.name;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
@@ -126,6 +130,43 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                       ),
                       const SizedBox(height: 32),
 
+                      // Team banner
+                      if (orgName != null)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.slate.withAlpha(77),
+                            ),
+                            color: AppColors.surfaceDark.withAlpha(128),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.shield_outlined,
+                                color: AppColors.secondary,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${orgName.toUpperCase()}  —  ${isOwner ? 'OWNER' : 'MEMBER'}',
+                                  style: AppTextStyles.labelSmall.copyWith(
+                                    color: AppColors.slate,
+                                    letterSpacing: 1,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
                       // Error Message
                       if (projectState.error != null)
                         Container(
@@ -165,7 +206,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                         ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: projectState.projects.length + 1,
+                          itemCount:
+                              projectState.projects.length + (isOwner ? 1 : 0),
                           separatorBuilder: (_, __) =>
                               const SizedBox(height: 16),
                           itemBuilder: (context, index) {
@@ -200,7 +242,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                                 crossAxisSpacing: 16,
                                 mainAxisSpacing: 16,
                               ),
-                          itemCount: projectState.projects.length + 1,
+                          itemCount:
+                              projectState.projects.length + (isOwner ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index == projectState.projects.length) {
                               final isLimitReached =
@@ -258,6 +301,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     Project project, {
     bool isMobile = false,
   }) {
+    final isOwner = ref.read(organizationProvider).isOwner;
     final content = Container(
       padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
@@ -330,16 +374,17 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     context.go('/');
                   },
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    size: 18,
-                    color: AppColors.slate,
+                if (isOwner)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 18,
+                      color: AppColors.slate,
+                    ),
+                    onPressed: () => _confirmDelete(context, ref, project),
+                    tooltip: 'DELETE PROJECT',
+                    visualDensity: VisualDensity.compact,
                   ),
-                  onPressed: () => _confirmDelete(context, ref, project),
-                  tooltip: 'DELETE PROJECT',
-                  visualDensity: VisualDensity.compact,
-                ),
               ],
             )
           : // Desktop/Tablet: Vertical layout
@@ -387,15 +432,16 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        size: 18,
-                        color: AppColors.slate,
+                    if (isOwner)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          size: 18,
+                          color: AppColors.slate,
+                        ),
+                        onPressed: () => _confirmDelete(context, ref, project),
+                        tooltip: 'DELETE PROJECT',
                       ),
-                      onPressed: () => _confirmDelete(context, ref, project),
-                      tooltip: 'DELETE PROJECT',
-                    ),
                   ],
                 ),
                 const Spacer(),

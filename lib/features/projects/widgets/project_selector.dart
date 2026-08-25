@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/project_provider.dart';
+import '../../../core/providers/organization_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 class ProjectSelector extends ConsumerWidget {
@@ -9,6 +10,7 @@ class ProjectSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final projectState = ref.watch(projectProvider);
+    final isOwner = ref.watch(organizationProvider).isOwner;
     final selectedProject = projectState.selectedProject;
     final isLimitReached = projectState.projects.length >= 3;
 
@@ -34,29 +36,31 @@ class ProjectSelector extends ConsumerWidget {
               ),
             ),
           ),
-          const PopupMenuDivider(),
-          PopupMenuItem(
-            value: isLimitReached ? null : 'new_project',
-            enabled: !isLimitReached,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.add,
-                  size: 14,
-                  color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  isLimitReached ? 'LIMIT REACHED (3/3)' : 'NEW_PROJECT',
-                  style: TextStyle(
-                    fontFamily: 'Urbanist',
+          if (isOwner) ...[
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: isLimitReached ? null : 'new_project',
+              enabled: !isLimitReached,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add,
+                    size: 14,
                     color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
-                    fontSize: 12,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Text(
+                    isLimitReached ? 'LIMIT REACHED (3/3)' : 'NEW_PROJECT',
+                    style: TextStyle(
+                      fontFamily: 'Urbanist',
+                      color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ];
       },
       onSelected: (value) {

@@ -20,6 +20,7 @@ class ApiConfig {
   static const String projectConfigPath =
       '$baseUrl/project'; // For version config
   static const String notificationsPath = '$baseUrl/notifications';
+  static const String organizationsPath = '$baseUrl/organizations';
   static const String pusherAuthPath =
       '$baseUrl/../pusher/auth'; // At root, not /api/v1
 
