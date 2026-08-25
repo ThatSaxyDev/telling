@@ -5,6 +5,7 @@ class Organization {
   final String plan;
   final String role;
   final String? inviteCode;
+  final DateTime? inviteCodeExpiresAt;
 
   Organization({
     required this.id,
@@ -13,6 +14,7 @@ class Organization {
     required this.plan,
     required this.role,
     this.inviteCode,
+    this.inviteCodeExpiresAt,
   });
 
   bool get isOwner => role == 'owner';
@@ -25,6 +27,9 @@ class Organization {
       plan: json['plan'] as String? ?? 'free',
       role: json['role'] as String,
       inviteCode: json['inviteCode'] as String?,
+      inviteCodeExpiresAt: json['inviteCodeExpiresAt'] != null
+          ? DateTime.tryParse(json['inviteCodeExpiresAt'] as String)
+          : null,
     );
   }
 }

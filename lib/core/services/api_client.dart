@@ -167,6 +167,20 @@ class ApiClient {
     );
   }
 
+  Future<http.Response> patch(
+    Uri url, {
+    Object? body,
+    Map<String, String>? headers,
+  }) {
+    return _send(
+      () => _client.patch(url, headers: {..._headers, ...?headers}, body: body),
+      'PATCH',
+      url,
+      body: body,
+      additionalHeaders: headers,
+    );
+  }
+
   Future<http.Response> delete(
     Uri url, {
     Object? body,

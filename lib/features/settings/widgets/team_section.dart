@@ -56,7 +56,7 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
         ),
         SizedBox(height: isMobile ? 12 : 16),
 
-        // Team identity
+        // Unit identity
         Row(
           children: [
             Expanded(
@@ -70,6 +70,14 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
             ),
             const SizedBox(width: 12),
             _roleBadge(org.role),
+            if (org.isOwner) ...[
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.edit, color: AppColors.slate, size: 18),
+                tooltip: 'RENAME UNIT',
+                onPressed: () => _confirmRename(org),
+              ),
+            ],
           ],
         ),
         SizedBox(height: isMobile ? 16 : 24),
@@ -80,7 +88,9 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
           SizedBox(height: isMobile ? 16 : 24),
           // Members
           _buildMembers(orgState, isMobile, sectionPadding),
-        ],
+        ] else
+          // Operator (non-commander) actions
+          _buildLeaveButton(),
       ],
     );
   }
@@ -163,6 +173,14 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          Text(
+            _expiryLabel(org.inviteCodeExpiresAt),
+            style: AppTextStyles.labelSmall.copyWith(
+              color: AppColors.slate,
+              fontSize: 10,
+            ),
+          ),
         ],
       ),
     );
@@ -242,6 +260,15 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
                     const SizedBox(width: 4),
                     IconButton(
                       icon: const Icon(
+                        Icons.swap_horiz,
+                        color: AppColors.secondary,
+                        size: 18,
+                      ),
+                      tooltip: 'TRANSFER COMMAND',
+                      onPressed: () => _confirmTransfer(member),
+                    ),
+                    IconButton(
+                      icon: const Icon(
                         Icons.person_remove_outlined,
                         color: AppColors.error,
                         size: 18,
@@ -303,6 +330,193 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  String _expiryLabel(DateTime? expiresAt) {
+    if (expiresAt == null) return 'NO EXPIRY';
+    final local = expiresAt.toLocal();
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return 'EXPIRES ${months[local.month - 1]} ${local.day}, ${local.year}';
+  }
+
+  void _confirmRename(Organization org) {
+    final controller = TextEditingController(text: org.name);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: AppColors.slate.withAlpha(77)),
+        ),
+        title: const Text(
+          'RENAME UNIT',
+          style: TextStyle(
+            fontFamily: 'Urbanist',
+            color: AppColors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          cursorColor: AppColors.secondary,
+          style: const TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
+          decoration: const InputDecoration(
+            labelText: 'UNIT NAME',
+            labelStyle: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.slate),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.white),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              final name = controller.text.trim();
+              if (name.isEmpty) return;
+              ref.read(organizationProvider.notifier).rename(name);
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'RENAME',
+              style: TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmTransfer(OrganizationMember member) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: AppColors.secondary),
+        ),
+        title: const Text(
+          'TRANSFER COMMAND',
+          style: TextStyle(
+            fontFamily: 'Urbanist',
+            color: AppColors.secondary,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Transfer command of this unit to ${member.name}? You will become an operator.',
+          style: const TextStyle(
+            color: AppColors.slate,
+            fontFamily: 'Urbanist',
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ref
+                  .read(organizationProvider.notifier)
+                  .transferOwnership(member.id);
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'TRANSFER',
+              style: TextStyle(
+                color: AppColors.secondary,
+                fontFamily: 'Urbanist',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmLeave() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: AppColors.error),
+        ),
+        title: const Text(
+          'LEAVE UNIT',
+          style: TextStyle(
+            fontFamily: 'Urbanist',
+            color: AppColors.error,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: const Text(
+          'Leave this unit? You will lose access to all its projects.',
+          style: TextStyle(
+            color: AppColors.slate,
+            fontFamily: 'Urbanist',
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(organizationProvider.notifier).leave();
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'LEAVE',
+              style: TextStyle(color: AppColors.error, fontFamily: 'Urbanist'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLeaveButton() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        onPressed: _confirmLeave,
+        icon: const Icon(Icons.logout, size: 16, color: AppColors.error),
+        label: const Text(
+          'LEAVE UNIT',
+          style: TextStyle(
+            color: AppColors.error,
+            fontFamily: 'Urbanist',
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }

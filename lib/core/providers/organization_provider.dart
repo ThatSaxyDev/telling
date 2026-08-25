@@ -228,6 +228,9 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final newCode = data['inviteCode'] as String;
+        final newExpiry = data['inviteCodeExpiresAt'] != null
+            ? DateTime.tryParse(data['inviteCodeExpiresAt'] as String)
+            : null;
         final org = state.organization;
         if (org != null) {
           state = state.copyWith(
@@ -238,6 +241,7 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
               plan: org.plan,
               role: org.role,
               inviteCode: newCode,
+              inviteCodeExpiresAt: newExpiry,
             ),
           );
         }
@@ -246,6 +250,86 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<bool> rename(String name) async {
+    final authState = ref.read(authProvider);
+    if (!authState.isAuthenticated) return false;
+
+    final apiClient = ref.read(apiClientProvider);
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await apiClient.patch(
+        Uri.parse(_baseUrl),
+        body: jsonEncode({'name': name}),
+      );
+
+      if (response.statusCode == 200) {
+        await load();
+        return true;
+      }
+      state = state.copyWith(
+        isLoading: false,
+        error: _extractError(response.body) ?? 'Failed to rename unit',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
+      return false;
+    }
+  }
+
+  Future<bool> transferOwnership(String newOwnerId) async {
+    final apiClient = ref.read(apiClientProvider);
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await apiClient.post(
+        Uri.parse('$_baseUrl/transfer'),
+        body: jsonEncode({'userId': newOwnerId}),
+      );
+
+      if (response.statusCode == 200) {
+        await load();
+        return true;
+      }
+      state = state.copyWith(
+        isLoading: false,
+        error: _extractError(response.body) ?? 'Failed to transfer unit',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
+      return false;
+    }
+  }
+
+  Future<bool> leave() async {
+    final apiClient = ref.read(apiClientProvider);
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await apiClient.post(Uri.parse('$_baseUrl/leave'));
+
+      if (response.statusCode == 200) {
+        // No unit now — clear state so the router sends the user to onboarding.
+        state = OrganizationState(
+          organization: null,
+          isLoading: false,
+          isLoaded: true,
+        );
+        return true;
+      }
+      state = state.copyWith(
+        isLoading: false,
+        error: _extractError(response.body) ?? 'Failed to leave unit',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _sanitizeError(e));
+      return false;
     }
   }
 
