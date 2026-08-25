@@ -293,12 +293,15 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
     }
   }
 
-  Future<String?> regenerateCode() async {
+  /// Rotates the ACTIVE unit's invite code. [expiryDays] null (or omitted)
+  /// makes the code valid until rotated again; 1–365 sets a window.
+  Future<String?> regenerateCode({int? expiryDays}) async {
     final apiClient = ref.read(apiClientProvider);
 
     try {
       final response = await apiClient.post(
         Uri.parse('$_baseUrl/me/regenerate-code'),
+        body: jsonEncode({'expiryDays': expiryDays}),
       );
 
       if (response.statusCode == 200) {

@@ -428,9 +428,7 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
               IconButton(
                 icon: const Icon(Icons.refresh, color: AppColors.slate, size: 20),
                 tooltip: 'REGENERATE CODE',
-                onPressed: () async {
-                  await ref.read(organizationProvider.notifier).regenerateCode();
-                },
+                onPressed: () => _confirmRegenerate(org),
               ),
             ],
           ),
@@ -588,6 +586,99 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
             child: const Text(
               'REMOVE',
               style: TextStyle(color: AppColors.error, fontFamily: 'Urbanist'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmRegenerate(Organization org) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceDark,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: AppColors.secondary),
+        ),
+        title: const Text(
+          'REGENERATE INVITE CODE',
+          style: TextStyle(
+            fontFamily: 'Urbanist',
+            color: AppColors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'The current code stops working immediately. Leave the field '
+              'empty for a code that never expires.',
+              style: TextStyle(
+                color: AppColors.slate,
+                fontFamily: 'Urbanist',
+                height: 1.5,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              cursorColor: AppColors.secondary,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              style: const TextStyle(
+                color: AppColors.white,
+                fontFamily: 'Urbanist',
+              ),
+              decoration: const InputDecoration(
+                labelText: 'VALID FOR DAYS (EMPTY = NO EXPIRY)',
+                labelStyle: TextStyle(
+                  color: AppColors.slate,
+                  fontFamily: 'Urbanist',
+                  fontSize: 11,
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.slate),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final text = controller.text.trim();
+              final days = text.isEmpty ? null : int.tryParse(text);
+              if (text.isNotEmpty && (days == null || days < 1 || days > 365)) {
+                return;
+              }
+              await ref
+                  .read(organizationProvider.notifier)
+                  .regenerateCode(expiryDays: days);
+              if (navigator.mounted) navigator.pop();
+            },
+            child: const Text(
+              'ROTATE',
+              style: TextStyle(
+                color: AppColors.secondary,
+                fontFamily: 'Urbanist',
+              ),
             ),
           ),
         ],
