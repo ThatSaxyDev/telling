@@ -155,7 +155,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  '${orgName.toUpperCase()}  —  ${isOwner ? 'OWNER' : 'MEMBER'}',
+                                  '${orgName.toUpperCase()}  —  ${isOwner ? 'COMMANDER' : 'OPERATOR'}',
                                   style: AppTextStyles.labelSmall.copyWith(
                                     color: AppColors.slate,
                                     letterSpacing: 1,

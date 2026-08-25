@@ -62,7 +62,7 @@ class _OrganizationOnboardingScreenState
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Every operator belongs to a team. Create your own '
+                        'Every operator belongs to a unit. Create your own '
                         'or join an existing one with an invite code.',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.bodySmall.copyWith(
@@ -79,7 +79,7 @@ class _OrganizationOnboardingScreenState
                         SizedBox(
                           width: double.infinity,
                           child: AppButton(
-                            text: 'CREATE MY TEAM',
+                            text: 'CREATE MY UNIT',
                             icon: Icons.add_moderator,
                             onPressed: () async {
                               final ok = await ref
@@ -128,7 +128,7 @@ class _OrganizationOnboardingScreenState
                               color: AppColors.slate,
                               fontFamily: 'Urbanist',
                             ),
-                            hintText: 'ABCD-1234',
+                            hintText: 'ABCD2345',
                             hintStyle: TextStyle(
                               color: AppColors.slate,
                               fontFamily: 'Urbanist',

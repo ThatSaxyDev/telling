@@ -91,7 +91,7 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
         state = state.copyWith(
           isLoading: false,
           isLoaded: true,
-          error: 'Failed to load team',
+          error: 'Failed to load unit',
         );
       }
     } catch (e) {
@@ -127,7 +127,7 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
       } else {
         state = state.copyWith(
           isLoading: false,
-          error: _extractError(response.body) ?? 'Failed to create team',
+          error: _extractError(response.body) ?? 'Failed to create unit',
         );
         return false;
       }
@@ -156,7 +156,7 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
       } else {
         state = state.copyWith(
           isLoading: false,
-          error: _extractError(response.body) ?? 'Failed to join team',
+          error: _extractError(response.body) ?? 'Failed to join unit',
         );
         return false;
       }

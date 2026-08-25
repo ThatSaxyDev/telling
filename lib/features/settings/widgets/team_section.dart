@@ -48,7 +48,7 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
             ),
             SizedBox(width: isMobile ? 8 : 12),
             Text(
-              'TEAM',
+              'UNIT',
               style: (isMobile ? AppTextStyles.titleSmall : AppTextStyles.titleMedium)
                   .copyWith(color: AppColors.secondary),
             ),
@@ -87,6 +87,7 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
 
   Widget _roleBadge(String role) {
     final isOwner = role == 'owner';
+    final label = isOwner ? 'COMMANDER' : 'OPERATOR';
     final color = isOwner ? AppColors.secondary : AppColors.slate;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -95,7 +96,7 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
         color: color.withAlpha(26),
       ),
       child: Text(
-        role.toUpperCase(),
+        label,
         style: AppTextStyles.labelSmall.copyWith(
           color: color,
           letterSpacing: 1,
@@ -276,7 +277,7 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
           ),
         ),
         content: Text(
-          'Remove ${member.name} from the team? They will lose access to all team projects.',
+          'Remove ${member.name} from the unit? They will lose access to all unit projects.',
           style: const TextStyle(
             color: AppColors.slate,
             fontFamily: 'Urbanist',
