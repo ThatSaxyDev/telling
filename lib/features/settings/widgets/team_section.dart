@@ -6,6 +6,7 @@ import '../../../core/providers/organization_provider.dart';
 import '../../../core/providers/project_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../shared/widgets/unit_dialogs.dart';
 
 class TeamSection extends ConsumerStatefulWidget {
   const TeamSection({super.key});
@@ -20,10 +21,23 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
     super.initState();
     Future.microtask(() {
       final state = ref.read(organizationProvider);
-      if (state.isOwner && state.members.isEmpty && !state.membersLoading) {
+      if (state.members.isEmpty && !state.membersLoading) {
         ref.read(organizationProvider.notifier).loadMembers();
       }
     });
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontFamily: 'Urbanist'),
+        ),
+        backgroundColor: isError ? AppColors.error : AppColors.secondary,
+      ),
+    );
   }
 
   @override
@@ -81,6 +95,17 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
             ],
           ],
         ),
+        // Role explainer
+        const SizedBox(height: 4),
+        Text(
+          org.isOwner
+              ? 'COMMANDERS MANAGE PROJECTS, MEMBERS AND INVITES'
+              : 'OPERATORS HAVE VIEW-ONLY ACCESS TO UNIT PROJECTS',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: AppColors.slate,
+            fontSize: 10,
+          ),
+        ),
         SizedBox(height: isMobile ? 16 : 24),
 
         // Unit switcher + add-unit actions
@@ -88,12 +113,15 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
         SizedBox(height: isMobile ? 16 : 24),
 
         if (org.isOwner) ...[
-          // Invite code
+          // Invite code (commander only)
           _buildInviteCode(org, isMobile),
           SizedBox(height: isMobile ? 16 : 24),
-          // Members
-          _buildMembers(orgState, isMobile, sectionPadding),
-        ] else
+        ],
+        // Members — visible to every unit member; actions are commander-only
+        _buildMembers(orgState, isMobile, sectionPadding),
+        SizedBox(height: isMobile ? 16 : 24),
+
+        if (!org.isOwner)
           // Operator (non-commander) actions
           _buildLeaveButton(),
       ],
@@ -228,7 +256,7 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
           ),
           Text(
             'You can command up to '
-            '${OrganizationState.maxOwnedUnits} units. Joining others is unlimited.',
+            '${orgState.maxOwnedUnits} units. Joining others is unlimited.',
             style: AppTextStyles.labelSmall.copyWith(
               color: AppColors.slate,
               fontSize: 10,
@@ -249,136 +277,15 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
     await projects.loadProjects();
   }
 
-  void _showCreateUnitDialog() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.secondary),
-        ),
-        title: const Text(
-          'CREATE NEW UNIT',
-          style: TextStyle(
-            fontFamily: 'Urbanist',
-            color: AppColors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: TextField(
-          controller: controller,
-          cursorColor: AppColors.secondary,
-          style: const TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
-          decoration: const InputDecoration(
-            labelText: 'UNIT NAME (OPTIONAL)',
-            labelStyle: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.slate),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.white),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              await ref
-                  .read(organizationProvider.notifier)
-                  .createOrganization(name: controller.text.trim());
-              if (navigator.mounted) navigator.pop();
-            },
-            child: const Text(
-              'CREATE',
-              style: TextStyle(
-                color: AppColors.secondary,
-                fontFamily: 'Urbanist',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  void _showCreateUnitDialog() => showCreateUnitDialog(context, ref);
 
-  void _showJoinUnitDialog() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.slate.withAlpha(77)),
-        ),
-        title: const Text(
-          'JOIN UNIT',
-          style: TextStyle(
-            fontFamily: 'Urbanist',
-            color: AppColors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: TextField(
-          controller: controller,
-          cursorColor: AppColors.secondary,
-          textCapitalization: TextCapitalization.characters,
-          style: const TextStyle(
-            color: AppColors.white,
-            fontFamily: 'Urbanist',
-            letterSpacing: 2,
-          ),
-          decoration: const InputDecoration(
-            labelText: 'INVITE CODE',
-            labelStyle: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.slate),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.white),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              final code = controller.text.trim();
-              if (code.isEmpty) return;
-              final navigator = Navigator.of(context);
-              await ref
-                  .read(organizationProvider.notifier)
-                  .joinOrganization(code);
-              if (navigator.mounted) navigator.pop();
-            },
-            child: const Text(
-              'JOIN',
-              style: TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  void _showJoinUnitDialog() => showJoinUnitDialog(context, ref);
 
   Widget _buildInviteCode(Organization org, bool isMobile) {
     final code = org.inviteCode ?? '—';
+    final expiresAt = org.inviteCodeExpiresAt;
+    final expiringSoon = expiresAt != null &&
+        expiresAt.isBefore(DateTime.now().add(const Duration(days: 7)));
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -434,9 +341,10 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
           ),
           const SizedBox(height: 8),
           Text(
-            _expiryLabel(org.inviteCodeExpiresAt),
+            '${_expiryLabel(org.inviteCodeExpiresAt)}'
+            '${expiringSoon ? ' — EXPIRING SOON' : ''}',
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.slate,
+              color: expiringSoon ? AppColors.error : AppColors.slate,
               fontSize: 10,
             ),
           ),
@@ -457,13 +365,25 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'MEMBERS',
+          'MEMBERS (${members.length})',
           style: AppTextStyles.labelSmall.copyWith(
             color: AppColors.slate,
             letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 8),
+        if (!orgState.isOwner)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              'READ-ONLY — COMMANDERS MANAGE MEMBERS',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.slate,
+                fontSize: 10,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
         if (isLoading && members.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
@@ -502,20 +422,21 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(
-                          member.email,
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.slate,
-                            fontSize: 10,
+                        if (member.email != null)
+                          Text(
+                            member.email!,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: AppColors.slate,
+                              fontSize: 10,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
                   _roleBadge(member.role),
-                  if (member.role != 'owner') ...[
+                  if (orgState.isOwner && member.role != 'owner') ...[
                     const SizedBox(width: 4),
                     IconButton(
                       icon: const Icon(
@@ -546,142 +467,219 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
   }
 
   void _confirmRemoveMember(OrganizationMember member) {
+    bool busy = false;
+    String? error;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.error),
-        ),
-        title: const Text(
-          'REMOVE MEMBER',
-          style: TextStyle(
-            fontFamily: 'Urbanist',
-            color: AppColors.error,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: AppColors.error),
           ),
-        ),
-        content: Text(
-          'Remove ${member.name} from the unit? They will lose access to all unit projects.',
-          style: const TextStyle(
-            color: AppColors.slate,
-            fontFamily: 'Urbanist',
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+          title: const Text(
+            'REMOVE MEMBER',
+            style: TextStyle(
+              fontFamily: 'Urbanist',
+              color: AppColors.error,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          TextButton(
-            onPressed: () {
-              ref.read(organizationProvider.notifier).removeMember(member.id);
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'REMOVE',
-              style: TextStyle(color: AppColors.error, fontFamily: 'Urbanist'),
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Remove ${member.name} from the unit? They will lose access to all unit projects.',
+                style: const TextStyle(
+                  color: AppColors.slate,
+                  fontFamily: 'Urbanist',
+                  height: 1.5,
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  error!.toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontFamily: 'Urbanist',
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: busy ? null : () => Navigator.pop(dialogContext),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+              ),
+            ),
+            TextButton(
+              onPressed: busy
+                  ? null
+                  : () async {
+                      setDialogState(() {
+                        busy = true;
+                        error = null;
+                      });
+                      final success = await ref
+                          .read(organizationProvider.notifier)
+                          .removeMember(member.id);
+                      if (!mounted || !dialogContext.mounted) return;
+                      if (success) {
+                        Navigator.pop(dialogContext);
+                        _showSnack('MEMBER REMOVED');
+                      } else {
+                        setDialogState(() => error = 'Could not remove member');
+                      }
+                    },
+              child: Text(
+                busy ? 'REMOVING...' : 'REMOVE',
+                style:
+                    const TextStyle(color: AppColors.error, fontFamily: 'Urbanist'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _confirmRegenerate(Organization org) {
     final controller = TextEditingController();
+    bool busy = false;
+    String? validationError;
+    String? error;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.secondary),
-        ),
-        title: const Text(
-          'REGENERATE INVITE CODE',
-          style: TextStyle(
-            fontFamily: 'Urbanist',
-            color: AppColors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: AppColors.secondary),
           ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'The current code stops working immediately. Leave the field '
-              'empty for a code that never expires.',
-              style: TextStyle(
-                color: AppColors.slate,
-                fontFamily: 'Urbanist',
-                height: 1.5,
-                fontSize: 12,
-              ),
+          title: const Text(
+            'REGENERATE INVITE CODE',
+            style: TextStyle(
+              fontFamily: 'Urbanist',
+              color: AppColors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              cursorColor: AppColors.secondary,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              style: const TextStyle(
-                color: AppColors.white,
-                fontFamily: 'Urbanist',
-              ),
-              decoration: const InputDecoration(
-                labelText: 'VALID FOR DAYS (EMPTY = NO EXPIRY)',
-                labelStyle: TextStyle(
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'The current code stops working immediately. Leave the field '
+                'empty for a code that never expires.',
+                style: TextStyle(
                   color: AppColors.slate,
                   fontFamily: 'Urbanist',
-                  fontSize: 11,
+                  height: 1.5,
+                  fontSize: 12,
                 ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.slate),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                cursorColor: AppColors.secondary,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontFamily: 'Urbanist',
                 ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.white),
+                onChanged: (_) {
+                  if (validationError != null) {
+                    setDialogState(() => validationError = null);
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: 'VALID FOR DAYS (EMPTY = NO EXPIRY)',
+                  labelStyle: const TextStyle(
+                    color: AppColors.slate,
+                    fontFamily: 'Urbanist',
+                    fontSize: 11,
+                  ),
+                  errorText: validationError,
+                  errorStyle: const TextStyle(
+                    color: AppColors.error,
+                    fontFamily: 'Urbanist',
+                    fontSize: 11,
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.slate),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.white),
+                  ),
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  error!.toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontFamily: 'Urbanist',
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: busy ? null : () => Navigator.pop(dialogContext),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+              ),
+            ),
+            TextButton(
+              onPressed: busy
+                  ? null
+                  : () async {
+                      final text = controller.text.trim();
+                      final days = text.isEmpty ? null : int.tryParse(text);
+                      if (text.isNotEmpty &&
+                          (days == null || days < 1 || days > 365)) {
+                        setDialogState(() => validationError =
+                            'ENTER A NUMBER BETWEEN 1 AND 365');
+                        return;
+                      }
+                      setDialogState(() {
+                        busy = true;
+                        error = null;
+                      });
+                      final newCode = await ref
+                          .read(organizationProvider.notifier)
+                          .regenerateCode(expiryDays: days);
+                      if (!mounted || !dialogContext.mounted) return;
+                      if (newCode != null) {
+                        Navigator.pop(dialogContext);
+                        _showSnack('INVITE CODE ROTATED');
+                      } else {
+                        setDialogState(() => error = 'Could not rotate code');
+                      }
+                    },
+              child: Text(
+                busy ? 'ROTATING...' : 'ROTATE',
+                style: const TextStyle(
+                  color: AppColors.secondary,
+                  fontFamily: 'Urbanist',
                 ),
               ),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              final text = controller.text.trim();
-              final days = text.isEmpty ? null : int.tryParse(text);
-              if (text.isNotEmpty && (days == null || days < 1 || days > 365)) {
-                return;
-              }
-              await ref
-                  .read(organizationProvider.notifier)
-                  .regenerateCode(expiryDays: days);
-              if (navigator.mounted) navigator.pop();
-            },
-            child: const Text(
-              'ROTATE',
-              style: TextStyle(
-                color: AppColors.secondary,
-                fontFamily: 'Urbanist',
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -698,159 +696,268 @@ class _TeamSectionState extends ConsumerState<TeamSection> {
 
   void _confirmRename(Organization org) {
     final controller = TextEditingController(text: org.name);
+    bool busy = false;
+    String? error;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.slate.withAlpha(77)),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: AppColors.slate.withAlpha(77)),
+          ),
+          title: const Text(
+            'RENAME UNIT',
+            style: TextStyle(
+              fontFamily: 'Urbanist',
+              color: AppColors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: controller,
+                cursorColor: AppColors.secondary,
+                style:
+                    const TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
+                maxLength: 50,
+                decoration: const InputDecoration(
+                  labelText: 'UNIT NAME',
+                  labelStyle:
+                      TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.slate),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.white),
+                  ),
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  error!.toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontFamily: 'Urbanist',
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: busy ? null : () => Navigator.pop(dialogContext),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+              ),
+            ),
+            TextButton(
+              onPressed: busy
+                  ? null
+                  : () async {
+                      final name = controller.text.trim();
+                      if (name.isEmpty) return;
+                      setDialogState(() {
+                        busy = true;
+                        error = null;
+                      });
+                      final success = await ref
+                          .read(organizationProvider.notifier)
+                          .rename(name);
+                      if (!mounted || !dialogContext.mounted) return;
+                      if (success) {
+                        Navigator.pop(dialogContext);
+                        _showSnack('UNIT RENAMED');
+                      } else {
+                        setDialogState(() => error = 'Could not rename unit');
+                      }
+                    },
+              child: Text(
+                busy ? 'RENAMING...' : 'RENAME',
+                style:
+                    const TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
+              ),
+            ),
+          ],
         ),
-        title: const Text(
-          'RENAME UNIT',
-          style: TextStyle(
-            fontFamily: 'Urbanist',
-            color: AppColors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: TextField(
-          controller: controller,
-          cursorColor: AppColors.secondary,
-          style: const TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
-          decoration: const InputDecoration(
-            labelText: 'UNIT NAME',
-            labelStyle: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.slate),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppColors.white),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              final name = controller.text.trim();
-              if (name.isEmpty) return;
-              ref.read(organizationProvider.notifier).rename(name);
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'RENAME',
-              style: TextStyle(color: AppColors.white, fontFamily: 'Urbanist'),
-            ),
-          ),
-        ],
       ),
     );
   }
 
   void _confirmTransfer(OrganizationMember member) {
+    bool busy = false;
+    String? error;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.secondary),
-        ),
-        title: const Text(
-          'TRANSFER COMMAND',
-          style: TextStyle(
-            fontFamily: 'Urbanist',
-            color: AppColors.secondary,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: AppColors.secondary),
           ),
-        ),
-        content: Text(
-          'Transfer command of this unit to ${member.name}? You will become an operator.',
-          style: const TextStyle(
-            color: AppColors.slate,
-            fontFamily: 'Urbanist',
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+          title: const Text(
+            'TRANSFER COMMAND',
+            style: TextStyle(
+              fontFamily: 'Urbanist',
+              color: AppColors.secondary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          TextButton(
-            onPressed: () {
-              ref
-                  .read(organizationProvider.notifier)
-                  .transferOwnership(member.id);
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'TRANSFER',
-              style: TextStyle(
-                color: AppColors.secondary,
-                fontFamily: 'Urbanist',
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Transfer command of this unit to ${member.name}? You will become an operator.',
+                style: const TextStyle(
+                  color: AppColors.slate,
+                  fontFamily: 'Urbanist',
+                  height: 1.5,
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  error!.toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontFamily: 'Urbanist',
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: busy ? null : () => Navigator.pop(dialogContext),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
               ),
             ),
-          ),
-        ],
+            TextButton(
+              onPressed: busy
+                  ? null
+                  : () async {
+                      setDialogState(() {
+                        busy = true;
+                        error = null;
+                      });
+                      final success = await ref
+                          .read(organizationProvider.notifier)
+                          .transferOwnership(member.id);
+                      if (!mounted || !dialogContext.mounted) return;
+                      if (success) {
+                        Navigator.pop(dialogContext);
+                        _showSnack('COMMAND TRANSFERRED');
+                      } else {
+                        setDialogState(
+                            () => error = 'Could not transfer command');
+                      }
+                    },
+              child: Text(
+                busy ? 'TRANSFERRING...' : 'TRANSFER',
+                style: const TextStyle(
+                  color: AppColors.secondary,
+                  fontFamily: 'Urbanist',
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _confirmLeave() {
+    bool busy = false;
+    String? error;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceDark,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.error),
-        ),
-        title: const Text(
-          'LEAVE UNIT',
-          style: TextStyle(
-            fontFamily: 'Urbanist',
-            color: AppColors.error,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surfaceDark,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: AppColors.error),
           ),
-        ),
-        content: const Text(
-          'Leave this unit? You will lose access to all its projects.',
-          style: TextStyle(
-            color: AppColors.slate,
-            fontFamily: 'Urbanist',
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+          title: const Text(
+            'LEAVE UNIT',
+            style: TextStyle(
+              fontFamily: 'Urbanist',
+              color: AppColors.error,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          TextButton(
-            onPressed: () {
-              ref.read(organizationProvider.notifier).leave();
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'LEAVE',
-              style: TextStyle(color: AppColors.error, fontFamily: 'Urbanist'),
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Leave this unit? You will lose access to all its projects.',
+                style: TextStyle(
+                  color: AppColors.slate,
+                  fontFamily: 'Urbanist',
+                  height: 1.5,
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  error!.toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontFamily: 'Urbanist',
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: busy ? null : () => Navigator.pop(dialogContext),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(color: AppColors.slate, fontFamily: 'Urbanist'),
+              ),
+            ),
+            TextButton(
+              onPressed: busy
+                  ? null
+                  : () async {
+                      setDialogState(() {
+                        busy = true;
+                        error = null;
+                      });
+                      final success = await ref
+                          .read(organizationProvider.notifier)
+                          .leave();
+                      if (!mounted || !dialogContext.mounted) return;
+                      if (success) {
+                        Navigator.pop(dialogContext);
+                        _showSnack('LEFT UNIT');
+                      } else {
+                        setDialogState(() => error = 'Could not leave unit');
+                      }
+                    },
+              child: Text(
+                busy ? 'LEAVING...' : 'LEAVE',
+                style:
+                    const TextStyle(color: AppColors.error, fontFamily: 'Urbanist'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

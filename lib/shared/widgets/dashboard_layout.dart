@@ -5,6 +5,7 @@ import 'military_decorations.dart';
 import 'sidebar_nav.dart';
 import 'bottom_nav.dart';
 import '../../features/projects/widgets/project_selector.dart';
+import 'unit_indicator.dart';
 
 class DashboardLayout extends StatelessWidget {
   final Widget child;
@@ -73,8 +74,12 @@ class DashboardLayout extends StatelessWidget {
                             ),
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [const ProjectSelector()],
+                            children: [
+                              // Active-unit context — visible on every screen
+                              const Flexible(child: UnitIndicator()),
+                              const SizedBox(width: 8),
+                              const ProjectSelector(),
+                            ],
                           ),
                         ),
                         if (header != null) header!,

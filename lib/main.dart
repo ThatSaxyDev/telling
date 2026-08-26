@@ -14,6 +14,8 @@ import 'core/utils/responsive.dart';
 import 'core/services/version_check_service.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/providers/organization_provider.dart';
+import 'core/providers/project_provider.dart';
 import 'features/force_update/force_update_screen.dart';
 import 'features/deep_link/deep_link_handler_screen.dart';
 
@@ -115,10 +117,11 @@ class MainApp extends ConsumerStatefulWidget {
   ConsumerState<MainApp> createState() => _MainAppState();
 }
 
-class _MainAppState extends ConsumerState<MainApp> {
+class _MainAppState extends ConsumerState<MainApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     // Set up callback for notification clicks while app is running
     _onNotificationClick = (data) {
@@ -140,8 +143,34 @@ class _MainAppState extends ConsumerState<MainApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _onNotificationClick = null;
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+
+    // Re-sync units when returning to the app. If the ACTIVE unit changed
+    // while away (e.g. switched on another device), drop stale per-unit
+    // project data so the router funnels back to /projects.
+    Future.microtask(() async {
+      final authed = ref.read(authProvider).isAuthenticated;
+      if (!authed || !mounted) return;
+
+      final previousActive =
+          ref.read(organizationProvider).activeUnitId;
+      await ref.read(organizationProvider.notifier).load();
+      if (!mounted) return;
+      final nowActive = ref.read(organizationProvider).activeUnitId;
+      if (previousActive != nowActive &&
+          ref.read(organizationProvider).organization != null) {
+        final projects = ref.read(projectProvider.notifier);
+        projects.reset();
+        await projects.loadProjects();
+      }
+    });
   }
 
   void _processPendingDeepLink() {

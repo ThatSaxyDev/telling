@@ -19,6 +19,11 @@ class OrganizationState {
   final bool membersLoading;
   final String? membersError;
 
+  /// Limits from the server (GET /organizations → `limits`). Fall back to
+  /// known defaults when absent (e.g. older backend).
+  final int maxOwnedUnits;
+  final int maxProjectsPerUnit;
+
   OrganizationState({
     this.units = const [],
     this.activeUnitId,
@@ -28,10 +33,14 @@ class OrganizationState {
     this.members = const [],
     this.membersLoading = false,
     this.membersError,
-  });
+    int? maxOwnedUnits,
+    int? maxProjectsPerUnit,
+  })  : maxOwnedUnits = maxOwnedUnits ?? fallbackMaxOwnedUnits,
+        maxProjectsPerUnit = maxProjectsPerUnit ?? fallbackMaxProjectsPerUnit;
 
-  /// A user may command at most this many units. Joining others is unlimited.
-  static const maxOwnedUnits = 2;
+  /// Fallbacks used until the server-provided limits arrive.
+  static const fallbackMaxOwnedUnits = 2;
+  static const fallbackMaxProjectsPerUnit = 4;
 
   /// The ACTIVE unit — falls back to the first known unit.
   Organization? get organization {
@@ -56,6 +65,8 @@ class OrganizationState {
     List<OrganizationMember>? members,
     bool? membersLoading,
     String? membersError,
+    int? maxOwnedUnits,
+    int? maxProjectsPerUnit,
   }) {
     return OrganizationState(
       units: units ?? this.units,
@@ -66,6 +77,8 @@ class OrganizationState {
       members: members ?? this.members,
       membersLoading: membersLoading ?? this.membersLoading,
       membersError: membersError,
+      maxOwnedUnits: maxOwnedUnits ?? this.maxOwnedUnits,
+      maxProjectsPerUnit: maxProjectsPerUnit ?? this.maxProjectsPerUnit,
     );
   }
 }
@@ -97,16 +110,17 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
         final units = (data['units'] as List<dynamic>? ?? [])
             .map((e) => Organization.fromJson(e as Map<String, dynamic>))
             .toList();
+        final limits = data['limits'] as Map<String, dynamic>?;
         state = state.copyWith(
           units: units,
           activeUnitId: data['activeUnitId'] as String?,
           isLoading: false,
           isLoaded: true,
           members: const [],
+          maxOwnedUnits: limits?['maxOwnedUnits'] as int?,
+          maxProjectsPerUnit: limits?['maxProjectsPerUnit'] as int?,
         );
-        if (state.organization?.isOwner ?? false) {
-          loadMembers();
-        }
+        loadMembers();
       } else if (response.statusCode == 404) {
         // No unit yet — new user onboarding
         state = state.copyWith(
@@ -207,9 +221,7 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
           activeUnitId: organizationId,
           members: const [],
         );
-        if (state.organization?.isOwner ?? false) {
-          loadMembers();
-        }
+        loadMembers();
         return true;
       }
       state = state.copyWith(
@@ -245,7 +257,6 @@ class OrganizationNotifier extends Notifier<OrganizationState> {
   Future<void> loadMembers() async {
     final authState = ref.read(authProvider);
     if (!authState.isAuthenticated) return;
-    if (!state.isOwner) return;
 
     final apiClient = ref.read(apiClientProvider);
 

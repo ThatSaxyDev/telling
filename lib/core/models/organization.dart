@@ -37,7 +37,9 @@ class Organization {
 class OrganizationMember {
   final String id;
   final String name;
-  final String email;
+
+  /// Only included in API responses for commanders.
+  final String? email;
   final String role;
   final DateTime joinedAt;
 
@@ -53,7 +55,7 @@ class OrganizationMember {
     return OrganizationMember(
       id: json['id'] as String,
       name: json['name'] as String,
-      email: json['email'] as String,
+      email: json['email'] as String?,
       role: json['role'] as String,
       joinedAt: DateTime.parse(json['joinedAt'] as String),
     );

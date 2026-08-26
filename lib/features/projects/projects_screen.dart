@@ -10,6 +10,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../shared/widgets/military_decorations.dart';
 import '../../shared/widgets/military_loader.dart';
 import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/unit_dialogs.dart';
 import 'package:telling_logger/telling_logger.dart';
 import '../../core/constants/funnel_constants.dart';
 
@@ -74,6 +75,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     ? 400
                     : 300; // Full width on mobile
                 final double childAspectRatio = isMobile ? 1.4 : 1.2;
+                final projectsAtLimit = projectState.projects.length >=
+                    ref.watch(organizationProvider).maxProjectsPerUnit;
         
                 // Build the main content
                 final contentWidget = Container(
@@ -179,12 +182,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                               const SizedBox(height: 16),
                           itemBuilder: (context, index) {
                             if (index == projectState.projects.length) {
-                              final isLimitReached =
-                                  projectState.projects.length >= 4;
                               return _buildAddProjectCard(
                                 context,
                                 ref,
-                                isLimitReached,
+                                projectsAtLimit,
                                 isMobile: true,
                               );
                             }
@@ -213,12 +214,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                               projectState.projects.length + (isOwner ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index == projectState.projects.length) {
-                              final isLimitReached =
-                                  projectState.projects.length >= 4;
                               return _buildAddProjectCard(
                                 context,
                                 ref,
-                                isLimitReached,
+                                projectsAtLimit,
                                 isMobile: false,
                               );
                             }
@@ -355,10 +354,22 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               ],
             ),
           ),
+        ...unitMenuActionEntries(
+          canCreate: orgState.canCreateUnit,
+          ownedCount: orgState.ownedCount,
+        ),
       ],
-      onSelected: (unitId) async {
+      onSelected: (value) async {
+        if (value == unitMenuCreate) {
+          await showCreateUnitDialog(context, ref);
+          return;
+        }
+        if (value == unitMenuJoin) {
+          await showJoinUnitDialog(context, ref);
+          return;
+        }
         final switched =
-            await ref.read(organizationProvider.notifier).switchUnit(unitId);
+            await ref.read(organizationProvider.notifier).switchUnit(value);
         if (switched) {
           // Projects are scoped to the active unit — drop the stale
           // selection and reload.

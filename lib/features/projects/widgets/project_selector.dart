@@ -10,9 +10,11 @@ class ProjectSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final projectState = ref.watch(projectProvider);
-    final isOwner = ref.watch(organizationProvider).isOwner;
+    final orgState = ref.watch(organizationProvider);
+    final isOwner = orgState.isOwner;
     final selectedProject = projectState.selectedProject;
-    final isLimitReached = projectState.projects.length >= 4;
+    final projectCount = projectState.projects.length;
+    final isLimitReached = projectCount >= orgState.maxProjectsPerUnit;
 
     return PopupMenuButton<String>(
       tooltip: 'SELECT_PROJECT',
@@ -36,31 +38,37 @@ class ProjectSelector extends ConsumerWidget {
               ),
             ),
           ),
-          if (isOwner) ...[
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              value: isLimitReached ? null : 'new_project',
-              enabled: !isLimitReached,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.add,
-                    size: 14,
-                    color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
-                  ),
-                  const SizedBox(width: 8),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: isOwner && !isLimitReached ? 'new_project' : null,
+            enabled: isOwner && !isLimitReached,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 14,
+                  color: isOwner && !isLimitReached
+                      ? AppColors.slate
+                      : AppColors.slate.withAlpha(77),
+                ),
+                const SizedBox(width: 8),
                   Text(
-                    isLimitReached ? 'LIMIT REACHED (4/4)' : 'NEW_PROJECT',
-                    style: TextStyle(
-                      fontFamily: 'Urbanist',
-                      color: isLimitReached ? AppColors.slate.withAlpha(77) : AppColors.slate,
-                      fontSize: 12,
-                    ),
+                    !isOwner
+                        ? 'NEW_PROJECT · COMMANDERS ONLY'
+                        : isLimitReached
+                            ? 'LIMIT REACHED ($projectCount/${orgState.maxProjectsPerUnit})'
+                            : 'NEW_PROJECT',
+                  style: TextStyle(
+                    fontFamily: 'Urbanist',
+                    color: isOwner && !isLimitReached
+                        ? AppColors.slate
+                        : AppColors.slate.withAlpha(77),
+                    fontSize: 12,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ];
       },
       onSelected: (value) {

@@ -5,12 +5,28 @@ import 'package:http/http.dart' as http;
 import 'package:telling_logger/telling_logger.dart';
 import '../exceptions/api_exceptions.dart';
 import '../providers/auth_provider.dart';
+import '../providers/organization_provider.dart';
 
 class ApiClient {
   final http.Client _client;
   final Ref _ref;
+  bool _orgResyncQueued = false;
 
   ApiClient(this._ref) : _client = http.Client();
+
+  /// A 403 outside the org endpoints usually means our unit context went
+  /// stale (e.g. removed from the active unit mid-session). Re-sync units so
+  /// the router can react (onboarding redirect when none remain).
+  void _scheduleOrgResync() {
+    if (_orgResyncQueued) return;
+    _orgResyncQueued = true;
+    Future.microtask(() {
+      _orgResyncQueued = false;
+      try {
+        _ref.read(organizationProvider.notifier).load();
+      } catch (_) {}
+    });
+  }
 
   Map<String, String> get _headers {
     final headers = <String, String>{
@@ -93,6 +109,12 @@ class ApiClient {
         throw UnauthorizedException(
           message: 'Session expired. Please login again.',
         );
+      }
+
+      // A 403 can mean the active-unit context went stale — re-sync units
+      // (skipped for the org endpoints themselves to avoid loops).
+      if (response.statusCode == 403 && !url.path.contains('/organizations')) {
+        _scheduleOrgResync();
       }
 
       if (response.statusCode >= 400) {

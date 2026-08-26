@@ -18,10 +18,12 @@ class OrganizationOnboardingScreen extends ConsumerStatefulWidget {
 
 class _OrganizationOnboardingScreenState
     extends ConsumerState<OrganizationOnboardingScreen> {
+  final _nameController = TextEditingController();
   final _codeController = TextEditingController();
 
   @override
   void dispose() {
+    _nameController.dispose();
     _codeController.dispose();
     super.dispose();
   }
@@ -75,6 +77,37 @@ class _OrganizationOnboardingScreenState
                       if (orgState.isLoading)
                         const MilitaryLoader(label: 'PROCESSING...')
                       else ...[
+                        // Unit name (optional — server defaults to a generated name)
+                        TextField(
+                          controller: _nameController,
+                          cursorColor: AppColors.secondary,
+                          textCapitalization: TextCapitalization.words,
+                          maxLength: 50,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontFamily: 'Urbanist',
+                            letterSpacing: 1,
+                          ),
+                          decoration: const InputDecoration(
+                            labelText: 'UNIT NAME (OPTIONAL)',
+                            labelStyle: TextStyle(
+                              color: AppColors.slate,
+                              fontFamily: 'Urbanist',
+                            ),
+                            hintText: 'E.G. ALPHA SQUAD',
+                            hintStyle: TextStyle(
+                              color: AppColors.slate,
+                              fontFamily: 'Urbanist',
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.slate),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                         // Create team
                         SizedBox(
                           width: double.infinity,
@@ -84,7 +117,9 @@ class _OrganizationOnboardingScreenState
                             onPressed: () async {
                               final ok = await ref
                                   .read(organizationProvider.notifier)
-                                  .createOrganization();
+                                  .createOrganization(
+                                    name: _nameController.text.trim(),
+                                  );
                               if (ok && context.mounted) {
                                 context.go('/projects');
                               }

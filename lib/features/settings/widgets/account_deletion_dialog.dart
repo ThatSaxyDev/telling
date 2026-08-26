@@ -72,7 +72,7 @@ class _AccountDeletionDialogState extends State<AccountDeletionDialog> {
               ),
               const SizedBox(height: 12),
               Text(
-                'This action cannot be undone. This will permanently delete your account and remove all associated data from our servers.',
+                'This action cannot be undone. This will permanently delete your account and remove all associated data from our servers. Any units you command will also be deleted, and their members will lose access.',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.slate,
                 ),
