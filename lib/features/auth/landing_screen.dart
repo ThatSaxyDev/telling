@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/funnel_constants.dart';
 import '../../shared/widgets/military_decorations.dart';
+import '../../shared/widgets/gradient_border.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -1015,63 +1016,57 @@ class _LandingScreenState extends State<LandingScreen>
     );
   }
 
-  Widget _buildFlutterBadge(bool isMobile) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () => _launchUrl('https://pub.dev/packages/telling_logger'),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 10 : 20,
-            vertical: isMobile ? 8 : 12,
-          ),
-          decoration: BoxDecoration(
-            color: const Color(0xFF02569B).withAlpha(26),
-            border: Border.all(color: const Color(0xFF02569B), width: 1.5),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.flutter_dash,
-                color: const Color(0xFF54C5F8),
-                size: isMobile ? 16 : 20,
-              ),
-              SizedBox(width: isMobile ? 8 : 12),
-              Text(
-                isMobile ? 'PUB.DEV' : 'BUILT_FOR_FLUTTER',
-                style: TextStyle(
-                  fontFamily: 'Urbanist',
-                  color: const Color(0xFF54C5F8),
-                  fontSize: isMobile ? 11 : 13,
-                  letterSpacing: isMobile ? 1.5 : 2,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (!isMobile) ...[
-                const SizedBox(width: 12),
-                Container(
-                  width: 1,
-                  height: 12,
-                  color: const Color(0xFF54C5F8).withAlpha(77),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'VIEW_ON_PUB.DEV',
-                  style: TextStyle(
-                    fontFamily: 'Urbanist',
-                    color: AppColors.white,
-                    fontSize: 11,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
+  /// The two SDK badges. Row on desktop, stacked full-width on mobile.
+  ///
+  /// These are two separate tap targets, not one control: each opens a
+  /// different registry (pub.dev for Flutter, dartpub.dev for DartNative), so
+  /// they are styled apart — Flutter keeps its flat brand blue, DartNative gets
+  /// its spectrum sweep.
+  Widget _buildSdkBadges(bool isMobile) {
+    final flutter = _SdkBadge(
+      url: 'https://pub.dev/packages/telling_logger',
+      icon: Icon(
+        Icons.flutter_dash,
+        color: AppColors.flutterBlueLight,
+        size: isMobile ? 16 : 20,
       ),
+      label: isMobile ? 'PUB.DEV' : 'BUILT_FOR_FLUTTER',
+      trailing: isMobile ? null : 'VIEW_ON_PUB.DEV',
+      accent: AppColors.flutterBlueLight,
+      borderColor: AppColors.flutterBlue,
+      fill: AppColors.flutterBlue.withAlpha(26),
     );
+
+    final dartNative = _SdkBadge(
+      url: 'https://dartpub.dev/plugins/telling_kit',
+      icon: Image.asset(
+        'assets/images/dn/dn-logo-64.png',
+        width: isMobile ? 16 : 20,
+        height: isMobile ? 16 : 20,
+        filterQuality: FilterQuality.medium,
+      ),
+      label: isMobile ? 'DARTPUB.DEV' : 'BUILT_FOR_DARTNATIVE',
+      trailing: isMobile ? null : 'VIEW_ON_DARTPUB.DEV',
+      accent: AppColors.dnGold,
+      borderColor: null, // painted as the spectrum sweep instead
+      gradientBorder: true,
+      fill: AppColors.dnGold.withAlpha(18),
+    );
+
+    if (isMobile) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [flutter, const SizedBox(height: 12), dartNative],
+      );
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [flutter, const SizedBox(width: 16), dartNative],
+    );
+  }
+
+  Widget _buildFlutterBadge(bool isMobile) {
+    return _buildSdkBadges(isMobile);
   }
 
   Widget _buildFooter(bool isMobile) {
@@ -1083,7 +1078,7 @@ class _LandingScreenState extends State<LandingScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Made with Flutter & 💙 by ',
+                'Made with Flutter, DartNative & 💙 by ',
                 style: TextStyle(
                   fontFamily: 'Urbanist',
                   color: AppColors.slate,
@@ -1356,6 +1351,116 @@ class _TopNavButtonState extends State<_TopNavButton> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// One SDK badge in the hero: an icon, a label, and an optional registry hint.
+///
+/// Border is either a flat [borderColor] or, when [gradientBorder] is set, the
+/// DartNative spectrum sweep painted by [GradientBorderBox].
+class _SdkBadge extends StatelessWidget {
+  const _SdkBadge({
+    required this.url,
+    required this.icon,
+    required this.label,
+    required this.accent,
+    required this.fill,
+    this.trailing,
+    this.borderColor,
+    this.gradientBorder = false,
+  });
+
+  final String url;
+  final Widget icon;
+  final String label;
+
+  /// `'VIEW_ON_PUB.DEV'` — desktop only; the registry is already implied by the
+  /// label on mobile where the badge is too narrow for both.
+  final String? trailing;
+
+  /// Label and divider color.
+  final Color accent;
+
+  final Color? borderColor;
+  final bool gradientBorder;
+  final Color fill;
+
+  @override
+  Widget build(BuildContext context) {
+    final isNarrow = trailing == null;
+
+    final content = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: isNarrow ? 10 : 20,
+        vertical: isNarrow ? 8 : 12,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          icon,
+          SizedBox(width: isNarrow ? 8 : 12),
+          if (gradientBorder)
+            GradientText(
+              label,
+              style: TextStyle(
+                fontFamily: 'Urbanist',
+                fontSize: isNarrow ? 11 : 13,
+                letterSpacing: isNarrow ? 1.5 : 2,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          else
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Urbanist',
+                color: accent,
+                fontSize: isNarrow ? 11 : 13,
+                letterSpacing: isNarrow ? 1.5 : 2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          if (trailing != null) ...[
+            const SizedBox(width: 12),
+            Container(width: 1, height: 12, color: accent.withAlpha(77)),
+            const SizedBox(width: 12),
+            Text(
+              trailing!,
+              style: TextStyle(
+                fontFamily: 'Urbanist',
+                color: AppColors.white,
+                fontSize: 11,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    final decorated = gradientBorder
+        ? GradientBorderBox(fill: fill, child: content)
+        : Container(
+            padding: EdgeInsets.zero,
+            decoration: BoxDecoration(
+              color: fill,
+              border: Border.all(color: borderColor ?? accent, width: 1.5),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: content,
+          );
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () async {
+          final uri = Uri.parse(url);
+          if (await canLaunchUrl(uri)) await launchUrl(uri);
+        },
+        child: decorated,
       ),
     );
   }
