@@ -46,17 +46,34 @@ flutter build web
 cd build/web && python3 -m http.server 8080
 ```
 
-Two things this catches that `flutter run` will not:
+⚠️ **`http.server` will 404 on every deep link.** It does not read
+`web/_redirects`, so `/landing`, `/docs` and `/privacy` all fail locally while
+working perfectly on Netlify — a false alarm that wastes an hour. Use a server
+that mirrors the rewrite:
+
+```sh
+cat > /tmp/spa.py <<'PY'
+import http.server, os, functools
+class SPA(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        p = self.path.split('?')[0].lstrip('/')
+        if p and not os.path.exists(p):
+            self.path = '/index.html'      # mirrors Netlify's /* /index.html 200
+        return super().do_GET()
+http.server.HTTPServer(('127.0.0.1', 8080),
+    functools.partial(SPA, directory=os.getcwd())).serve_forever()
+PY
+cd build/web && python3 /tmp/spa.py
+```
+
+Two things a release build catches that `flutter run` will not:
 
 - **Release-mode behaviour.** `dart2js` differs from the dev build. The landing
   page forces dark theme (`main.dart:235`) and derives breakpoints from
   `responsive_framework` (`main.dart:240-249`), so the mobile/desktop badge
   breakpoint is worth confirming in a real release build.
-- **SPA routing.** `web/_redirects` (`/* /index.html 200`) is copied into
-  `build/web` by `flutter build web` and is what makes `/landing`, `/docs`,
-  `/privacy` deep links work. **Confirm it is in the folder before dropping** —
-  without it every non-root route 404s. `web/_headers` likewise carries the
-  `apple-app-site-association` content type.
+- **Lazy asset loading.** Docs pages load their markdown on click, so a missing
+  asset entry only surfaces when you actually visit the page.
 
 **Deploying:** drag `telling/build/web/` into Netlify Drop. That is the whole
 release path, and it is fine.
@@ -561,14 +578,43 @@ next release, not retroactively.
 
 | # | Phase | Risk | Notes |
 | --- | --- | --- | --- |
-| 0 | Branch; `flutter run -d chrome` to capture a local baseline | — | Baseline to diff against |
-| 1 | **Foundations** — `AppColors` tokens; `web/manifest.json`; `web/index.html` meta/OG | Low | `manifest.json:8` still says *"A new Flutter project."* and L6-7 are default Flutter-blue theme colours |
-| 2 | **Badge** — `_buildSdkBadges`, two call sites, spectrum border | Medium | First change to shared UI. Needs the mark decision (§6). |
-| 3 | **Docs IA** — group `_sections`, extract observer snippet, delete dead `assets/docs/README.md` | Medium | Sidebar restructuring; PREVIOUS/NEXT nav at L527-621 assumes a flat list and **must be reworked** |
-| 4 | **New DartNative sections** — the four files in §3 | Low | Additive. Content drafted above. |
-| 5 | **Revise Flutter sections** — §4 | Low | Mostly copy. The `overview.md:23` platform claim is the one to get right. |
-| 6 | **Privacy + mirror** — §7 | **High** | Legal read. Do not ship on a find-replace. |
-| 7 | `flutter build web` → serve `build/web` locally → review → Netlify Drop | Low | Per §9 |
+| 0 | ~~Branch; baseline~~ | — | Done — branch `feat/dartnative-site` off `feat/ai` |
+| 1 | **Foundations** — `AppColors` tokens; `manifest.json`; `index.html` meta/OG | Low | **Done** |
+| 2 | **Badge** — dual SDK badges, spectrum border, rasterised mark | Medium | **Done** — Option A (rasterise) taken |
+| 3 | **Docs IA** — grouped sidebar; split screen tracking; delete dead README | Medium | **Done** — see note below |
+| 4 | **New DartNative sections** — four files | Low | **Done** |
+| 5 | **Revise Flutter sections** — `overview.md` platform claim | Low | **Done** |
+| 6 | **Privacy + mirror** — §7 | **High** | **Not done — needs your legal read** |
+| 7 | `flutter build web` → serve `build/web` → Netlify Drop | Low | Per §9 |
+
+### Correction: grouping did not require reworking PREVIOUS/NEXT
+
+This plan predicted that grouping the sidebar would break
+`_buildFooterNavigation` (`docs_screen.dart:527-621`) because it walks a flat
+section list. **That was wrong, and the outcome is better than planned.**
+
+Everything positional reads a single flat `_sections` list. Making that list a
+derived view over `_groups` means markdown loading, the breadcrumb and
+PREVIOUS/NEXT all keep the same index arithmetic unchanged. Grouping became a
+*presentation* concern only — the sidebar renders group headers while iterating
+the flat list. PREVIOUS/NEXT still walks linearly across group boundaries, which
+is both predictable and correct.
+
+### Assets are declared non-recursively — twice
+
+`flutter build web` treats a directory asset entry as **the files directly
+inside it**, not a recursive walk. Two entries exist only because of this, and a
+third was needed for the new work:
+
+```yaml
+- assets/docs/
+- assets/docs/sections/        # not covered by assets/docs/
+- assets/docs/sections/dartnative/   # not covered by assets/docs/sections/
+```
+
+The DartNative pages would have 404'd at runtime without the third line — and
+because they load lazily, that failure would only appear when a visitor clicked
+into the group. `flutter analyze` does not catch it.
 
 Phase 3 carries a real trap: `_buildFooterNavigation` (L527-621) walks the flat
 section list for PREVIOUS/NEXT. Grouping breaks that and needs rewriting, not
