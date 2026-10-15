@@ -169,7 +169,9 @@ flutter:
     - assets/images/
     # Flutter treats a directory entry as the files directly inside it, not a
     # recursive walk — which is why assets/docs/sections/ is listed separately
-    # below rather than being covered by assets/docs/. Same applies here.
+    # below rather than being covered by assets/docs/. Same applies to the
+    # DartNative section folder nested inside sections/.
     - assets/images/dn/
     - assets/docs/
     - assets/docs/sections/
+    - assets/docs/sections/dartnative/

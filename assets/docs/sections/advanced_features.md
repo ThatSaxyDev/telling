@@ -1,4 +1,4 @@
-# Advanced Features
+# Error Handling & User Context
 
 
 <br>
@@ -78,25 +78,10 @@ Telling.instance.setUserProperties({
 
 <br>
 
-
 ## Automatic Screen Tracking
 
-### With MaterialApp
-```dart
-MaterialApp(
-  navigatorObservers: [
-    Telling.instance.screenTracker,
-  ],
-  home: HomeScreen(),
-)
-```
+Moved. Screen tracking is Flutter-only (DartNative has no observer hook), so it
+now has its own page:
 
-### With go_router
-```dart
-final router = GoRouter(
-  observers: [
-    Telling.instance.goRouterScreenTracker,
-  ],
-  routes: [...],
-);
-```
+- **[Screen Tracking (Flutter)](flutter_screen_tracking.md)** — `MaterialApp` and
+  `go_router` observer setup.

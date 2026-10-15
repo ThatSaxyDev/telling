@@ -28,58 +28,114 @@ class _DocsSection {
   });
 }
 
+class _DocsGroup {
+  /// Header text shown in the sidebar. Null renders the sections unlabelled.
+  final String label;
+  final IconData icon;
+  final List<_DocsSection> sections;
+
+  const _DocsGroup(this.label, this.icon, this.sections);
+}
+
 class _DocsScreenState extends State<DocsScreen> {
   String? _markdownData;
   bool _isLoading = true;
   int _currentIndex = 0;
 
-  final List<_DocsSection> _sections = const [
-    _DocsSection(
-      title: 'Overview',
-      file: 'overview.md',
-      icon: Icons.dashboard_outlined,
-    ),
-    _DocsSection(
-      title: 'Getting Started',
-      file: 'getting_started.md',
-      icon: Icons.rocket_launch_outlined,
-    ),
-    _DocsSection(
-      title: 'Core Concepts',
-      file: 'core_concepts.md',
-      icon: Icons.lightbulb_outline,
-    ),
-    _DocsSection(
-      title: 'Advanced Features',
-      file: 'advanced_features.md',
-      icon: Icons.psychology_outlined,
-    ),
-    _DocsSection(
-      title: 'Widget Tracking',
-      file: 'widget_tracking.md',
-      icon: Icons.widgets_outlined,
-    ),
-    _DocsSection(
-      title: 'Funnel Tracking',
-      file: 'funnel_tracking.md',
-      icon: Icons.filter_alt_outlined,
-    ),
-    _DocsSection(
-      title: 'Configuration',
-      file: 'configuration.md',
-      icon: Icons.settings_outlined,
-    ),
-    _DocsSection(
-      title: 'App Config & Updates',
-      file: 'app_config.md',
-      icon: Icons.system_update_outlined,
-    ),
-    _DocsSection(
-      title: 'Best Practices',
-      file: 'best_practices.md',
-      icon: Icons.verified_outlined,
-    ),
+  /// Telling ships two SDKs for one dashboard. Sections are grouped so the
+  /// reader can tell at a glance whether a page is framework-specific, and the
+  /// shared pages say so explicitly rather than silently implying Flutter.
+  final List<_DocsGroup> _groups = const [
+    _DocsGroup('OVERVIEW', Icons.dashboard_outlined, [
+      _DocsSection(
+        title: 'Overview',
+        file: 'overview.md',
+        icon: Icons.dashboard_outlined,
+      ),
+      _DocsSection(
+        title: 'Which SDK?',
+        file: 'choosing_an_sdk.md',
+        icon: Icons.compare_arrows_outlined,
+      ),
+    ]),
+    _DocsGroup('FLUTTER', Icons.flutter_dash, [
+      _DocsSection(
+        title: 'Getting Started',
+        file: 'getting_started.md',
+        icon: Icons.rocket_launch_outlined,
+      ),
+      _DocsSection(
+        title: 'Screen Tracking',
+        file: 'flutter_screen_tracking.md',
+        icon: Icons.visibility_outlined,
+      ),
+      _DocsSection(
+        title: 'Widget Tracking',
+        file: 'widget_tracking.md',
+        icon: Icons.widgets_outlined,
+      ),
+      _DocsSection(
+        title: 'App Config & Updates',
+        file: 'app_config.md',
+        icon: Icons.system_update_outlined,
+      ),
+    ]),
+    _DocsGroup('DARTNATIVE', Icons.bolt_outlined, [
+      _DocsSection(
+        title: 'Getting Started',
+        file: 'dartnative/getting_started.md',
+        icon: Icons.rocket_launch_outlined,
+      ),
+      _DocsSection(
+        title: 'Bootstrap & Crashes',
+        file: 'dartnative/bootstrap.md',
+        icon: Icons.shield_outlined,
+      ),
+      _DocsSection(
+        title: 'Screen Tracking',
+        file: 'dartnative/screen_tracking.md',
+        icon: Icons.visibility_outlined,
+      ),
+      _DocsSection(
+        title: 'Device Metadata',
+        file: 'dartnative/device_metadata.md',
+        icon: Icons.memory_outlined,
+      ),
+    ]),
+    _DocsGroup('BOTH SDKs', Icons.merge_type_outlined, [
+      _DocsSection(
+        title: 'Core Concepts',
+        file: 'core_concepts.md',
+        icon: Icons.lightbulb_outline,
+      ),
+      _DocsSection(
+        title: 'Analytics & Funnels',
+        file: 'funnel_tracking.md',
+        icon: Icons.filter_alt_outlined,
+      ),
+      _DocsSection(
+        title: 'Error Handling',
+        file: 'advanced_features.md',
+        icon: Icons.psychology_outlined,
+      ),
+      _DocsSection(
+        title: 'Configuration',
+        file: 'configuration.md',
+        icon: Icons.settings_outlined,
+      ),
+      _DocsSection(
+        title: 'Best Practices',
+        file: 'best_practices.md',
+        icon: Icons.verified_outlined,
+      ),
+    ]),
+  ];
 
+  /// Flat view over [_groups]. Everything that indexes by position — markdown
+  /// loading, the breadcrumb, PREVIOUS/NEXT — reads this, so grouping is a
+  /// presentation concern and no index arithmetic had to change.
+  late final List<_DocsSection> _sections = [
+    for (final group in _groups) ...group.sections,
   ];
 
   @override
@@ -329,56 +385,87 @@ class _DocsScreenState extends State<DocsScreen> {
   }
 
   Widget _buildSidebarList({required bool isMobile}) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      itemCount: _sections.length,
-      itemBuilder: (context, index) {
-        final section = _sections[index];
-        final isSelected = _currentIndex == index;
-
-        return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _onSectionSelected(index),
-            hoverColor: AppColors.white.withValues(alpha: 0.05),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                border: isSelected
-                    ? const Border(
-                        left: BorderSide(color: AppColors.primary, width: 3),
-                      )
-                    : null,
-                color: isSelected
-                    ? AppColors.white.withValues(alpha: 0.05)
-                    : null,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    section.icon,
-                    size: 20,
-                    color: isSelected ? AppColors.white : AppColors.slate,
+    // Renders the grouped sidebar as a flat widget list so the running index
+    // still lines up with _sections, which every positional lookup uses.
+    final rows = <Widget>[];
+    for (final group in _groups) {
+      rows.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(24, group == _groups.first ? 8 : 22, 24, 8),
+          child: Row(
+            children: [
+              Icon(group.icon, size: 13, color: AppColors.darkSlate),
+              const SizedBox(width: 7),
+              Flexible(
+                child: Text(
+                  group.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Urbanist',
+                    color: AppColors.darkSlate,
+                    fontSize: 10,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.w800,
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    section.title,
-                    style: TextStyle(
-                      fontFamily: 'Urbanist',
-                      color: isSelected ? AppColors.white : AppColors.slate,
-                      fontSize: 14,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        );
-      },
+        ),
+      );
+      for (final section in group.sections) {
+        rows.add(_buildSidebarRow(section, _sections.indexOf(section)));
+      }
+    }
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      children: rows,
+    );
+  }
+
+  Widget _buildSidebarRow(_DocsSection section, int index) {
+    final isSelected = _currentIndex == index;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _onSectionSelected(index),
+        hoverColor: AppColors.white.withValues(alpha: 0.05),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            border: isSelected
+                ? const Border(
+                    left: BorderSide(color: AppColors.primary, width: 3),
+                  )
+                : null,
+            color: isSelected
+                ? AppColors.white.withValues(alpha: 0.05)
+                : null,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                section.icon,
+                size: 20,
+                color: isSelected ? AppColors.white : AppColors.slate,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                section.title,
+                style: TextStyle(
+                  fontFamily: 'Urbanist',
+                  color: isSelected ? AppColors.white : AppColors.slate,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
