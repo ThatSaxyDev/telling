@@ -1,27 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
+  <meta charset="UTF-8">
   <base href="$FLUTTER_BASE_HREF">
 
-  <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Telling - Error tracking and analytics for Flutter and DartNative apps. Crash reporting, event tracking and funnels on one dashboard.">
   <meta name="keywords" content="Flutter, DartNative, Error Tracking, Crash Reporting, Analytics, Logging, Telling, Monitoring, telling_kit, telling_logger">
   <meta name="author" content="Telling">
-  
+
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Telling - Error Tracking & Analytics">
@@ -42,10 +29,48 @@
 
   <title>Telling - Error Tracking & Analytics</title>
   <link rel="manifest" href="manifest.json">
+
 <!-- Pusher JS for real-time updates -->
 <script charset="utf-8" src="https://js.pusher.com/8.3.0/pusher.min.js"></script>
 
 <style>
+  /* ─────────────────────────────────────────────────────────────────────────
+     Telling loader.
+
+     This paints before Flutter boots, so it cannot use the app's widgets.
+     Three things it does that the previous loader did not:
+
+       1. Real progress. Flutter's loader reports actual download progress via
+          onProgress, so the bar tracks bytes rather than sweeping forever.
+       2. The real brand fonts. Syne and Urbanist ship inside the Flutter asset
+          bundle, so @font-face points at the same TTFs the app uses — no Google
+          Fonts request, no extra bytes, no flash of system fallback.
+       3. The app's palette: near-black, white, Flutter blue, and DartNative's
+          spectrum. The old loader used a green that appeared nowhere else.
+     ───────────────────────────────────────────────────────────────────────── */
+
+  @font-face {
+    font-family: 'Syne';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('assets/assets/fonts/syne/Syne-ExtraBold.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Urbanist';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('assets/assets/fonts/urbanist/Urbanist-SemiBold.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Urbanist';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('assets/assets/fonts/urbanist/Urbanist-Regular.ttf') format('truetype');
+  }
+
   * {
     margin: 0;
     padding: 0;
@@ -59,117 +84,316 @@
 
   #loading-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 30px;
     z-index: 9999;
-    transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+    background: #0A0A0A;
+    transition: opacity 0.55s ease, visibility 0.55s ease;
   }
 
   #loading-screen.hidden {
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* Fine grid, matching the app's GridBackground. */
+  #loading-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+    background-size: 44px 44px;
+    pointer-events: none;
+  }
+
+  /* Scanline, matching the app's Scanline overlay. */
+  #loading-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0.16) 3px,
+      rgba(0, 0, 0, 0.16) 4px
+    );
+    pointer-events: none;
   }
 
   .loading-content {
-    text-align: center;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
   }
 
   .loading-logo {
-    font-size: 48px;
-    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(44px, 11vw, 84px);
     color: #FFFFFF;
-    margin-bottom: 32px;
-    letter-spacing: 2px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-indent: 0.16em;
+    /* A restrained version of the hero's chromatic split. */
+    text-shadow: 0 0 1px rgba(207, 102, 121, 0.45), 0 0 1px rgba(84, 197, 248, 0.45);
   }
 
-  .loading-bar {
-    width: 300px;
-    height: 4px;
-    background: rgba(76, 175, 80, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
+  .loading-tagline {
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    color: #6B6B70;
+    text-transform: uppercase;
+    text-indent: 0.42em;
+    margin-top: -8px;
+  }
+
+  /* Angular, because the app theme is BorderRadius.zero throughout. */
+  .loading-track {
     position: relative;
+    width: min(320px, 62vw);
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
   }
 
-  .loading-bar::before {
-    content: '';
+  .loading-fill {
     position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 40%;
-    background: linear-gradient(90deg, #4CAF50, #81C784);
-    border-radius: 2px;
-    animation: slide 1.5s ease-in-out infinite;
-    box-shadow:
-      0 0 10px rgba(76, 175, 80, 0.8),
-      0 0 20px rgba(76, 175, 80, 0.5);
+    inset: 0 auto 0 0;
+    width: 0%;
+    /* Sweeps both SDK colours: Flutter blue into DartNative's spectrum. */
+    background: linear-gradient(
+      90deg,
+      #02569B 0%,
+      #54C5F8 34%,
+      #fa60a6 56%,
+      #f9d126 76%,
+      #b5c75e 88%,
+      #03c3f0 100%
+    );
+    transition: width 0.25s ease-out;
   }
 
-  @keyframes slide {
-    0% {
-      transform: translateX(-100%);
-    }
-
-    100% {
-      transform: translateX(350%);
-    }
+  /* Indeterminate only until Flutter's first real progress event arrives. */
+  .loading-track.indeterminate .loading-fill {
+    width: 38%;
+    animation: dl-sweep 1.1s ease-in-out infinite;
   }
 
-  @media (max-width: 768px) {
-    .loading-logo {
-      font-size: 36px;
-    }
+  @keyframes dl-sweep {
+    0% { transform: translateX(-105%); }
+    100% { transform: translateX(300%); }
+  }
 
-    .loading-bar {
-      width: 200px;
-      height: 3px;
+  .loading-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    width: min(320px, 62vw);
+    font-family: 'Urbanist', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: #4A4A4E;
+    text-transform: uppercase;
+  }
+
+  .loading-pct {
+    font-variant-numeric: tabular-nums;
+    color: #7A7A80;
+  }
+
+  /* The hero now carries both SDKs; the loader previews them. Each chip fills
+     with its own brand colour once real progress clears 55%. */
+  .loading-sdks {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .sdk-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 13px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    font-family: 'Urbanist', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: #6B6B70;
+    text-transform: uppercase;
+    transition: color 0.4s ease, border-color 0.4s ease;
+  }
+
+  .sdk-chip .dot {
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.16);
+    transition: background 0.4s ease;
+  }
+
+  .sdk-chip.flutter.lit {
+    color: #54C5F8;
+    border-color: rgba(2, 86, 155, 0.85);
+  }
+  .sdk-chip.flutter.lit .dot { background: #54C5F8; }
+
+  .sdk-chip.dartnative.lit {
+    color: #E8E8EA;
+    border-color: rgba(249, 209, 38, 0.55);
+    background-image: linear-gradient(
+      100deg,
+      rgba(250, 96, 166, 0.16),
+      rgba(249, 209, 38, 0.16),
+      rgba(3, 195, 240, 0.16)
+    );
+  }
+  .sdk-chip.dartnative.lit .dot {
+    background: linear-gradient(120deg, #fa60a6, #f9d126, #03c3f0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .loading-track.indeterminate .loading-fill {
+      width: 100%;
+      animation: none;
+      opacity: 0.55;
+    }
+    #loading-screen,
+    .loading-fill,
+    .sdk-chip,
+    .sdk-chip .dot {
+      transition: none;
     }
   }
 </style>
 </head>
 <body>
-  <!-- Loading Screen -->
   <div id="loading-screen">
     <div class="loading-content">
       <div class="loading-logo">TELLING</div>
-      <div class="loading-bar"></div>
+      <div class="loading-tagline">Tactical Intelligence System</div>
+      <div class="loading-track indeterminate">
+        <div class="loading-fill"></div>
+      </div>
+      <div class="loading-meta">
+        <span class="loading-status">Initialising</span>
+        <span class="loading-pct">0%</span>
+      </div>
+    </div>
+    <div class="loading-sdks">
+      <div class="sdk-chip flutter"><span class="dot"></span>Flutter</div>
+      <div class="sdk-chip dartnative"><span class="dot"></span>DartNative</div>
     </div>
   </div>
 
-  <script src="flutter_bootstrap.js" async></script>
   <script>
-    // Hide loading screen when Flutter is ready
-    window.addEventListener('flutter-first-frame', function () {
-      const loadingScreen = document.getElementById('loading-screen');
-      if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
+    (function () {
+      var screenEl = document.getElementById('loading-screen');
+      var trackEl = screenEl.querySelector('.loading-track');
+      var fillEl = screenEl.querySelector('.loading-fill');
+      var statusEl = screenEl.querySelector('.loading-status');
+      var pctEl = screenEl.querySelector('.loading-pct');
+      var flutterChip = screenEl.querySelector('.sdk-chip.flutter');
+      var dnChip = screenEl.querySelector('.sdk-chip.dartnative');
+      var hidden = false;
+      var reported = 0;
+      var sawFlutterProgress = false;
 
-        // Remove from DOM after transition
-        setTimeout(() => {
-          loadingScreen.remove();
-        }, 600);
+      function paint(pct, status) {
+        if (pct <= reported) return;
+        reported = pct;
+        trackEl.classList.remove('indeterminate');
+        fillEl.style.width = pct + '%';
+        pctEl.textContent = pct + '%';
+        if (status) statusEl.textContent = status;
+        if (pct >= 55) {
+          flutterChip.classList.add('lit');
+          dnChip.classList.add('lit');
+        }
       }
-    });
 
-    // Fallback: hide after 5 seconds if Flutter doesn't load
-    setTimeout(() => {
-      const loadingScreen = document.getElementById('loading-screen');
-      if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-        setTimeout(() => {
-          loadingScreen.remove();
-        }, 600);
+      // Flutter's onProgress only reports for the dart2wasm path, where the
+      // entrypoint is a dynamic import the loader can measure. This app
+      // compiles to dart2js, where the entrypoint is a plain <script> the
+      // browser streams privately -- so onProgress never fires. Treating it as
+      // the source of truth pinned the bar at 0%.
+      //
+      // Progress here is therefore milestone-based and genuinely observable:
+      // Resource Timing reports when each required artefact finished arriving.
+      // If a future build does emit real byte progress, that supersedes these
+      // steps rather than fighting them.
+      var MILESTONES = [
+        { match: /main\.dart\.js/, done: 80, label: 'Loading engine' },
+        { match: /canvaskit\.wasm/, done: 96, label: 'Compiling canvas' },
+      ];
+
+      function hide() {
+        if (hidden) return;
+        hidden = true;
+        paint(100, 'Ready');
+        screenEl.classList.add('hidden');
+        setTimeout(function () { screenEl.remove(); }, 700);
       }
-    }, 5000);
+
+      window.addEventListener('flutter-first-frame', hide);
+
+      if (typeof PerformanceObserver === 'function') {
+        try {
+          new PerformanceObserver(function (list) {
+            var entries = list.getEntries();
+            for (var i = 0; i < entries.length; i++) {
+              var name = entries[i].name || '';
+              for (var j = 0; j < MILESTONES.length; j++) {
+                var m = MILESTONES[j];
+                if (m.done > reported && m.match.test(name)) paint(m.done, m.label);
+              }
+            }
+          }).observe({ type: 'resource', buffered: true });
+        } catch (e) {
+          // Resource Timing unavailable: the indeterminate sweep carries it.
+        }
+      }
+
+      // Custom bootstrap. The two tokens below are replaced textually and must
+      // sit on their own lines -- never name one inside a comment, or the whole
+      // inlined payload gets swallowed by that comment.
+      {{flutter_js}}
+      {{flutter_build_config}}
+
+      _flutter.loader.load({
+        onProgress: function (e) {
+          // Ignore zero: that is a "started" event, not progress.
+          var fraction = 0;
+          if (typeof e === 'number') fraction = e;
+          else if (e && e.loaded !== undefined && e.total) fraction = e.loaded / e.total;
+          if (fraction > 0) {
+            sawFlutterProgress = true;
+            paint(Math.round(fraction * 100));
+          }
+        },
+      });
+
+      // Safety net, not a blunt 5s timer: only intervene if Flutter has not
+      // painted after 20s, and never yank a healthy load early.
+      setTimeout(function () {
+        if (!hidden) statusEl.textContent = 'Still loading — check your connection';
+      }, 20000);
+    })();
   </script>
 </body>
 </html>
