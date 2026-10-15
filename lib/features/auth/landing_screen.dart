@@ -243,7 +243,10 @@ class _LandingScreenState extends State<LandingScreen>
                       _buildFlutterBadge(true),
                     ],
                   ),
-                  _buildMissionBrief(true),
+                  // The column uses MainAxisAlignment.spaceEvenly, so dropping
+                  // the mission brief re-centred the CTA card noticeably
+                  // higher than it sat before. This restores the gap.
+                  const SizedBox(height: 5),
                   _buildCTASection(true),
                   _buildFooter(true),
                 ],
@@ -835,55 +838,6 @@ class _LandingScreenState extends State<LandingScreen>
     );
   }
 
-  Widget _buildMissionBrief(bool isMobile) {
-    return Container(
-      padding: EdgeInsets.all(isMobile ? 20 : 24),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.slate.withAlpha(77), width: 1.5),
-        color: AppColors.surfaceDark.withAlpha(153),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 4,
-                height: 4,
-                decoration: const BoxDecoration(
-                  color: AppColors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'MISSION_BRIEF',
-                style: TextStyle(
-                  fontFamily: 'Urbanist',
-                  color: AppColors.white,
-                  fontSize: isMobile ? 10 : 12,
-                  letterSpacing: 2,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 14 : 16),
-          Text(
-            'Real-time monitoring & error tracking. Deploy tactical intelligence to maintain operational superiority.',
-            style: TextStyle(
-              fontFamily: 'Urbanist',
-              color: AppColors.slate,
-              fontSize: isMobile ? 13 : 14,
-              height: 1.6,
-              letterSpacing: 0.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCTASection(bool isMobile) {
     return CornerBrackets(
       color: AppColors.white,
@@ -1078,7 +1032,7 @@ class _LandingScreenState extends State<LandingScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Made with Flutter, DartNative & 💙 by ',
+                'Made with Flutter & 💙 by ',
                 style: TextStyle(
                   fontFamily: 'Urbanist',
                   color: AppColors.slate,
