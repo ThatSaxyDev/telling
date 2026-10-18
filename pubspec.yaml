@@ -2,7 +2,7 @@ name: telling
 description: "An analytics dashboard built with Flutter. This application serves as the command center for monitoring logs, events, and crashes sent from the `telling_logger` SDK."
 publish_to: "none"
 
-version: 1.0.3+30
+version: 1.0.6+34
 
 environment:
   sdk: ^3.12.2
@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  telling_logger: ^1.4.4
+  telling_logger: ^1.5.0
   http: ^1.6.0
   go_router: ^17.0.0
   flutter_riverpod: ^3.0.3
@@ -27,7 +27,7 @@ dependencies:
   flutter_highlighter: ^0.1.1
   markdown: ^7.3.0
   package_info_plus: ^9.0.0
-  onesignal_flutter: ^5.6.7
+  onesignal_flutter: ^5.7.0
   pusher_channels_flutter: ^2.6.0
 
 dev_dependencies:
@@ -65,105 +65,44 @@ flutter_native_splash:
     icon_background_color_dark: "#000000"
 
 flutter:
+  config:
+    enable-swift-package-manager: false
+
   uses-material-design: true
 
+  # Only the weights/styles the app actually references are bundled. Every
+  # declared font is downloaded before Flutter's first web frame, so unused
+  # variants directly delay startup.
   fonts:
     - family: Syne
       fonts:
         - asset: assets/fonts/syne/Syne-Regular.ttf
-        - asset: assets/fonts/syne/Syne-Medium.ttf
-          weight: 500
         - asset: assets/fonts/syne/Syne-SemiBold.ttf
           weight: 600
         - asset: assets/fonts/syne/Syne-Bold.ttf
           weight: 700
-        - asset: assets/fonts/syne/Syne-ExtraBold.ttf
-          weight: 800
     - family: Urbanist
       fonts:
-        - asset: assets/fonts/urbanist/Urbanist-Thin.ttf
-          weight: 100
-        - asset: assets/fonts/urbanist/Urbanist-ThinItalic.ttf
-          weight: 100
-          style: italic
-        - asset: assets/fonts/urbanist/Urbanist-ExtraLight.ttf
-          weight: 200
-        - asset: assets/fonts/urbanist/Urbanist-ExtraLightItalic.ttf
-          weight: 200
-          style: italic
-        - asset: assets/fonts/urbanist/Urbanist-Light.ttf
-          weight: 300
-        - asset: assets/fonts/urbanist/Urbanist-LightItalic.ttf
-          weight: 300
-          style: italic
         - asset: assets/fonts/urbanist/Urbanist-Regular.ttf
         - asset: assets/fonts/urbanist/Urbanist-Italic.ttf
           style: italic
         - asset: assets/fonts/urbanist/Urbanist-Medium.ttf
           weight: 500
-        - asset: assets/fonts/urbanist/Urbanist-MediumItalic.ttf
-          weight: 500
-          style: italic
         - asset: assets/fonts/urbanist/Urbanist-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/urbanist/Urbanist-SemiBoldItalic.ttf
-          weight: 600
-          style: italic
         - asset: assets/fonts/urbanist/Urbanist-Bold.ttf
           weight: 700
-        - asset: assets/fonts/urbanist/Urbanist-BoldItalic.ttf
-          weight: 700
-          style: italic
         - asset: assets/fonts/urbanist/Urbanist-ExtraBold.ttf
           weight: 800
-        - asset: assets/fonts/urbanist/Urbanist-ExtraBoldItalic.ttf
-          weight: 800
-          style: italic
         - asset: assets/fonts/urbanist/Urbanist-Black.ttf
           weight: 900
-        - asset: assets/fonts/urbanist/Urbanist-BlackItalic.ttf
-          weight: 900
-          style: italic
     - family: SourceCodePro
       fonts:
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-ExtraLight.ttf
-          weight: 200
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-ExtraLightItalic.ttf
-          weight: 200
-          style: italic
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-Light.ttf
-          weight: 300
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-LightItalic.ttf
-          weight: 300
-          style: italic
         - asset: assets/fonts/sourceCodePro/SourceCodePro-Regular.ttf
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-Italic.ttf
-          style: italic
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-MediumItalic.ttf
-          weight: 500
-          style: italic
         - asset: assets/fonts/sourceCodePro/SourceCodePro-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-SemiBoldItalic.ttf
-          weight: 600
-          style: italic
         - asset: assets/fonts/sourceCodePro/SourceCodePro-Bold.ttf
           weight: 700
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-BoldItalic.ttf
-          weight: 700
-          style: italic
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-ExtraBold.ttf
-          weight: 800
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-ExtraBoldItalic.ttf
-          weight: 800
-          style: italic
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-Black.ttf
-          weight: 900
-        - asset: assets/fonts/sourceCodePro/SourceCodePro-BlackItalic.ttf
-          weight: 900
-          style: italic
 
   assets:
     - assets/images/

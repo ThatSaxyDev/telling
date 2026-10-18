@@ -1,0 +1,338 @@
+[
+  {
+    "file": "01-iPhone-medium-1179x2556/01-overview-1179x2556.png",
+    "slot": "iphone-medium",
+    "width": 1179,
+    "height": 2556,
+    "source": "phone-01-overview.png",
+    "geometry": {
+      "errors": [],
+      "width": 1179,
+      "height": 2556
+    }
+  },
+  {
+    "file": "01-iPhone-medium-1179x2556/02-errors-1179x2556.png",
+    "slot": "iphone-medium",
+    "width": 1179,
+    "height": 2556,
+    "source": "phone-02-errors.png",
+    "geometry": {
+      "errors": [],
+      "width": 1179,
+      "height": 2556
+    }
+  },
+  {
+    "file": "01-iPhone-medium-1179x2556/03-sessions-1179x2556.png",
+    "slot": "iphone-medium",
+    "width": 1179,
+    "height": 2556,
+    "source": "phone-03-sessions.png",
+    "geometry": {
+      "errors": [],
+      "width": 1179,
+      "height": 2556
+    }
+  },
+  {
+    "file": "01-iPhone-medium-1179x2556/04-analytics-1179x2556.png",
+    "slot": "iphone-medium",
+    "width": 1179,
+    "height": 2556,
+    "source": "phone-04-analytics.png",
+    "geometry": {
+      "errors": [],
+      "width": 1179,
+      "height": 2556
+    }
+  },
+  {
+    "file": "01-iPhone-medium-1179x2556/05-versions-1179x2556.png",
+    "slot": "iphone-medium",
+    "width": 1179,
+    "height": 2556,
+    "source": "phone-05-versions.png",
+    "geometry": {
+      "errors": [],
+      "width": 1179,
+      "height": 2556
+    }
+  },
+  {
+    "file": "02-iPad-13-2064x2752/01-overview-2064x2752.png",
+    "slot": "ipad-13",
+    "width": 2064,
+    "height": 2752,
+    "source": "ipad-01-overview.png",
+    "geometry": {
+      "errors": [],
+      "width": 2064,
+      "height": 2752
+    }
+  },
+  {
+    "file": "02-iPad-13-2064x2752/02-errors-2064x2752.png",
+    "slot": "ipad-13",
+    "width": 2064,
+    "height": 2752,
+    "source": "ipad-02-errors.png",
+    "geometry": {
+      "errors": [],
+      "width": 2064,
+      "height": 2752
+    }
+  },
+  {
+    "file": "02-iPad-13-2064x2752/03-sessions-2064x2752.png",
+    "slot": "ipad-13",
+    "width": 2064,
+    "height": 2752,
+    "source": "ipad-03-sessions.png",
+    "geometry": {
+      "errors": [],
+      "width": 2064,
+      "height": 2752
+    }
+  },
+  {
+    "file": "02-iPad-13-2064x2752/04-analytics-2064x2752.png",
+    "slot": "ipad-13",
+    "width": 2064,
+    "height": 2752,
+    "source": "ipad-04-analytics.png",
+    "geometry": {
+      "errors": [],
+      "width": 2064,
+      "height": 2752
+    }
+  },
+  {
+    "file": "02-iPad-13-2064x2752/05-versions-2064x2752.png",
+    "slot": "ipad-13",
+    "width": 2064,
+    "height": 2752,
+    "source": "ipad-05-versions.png",
+    "geometry": {
+      "errors": [],
+      "width": 2064,
+      "height": 2752
+    }
+  },
+  {
+    "file": "03-Duo-outer-1398x2034/01-overview-1398x2034.png",
+    "slot": "duo-outer",
+    "width": 1398,
+    "height": 2034,
+    "source": "phone-01-overview.png",
+    "geometry": {
+      "errors": [],
+      "width": 1398,
+      "height": 2034
+    }
+  },
+  {
+    "file": "03-Duo-outer-1398x2034/02-errors-1398x2034.png",
+    "slot": "duo-outer",
+    "width": 1398,
+    "height": 2034,
+    "source": "phone-02-errors.png",
+    "geometry": {
+      "errors": [],
+      "width": 1398,
+      "height": 2034
+    }
+  },
+  {
+    "file": "03-Duo-outer-1398x2034/03-sessions-1398x2034.png",
+    "slot": "duo-outer",
+    "width": 1398,
+    "height": 2034,
+    "source": "phone-03-sessions.png",
+    "geometry": {
+      "errors": [],
+      "width": 1398,
+      "height": 2034
+    }
+  },
+  {
+    "file": "03-Duo-outer-1398x2034/04-analytics-1398x2034.png",
+    "slot": "duo-outer",
+    "width": 1398,
+    "height": 2034,
+    "source": "phone-04-analytics.png",
+    "geometry": {
+      "errors": [],
+      "width": 1398,
+      "height": 2034
+    }
+  },
+  {
+    "file": "03-Duo-outer-1398x2034/05-versions-1398x2034.png",
+    "slot": "duo-outer",
+    "width": 1398,
+    "height": 2034,
+    "source": "phone-05-versions.png",
+    "geometry": {
+      "errors": [],
+      "width": 1398,
+      "height": 2034
+    }
+  },
+  {
+    "file": "04-Duo-inner-2007x2853/01-overview-2007x2853.png",
+    "slot": "duo-inner",
+    "width": 2007,
+    "height": 2853,
+    "source": "phone-01-overview.png",
+    "geometry": {
+      "errors": [],
+      "width": 2007,
+      "height": 2853
+    }
+  },
+  {
+    "file": "04-Duo-inner-2007x2853/02-errors-2007x2853.png",
+    "slot": "duo-inner",
+    "width": 2007,
+    "height": 2853,
+    "source": "phone-02-errors.png",
+    "geometry": {
+      "errors": [],
+      "width": 2007,
+      "height": 2853
+    }
+  },
+  {
+    "file": "04-Duo-inner-2007x2853/03-sessions-2007x2853.png",
+    "slot": "duo-inner",
+    "width": 2007,
+    "height": 2853,
+    "source": "phone-03-sessions.png",
+    "geometry": {
+      "errors": [],
+      "width": 2007,
+      "height": 2853
+    }
+  },
+  {
+    "file": "04-Duo-inner-2007x2853/04-analytics-2007x2853.png",
+    "slot": "duo-inner",
+    "width": 2007,
+    "height": 2853,
+    "source": "phone-04-analytics.png",
+    "geometry": {
+      "errors": [],
+      "width": 2007,
+      "height": 2853
+    }
+  },
+  {
+    "file": "04-Duo-inner-2007x2853/05-versions-2007x2853.png",
+    "slot": "duo-inner",
+    "width": 2007,
+    "height": 2853,
+    "source": "phone-05-versions.png",
+    "geometry": {
+      "errors": [],
+      "width": 2007,
+      "height": 2853
+    }
+  },
+  {
+    "file": "05-Header-3840x1646/header-3840x1646.png",
+    "slot": "header",
+    "width": 3840,
+    "height": 1646,
+    "source": "existing-logo",
+    "geometry": {
+      "errors": [],
+      "width": 3840,
+      "height": 1646
+    }
+  },
+  {
+    "file": "06-Search-Results-3840x2560/search-results-3840x2560.png",
+    "slot": "search-results",
+    "width": 3840,
+    "height": 2560,
+    "source": "existing-logo",
+    "geometry": {
+      "errors": [],
+      "width": 3840,
+      "height": 2560
+    }
+  },
+  {
+    "file": "07-Play-phone-1080x1920/01-overview-1080x1920.png",
+    "slot": "play-phone",
+    "width": 1080,
+    "height": 1920,
+    "source": "android-01-overview.png",
+    "geometry": {
+      "errors": [],
+      "width": 1080,
+      "height": 1920
+    }
+  },
+  {
+    "file": "07-Play-phone-1080x1920/02-errors-1080x1920.png",
+    "slot": "play-phone",
+    "width": 1080,
+    "height": 1920,
+    "source": "android-02-errors.png",
+    "geometry": {
+      "errors": [],
+      "width": 1080,
+      "height": 1920
+    }
+  },
+  {
+    "file": "07-Play-phone-1080x1920/03-sessions-1080x1920.png",
+    "slot": "play-phone",
+    "width": 1080,
+    "height": 1920,
+    "source": "android-03-sessions.png",
+    "geometry": {
+      "errors": [],
+      "width": 1080,
+      "height": 1920
+    }
+  },
+  {
+    "file": "07-Play-phone-1080x1920/04-analytics-1080x1920.png",
+    "slot": "play-phone",
+    "width": 1080,
+    "height": 1920,
+    "source": "android-04-analytics.png",
+    "geometry": {
+      "errors": [],
+      "width": 1080,
+      "height": 1920
+    }
+  },
+  {
+    "file": "07-Play-phone-1080x1920/05-versions-1080x1920.png",
+    "slot": "play-phone",
+    "width": 1080,
+    "height": 1920,
+    "source": "android-05-versions.png",
+    "geometry": {
+      "errors": [],
+      "width": 1080,
+      "height": 1920
+    }
+  },
+  {
+    "file": "08-Play-feature-1024x500/play-feature-1024x500.png",
+    "slot": "play-feature",
+    "width": 1024,
+    "height": 500,
+    "source": "existing-logo",
+    "geometry": {
+      "errors": [],
+      "width": 1024,
+      "height": 500
+    }
+  }
+]

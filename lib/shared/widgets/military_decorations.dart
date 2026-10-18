@@ -233,6 +233,10 @@ class _GridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // A pulse can exist during a transient zero-sized layout (e.g. Android launch).
+    // Modulo by zero would produce NaN coordinates for its gradient.
+    if (size.isEmpty || !size.width.isFinite || !size.height.isFinite) return;
+
     final paint = Paint()
       ..color = color
       ..strokeWidth = strokeWidth

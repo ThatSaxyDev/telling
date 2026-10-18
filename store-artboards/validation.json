@@ -1,0 +1,342 @@
+{
+  "status": "passed",
+  "image_count": 28,
+  "files": [
+    {
+      "file": "01-iPhone-medium-1179x2556/01-overview-1179x2556.png",
+      "dimensions": [
+        1179,
+        2556
+      ],
+      "mode": "RGB",
+      "bytes": 521288,
+      "sha256": "187fb8073a157eed749c302bdb615ba2874ccaef927d93daf529aecc62e8d042",
+      "source": "phone-01-overview.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "01-iPhone-medium-1179x2556/02-errors-1179x2556.png",
+      "dimensions": [
+        1179,
+        2556
+      ],
+      "mode": "RGB",
+      "bytes": 207166,
+      "sha256": "92180f826c5ca0065a27354467fecb9989feeaa20b85919a08e60671bbe0d098",
+      "source": "phone-02-errors.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "01-iPhone-medium-1179x2556/03-sessions-1179x2556.png",
+      "dimensions": [
+        1179,
+        2556
+      ],
+      "mode": "RGB",
+      "bytes": 239538,
+      "sha256": "4362f5ed02d6d8fe7ea821bbc195487852b603e78660a2d4f27b9034d1ddc445",
+      "source": "phone-03-sessions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "01-iPhone-medium-1179x2556/04-analytics-1179x2556.png",
+      "dimensions": [
+        1179,
+        2556
+      ],
+      "mode": "RGB",
+      "bytes": 254700,
+      "sha256": "dc4187c64b6bd83706b4dad5af14817d8362005ec8f450a510a24fd4fde50bd5",
+      "source": "phone-04-analytics.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "01-iPhone-medium-1179x2556/05-versions-1179x2556.png",
+      "dimensions": [
+        1179,
+        2556
+      ],
+      "mode": "RGB",
+      "bytes": 224487,
+      "sha256": "7ff366dc63efb312438ea05d1e8d5aba55c4d86b393f3d80944151654c924159",
+      "source": "phone-05-versions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "02-iPad-13-2064x2752/01-overview-2064x2752.png",
+      "dimensions": [
+        2064,
+        2752
+      ],
+      "mode": "RGB",
+      "bytes": 749600,
+      "sha256": "a490a9cdc8a3fcf172c6a3347867def3090ed8ce923f6c55375a9ee7481f6fca",
+      "source": "ipad-01-overview.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "02-iPad-13-2064x2752/02-errors-2064x2752.png",
+      "dimensions": [
+        2064,
+        2752
+      ],
+      "mode": "RGB",
+      "bytes": 229781,
+      "sha256": "057a12b0ba87db554e91e0b7265b677818790f83b6a19df77c2ca9673e1524bb",
+      "source": "ipad-02-errors.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "02-iPad-13-2064x2752/03-sessions-2064x2752.png",
+      "dimensions": [
+        2064,
+        2752
+      ],
+      "mode": "RGB",
+      "bytes": 410990,
+      "sha256": "12bf2cf5f698963c8fa7915e321b08b10a0089ce8789f42efbc51e1c3a68a6cf",
+      "source": "ipad-03-sessions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "02-iPad-13-2064x2752/04-analytics-2064x2752.png",
+      "dimensions": [
+        2064,
+        2752
+      ],
+      "mode": "RGB",
+      "bytes": 283719,
+      "sha256": "668292ecf264be416b36ee51691506231f30000260a2144380ee672b41ca0bac",
+      "source": "ipad-04-analytics.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "02-iPad-13-2064x2752/05-versions-2064x2752.png",
+      "dimensions": [
+        2064,
+        2752
+      ],
+      "mode": "RGB",
+      "bytes": 216701,
+      "sha256": "3110dc6d6b9be4c4f67b6a7d173daeefe379e480dd05949fcb7a10958197260b",
+      "source": "ipad-05-versions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "03-Duo-outer-1398x2034/01-overview-1398x2034.png",
+      "dimensions": [
+        1398,
+        2034
+      ],
+      "mode": "RGB",
+      "bytes": 367705,
+      "sha256": "d85e40869f177a7fef9123ea57903acc54f956b41e5ef7ab19b56d4b8051194d",
+      "source": "phone-01-overview.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "03-Duo-outer-1398x2034/02-errors-1398x2034.png",
+      "dimensions": [
+        1398,
+        2034
+      ],
+      "mode": "RGB",
+      "bytes": 163523,
+      "sha256": "a439a4763ff19bee353b46b1b9883dcf11c1528ed0ed25756bc6a19eef334529",
+      "source": "phone-02-errors.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "03-Duo-outer-1398x2034/03-sessions-1398x2034.png",
+      "dimensions": [
+        1398,
+        2034
+      ],
+      "mode": "RGB",
+      "bytes": 188466,
+      "sha256": "0ab1d1f1d94273503ecc3922c5ba8a8574cda42b6d285408066c3ba08366f251",
+      "source": "phone-03-sessions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "03-Duo-outer-1398x2034/04-analytics-1398x2034.png",
+      "dimensions": [
+        1398,
+        2034
+      ],
+      "mode": "RGB",
+      "bytes": 186707,
+      "sha256": "0aba828e0be687186e5400b13878158280d3837a3e5b444de24e52354375f959",
+      "source": "phone-04-analytics.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "03-Duo-outer-1398x2034/05-versions-1398x2034.png",
+      "dimensions": [
+        1398,
+        2034
+      ],
+      "mode": "RGB",
+      "bytes": 171423,
+      "sha256": "d520c4b3dc0bfa3b8ec95fba49f9b93e6cf589d5d9b3d136b4f9531637fa4d37",
+      "source": "phone-05-versions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "04-Duo-inner-2007x2853/01-overview-2007x2853.png",
+      "dimensions": [
+        2007,
+        2853
+      ],
+      "mode": "RGB",
+      "bytes": 642420,
+      "sha256": "080504ed62c44a179feaff2c3c51bfcd439a5f74efe5ccfa3e90a67636572878",
+      "source": "phone-01-overview.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "04-Duo-inner-2007x2853/02-errors-2007x2853.png",
+      "dimensions": [
+        2007,
+        2853
+      ],
+      "mode": "RGB",
+      "bytes": 262989,
+      "sha256": "6fef5667f79cdc349ac0c19c28220e6ef5fd5b74e3e0b855c229c9fe94dfcd2e",
+      "source": "phone-02-errors.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "04-Duo-inner-2007x2853/03-sessions-2007x2853.png",
+      "dimensions": [
+        2007,
+        2853
+      ],
+      "mode": "RGB",
+      "bytes": 300859,
+      "sha256": "f4228af683dc8f9ae1d82691fda88c4eaf7464aca98b9a74475065b44a857cfe",
+      "source": "phone-03-sessions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "04-Duo-inner-2007x2853/04-analytics-2007x2853.png",
+      "dimensions": [
+        2007,
+        2853
+      ],
+      "mode": "RGB",
+      "bytes": 321151,
+      "sha256": "c32128f9f35ca7ff9eeb213d8240c5e0ad14af91c897a1ef2f683d1f647cebf7",
+      "source": "phone-04-analytics.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "04-Duo-inner-2007x2853/05-versions-2007x2853.png",
+      "dimensions": [
+        2007,
+        2853
+      ],
+      "mode": "RGB",
+      "bytes": 286282,
+      "sha256": "4f65634fa8d53e1c303e4ec9014c04cc8a95444f12e47c99091f092a5434f89a",
+      "source": "phone-05-versions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "05-Header-3840x1646/header-3840x1646.png",
+      "dimensions": [
+        3840,
+        1646
+      ],
+      "mode": "RGB",
+      "bytes": 318296,
+      "sha256": "15149a0778959ae3294f85b7271ea55dc04ec9867b2983b2dfb9cad33c0770c6",
+      "source": "existing-logo",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "06-Search-Results-3840x2560/search-results-3840x2560.png",
+      "dimensions": [
+        3840,
+        2560
+      ],
+      "mode": "RGB",
+      "bytes": 776924,
+      "sha256": "cb464f8772c5b5508ec407bf021400f86908032bdea1dd2109ef0eae4e6e0981",
+      "source": "existing-logo",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "07-Play-phone-1080x1920/01-overview-1080x1920.png",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "bytes": 157941,
+      "sha256": "f0c1152cdab4aaa3cf45138cff6a2127cf35224402895e5a3a973db23ef94c65",
+      "source": "android-01-overview.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "07-Play-phone-1080x1920/02-errors-1080x1920.png",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "bytes": 104932,
+      "sha256": "f5caf5ebc17e5e36be5b5f90151951f59838813d4e6f54211ae2c59e2eefdc8e",
+      "source": "android-02-errors.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "07-Play-phone-1080x1920/03-sessions-1080x1920.png",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "bytes": 153712,
+      "sha256": "85ee20b50d4e62366bb4b44bf8790274f505fd00c22ce3f19ac579394be85add",
+      "source": "android-03-sessions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "07-Play-phone-1080x1920/04-analytics-1080x1920.png",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "bytes": 99371,
+      "sha256": "21110e8d96577e04dd4c4c092ed3b66ea9b470de6e7c64a61172a47ce4e8f4f9",
+      "source": "android-04-analytics.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "07-Play-phone-1080x1920/05-versions-1080x1920.png",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "bytes": 115271,
+      "sha256": "a7c1c5e0e7afe6f0be56b0c16c68b63574165628a7cb2c9dd4be698e1c8e1386",
+      "source": "android-05-versions.png",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    },
+    {
+      "file": "08-Play-feature-1024x500/play-feature-1024x500.png",
+      "dimensions": [
+        1024,
+        500
+      ],
+      "mode": "RGB",
+      "bytes": 46913,
+      "sha256": "9064100756fd3b3bea30e4c2b43d8362c6abfabf2ca2928e901bd2fbdd49d086",
+      "source": "existing-logo",
+      "composition": "passed: bounds, overlap, image loading, proportional scaling"
+    }
+  ]
+}

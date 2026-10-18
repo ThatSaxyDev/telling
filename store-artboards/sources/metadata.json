@@ -1,0 +1,107 @@
+{
+  "android-02-errors.png": {
+    "width": 1280,
+    "height": 2856,
+    "top": 128,
+    "bottom": 24,
+    "cropHeight": 2704
+  },
+  "android-04-analytics.png": {
+    "width": 1280,
+    "height": 2856,
+    "top": 128,
+    "bottom": 24,
+    "cropHeight": 2704
+  },
+  "ipad-04-analytics.png": {
+    "width": 2064,
+    "height": 2752,
+    "top": 55,
+    "bottom": 10,
+    "cropHeight": 2687
+  },
+  "phone-01-overview.png": {
+    "width": 1170,
+    "height": 2532,
+    "top": 110,
+    "bottom": 30,
+    "cropHeight": 2392
+  },
+  "phone-02-errors.png": {
+    "width": 1170,
+    "height": 2532,
+    "top": 110,
+    "bottom": 30,
+    "cropHeight": 2392
+  },
+  "ipad-01-overview.png": {
+    "width": 2064,
+    "height": 2752,
+    "top": 55,
+    "bottom": 10,
+    "cropHeight": 2687
+  },
+  "android-01-overview.png": {
+    "width": 1280,
+    "height": 2856,
+    "top": 128,
+    "bottom": 24,
+    "cropHeight": 2704
+  },
+  "ipad-02-errors.png": {
+    "width": 2064,
+    "height": 2752,
+    "top": 55,
+    "bottom": 10,
+    "cropHeight": 2687
+  },
+  "phone-03-sessions.png": {
+    "width": 1170,
+    "height": 2532,
+    "top": 110,
+    "bottom": 30,
+    "cropHeight": 2392
+  },
+  "phone-04-analytics.png": {
+    "width": 1170,
+    "height": 2532,
+    "top": 110,
+    "bottom": 30,
+    "cropHeight": 2392
+  },
+  "phone-05-versions.png": {
+    "width": 1170,
+    "height": 2532,
+    "top": 110,
+    "bottom": 30,
+    "cropHeight": 2392
+  },
+  "ipad-05-versions.png": {
+    "width": 2064,
+    "height": 2752,
+    "top": 55,
+    "bottom": 10,
+    "cropHeight": 2687
+  },
+  "ipad-03-sessions.png": {
+    "width": 2064,
+    "height": 2752,
+    "top": 55,
+    "bottom": 10,
+    "cropHeight": 2687
+  },
+  "android-03-sessions.png": {
+    "width": 1280,
+    "height": 2856,
+    "top": 128,
+    "bottom": 24,
+    "cropHeight": 2704
+  },
+  "android-05-versions.png": {
+    "width": 1280,
+    "height": 2856,
+    "top": 128,
+    "bottom": 24,
+    "cropHeight": 2704
+  }
+}

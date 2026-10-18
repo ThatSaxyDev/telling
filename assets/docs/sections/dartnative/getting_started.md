@@ -13,16 +13,21 @@ changing one import.
 
 ```yaml
 dependencies:
+  dartnative: ^1.0.0
+  dartnative_shared_preferences: ^1.0.0
+  dartnative_system: ^1.0.0
   telling_kit:
     hosted: https://dartpub.dev
-    version: ^1.0.0
+    version: ^1.0.1
 ```
 
 ```sh
 dn pub get
 ```
 
-`dn pub get` picks the package up and generates the plugin registrant for you.
+`dn pub get` resolves the package and generates the plugin registrant. Declare
+`dartnative_shared_preferences` and `dartnative_system` directly in the app as
+shown above; the registry omits SDK-managed dependencies from its pub source archive.
 There is nothing to link: no `.xcframework`, no `.aar`, no podspec, no gradle
 module. See [Device Metadata](device_metadata.md) for why it ships no native
 code.
@@ -131,3 +136,13 @@ alternate form:
 
 See [Core Concepts](../core_concepts.md) and
 [Error Handling](../advanced_features.md).
+
+## Build-aware update checks
+
+`telling_kit` 1.0.1+ sends the installed build with `checkVersion()`, matching
+`telling_logger` 1.5.0+. Customers set minimum iOS and Android builds alongside
+versions in the same project configuration screen on mobile and web. Either
+minimum can trigger an update. Pass `result.snoozeTarget` as the optional `target`
+to `snoozeUpdate()` and `acceptUpdate()` so snoozes follow the exact build target.
+See [App Configuration & Force Update](../app_config.md) for API examples and
+compatibility with older clients.

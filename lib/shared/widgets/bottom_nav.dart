@@ -48,7 +48,8 @@ class BottomNav extends ConsumerWidget {
     final navHeight = context.responsive<double>(
       mobile: 80.0,
       tablet: 70.0,
-      desktop: 60.0,
+      // Native iPad keeps this navigation bar; labels need the same clearance.
+      desktop: 80.0,
     );
 
     // Check if we should show labels (hide on very small screens)

@@ -137,18 +137,6 @@
     gap: 22px;
   }
 
-  .loading-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 600;
-    font-size: clamp(20px, 4vw, 30px);
-    color: #FFFFFF;
-    letter-spacing: 0.2em;
-    line-height: 1;
-    text-indent: 0.2em;
-    /* A restrained version of the hero's chromatic split. */
-    text-shadow: 0 0 1px rgba(207, 102, 121, 0.45), 0 0 1px rgba(84, 197, 248, 0.45);
-  }
-
   .loading-tagline {
     font-family: 'Urbanist', sans-serif;
     font-weight: 400;
@@ -157,7 +145,6 @@
     color: #5C5C61;
     text-transform: uppercase;
     text-indent: 0.34em;
-    margin-top: -4px;
   }
 
   /* Angular, because the app theme is BorderRadius.zero throughout. */
@@ -200,18 +187,13 @@
   .loading-meta {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
+    justify-content: center;
     width: min(320px, 62vw);
     font-family: 'Urbanist', sans-serif;
     font-size: 10px;
     letter-spacing: 0.22em;
     color: #4A4A4E;
     text-transform: uppercase;
-  }
-
-  .loading-pct {
-    font-variant-numeric: tabular-nums;
-    color: #7A7A80;
   }
 
   /* The hero now carries both SDKs; the loader previews them. Each chip fills
@@ -285,19 +267,17 @@
 <body>
   <div id="loading-screen">
     <div class="loading-content">
-      <div class="loading-logo">TELLING</div>
-      <div class="loading-tagline">Tactical Intelligence System</div>
+      <div class="loading-tagline">Telling</div>
       <div class="loading-track indeterminate">
         <div class="loading-fill"></div>
       </div>
       <div class="loading-meta">
         <span class="loading-status">Initialising</span>
-        <span class="loading-pct">0%</span>
       </div>
     </div>
     <div class="loading-sdks">
-      <div class="sdk-chip flutter"><span class="dot"></span>Flutter</div>
-      <div class="sdk-chip dartnative"><span class="dot"></span>DartNative</div>
+      <div class="sdk-chip flutter lit"><span class="dot"></span>Flutter</div>
+      <div class="sdk-chip dartnative lit"><span class="dot"></span>DartNative</div>
     </div>
   </div>
 
@@ -307,41 +287,20 @@
       var trackEl = screenEl.querySelector('.loading-track');
       var fillEl = screenEl.querySelector('.loading-fill');
       var statusEl = screenEl.querySelector('.loading-status');
-      var pctEl = screenEl.querySelector('.loading-pct');
-      var flutterChip = screenEl.querySelector('.sdk-chip.flutter');
-      var dnChip = screenEl.querySelector('.sdk-chip.dartnative');
       var hidden = false;
       var reported = 0;
-      var sawFlutterProgress = false;
 
       function paint(pct, status) {
         if (pct <= reported) return;
         reported = pct;
         trackEl.classList.remove('indeterminate');
         fillEl.style.width = pct + '%';
-        pctEl.textContent = pct + '%';
         if (status) statusEl.textContent = status;
-        if (pct >= 55) {
-          flutterChip.classList.add('lit');
-          dnChip.classList.add('lit');
-        }
       }
 
-      // Flutter's onProgress only reports for the dart2wasm path, where the
-      // entrypoint is a dynamic import the loader can measure. This app
-      // compiles to dart2js, where the entrypoint is a plain <script> the
-      // browser streams privately -- so onProgress never fires. Treating it as
-      // the source of truth pinned the bar at 0%.
-      //
-      // Progress here is therefore milestone-based and genuinely observable:
-      // Resource Timing reports when each required artefact finished arriving.
-      // If a future build does emit real byte progress, that supersedes these
-      // steps rather than fighting them.
-      var MILESTONES = [
-        { match: /main\.dart\.js/, done: 80, label: 'Loading engine' },
-        { match: /canvaskit\.wasm/, done: 96, label: 'Compiling canvas' },
-      ];
-
+      // The bar sweeps until Flutter paints its first frame. Flutter's
+      // onProgress only fires on the dart2wasm path; this app compiles to
+      // dart2js, so the sweep simply runs until the app is ready.
       function hide() {
         if (hidden) return;
         hidden = true;
@@ -351,23 +310,6 @@
       }
 
       window.addEventListener('flutter-first-frame', hide);
-
-      if (typeof PerformanceObserver === 'function') {
-        try {
-          new PerformanceObserver(function (list) {
-            var entries = list.getEntries();
-            for (var i = 0; i < entries.length; i++) {
-              var name = entries[i].name || '';
-              for (var j = 0; j < MILESTONES.length; j++) {
-                var m = MILESTONES[j];
-                if (m.done > reported && m.match.test(name)) paint(m.done, m.label);
-              }
-            }
-          }).observe({ type: 'resource', buffered: true });
-        } catch (e) {
-          // Resource Timing unavailable: the indeterminate sweep carries it.
-        }
-      }
 
       // Custom bootstrap. The two tokens below are replaced textually and must
       // sit on their own lines -- never name one inside a comment, or the whole
@@ -381,10 +323,7 @@
           var fraction = 0;
           if (typeof e === 'number') fraction = e;
           else if (e && e.loaded !== undefined && e.total) fraction = e.loaded / e.total;
-          if (fraction > 0) {
-            sawFlutterProgress = true;
-            paint(Math.round(fraction * 100));
-          }
+          if (fraction > 0) paint(Math.round(fraction * 100));
         },
       });
 

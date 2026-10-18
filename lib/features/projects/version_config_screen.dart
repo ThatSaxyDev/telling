@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:telling/shared/widgets/military_loader.dart';
-import '../../core/providers/project_config_provider.dart';
-import '../../core/providers/project_provider.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
-import '../../shared/widgets/military_decorations.dart';
+import 'package:telling/core/providers/project_config_provider.dart';
+import 'package:telling/core/providers/project_provider.dart';
+import 'package:telling/core/theme/app_colors.dart';
+import 'package:telling/core/theme/app_text_styles.dart';
+import 'package:telling/shared/widgets/military_decorations.dart';
 
 /// Wrapper widget that handles Project ID changes.
 /// This ensures a fresh form state is created whenever the project changes.
@@ -69,7 +69,9 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _minIosVersionController;
+  late TextEditingController _minIosBuildController;
   late TextEditingController _minAndroidVersionController;
+  late TextEditingController _minAndroidBuildController;
   late TextEditingController _iosStoreUrlController;
   late TextEditingController _androidStoreUrlController;
   late TextEditingController _forceUpdateMessageController;
@@ -83,7 +85,9 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
   void initState() {
     super.initState();
     _minIosVersionController = TextEditingController();
+    _minIosBuildController = TextEditingController();
     _minAndroidVersionController = TextEditingController();
+    _minAndroidBuildController = TextEditingController();
     _iosStoreUrlController = TextEditingController();
     _androidStoreUrlController = TextEditingController();
     _forceUpdateMessageController = TextEditingController();
@@ -108,7 +112,9 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
   /// Populate controllers with config values and trigger UI update
   void _populateControllers(Map<String, String> config) {
     _minIosVersionController.text = config['min_ios_version'] ?? '';
+    _minIosBuildController.text = config['min_ios_build'] ?? '';
     _minAndroidVersionController.text = config['min_android_version'] ?? '';
+    _minAndroidBuildController.text = config['min_android_build'] ?? '';
     _iosStoreUrlController.text = config['ios_store_url'] ?? '';
     _androidStoreUrlController.text = config['android_store_url'] ?? '';
     _forceUpdateMessageController.text =
@@ -127,7 +133,9 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
   @override
   void dispose() {
     _minIosVersionController.dispose();
+    _minIosBuildController.dispose();
     _minAndroidVersionController.dispose();
+    _minAndroidBuildController.dispose();
     _iosStoreUrlController.dispose();
     _androidStoreUrlController.dispose();
     _forceUpdateMessageController.dispose();
@@ -150,7 +158,9 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
 
     final config = <String, String>{
       'min_ios_version': _minIosVersionController.text.trim(),
+      'min_ios_build': _minIosBuildController.text.trim(),
       'min_android_version': _minAndroidVersionController.text.trim(),
+      'min_android_build': _minAndroidBuildController.text.trim(),
       'ios_store_url': _iosStoreUrlController.text.trim(),
       'android_store_url': _androidStoreUrlController.text.trim(),
       'force_update_message': _forceUpdateMessageController.text.trim(),
@@ -221,8 +231,11 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
                 // Reset form values from existing config without reloading
                 final config = ref.read(projectConfigProvider).config;
                 _minIosVersionController.text = config['min_ios_version'] ?? '';
+                _minIosBuildController.text = config['min_ios_build'] ?? '';
                 _minAndroidVersionController.text =
                     config['min_android_version'] ?? '';
+                _minAndroidBuildController.text =
+                    config['min_android_build'] ?? '';
                 _iosStoreUrlController.text = config['ios_store_url'] ?? '';
                 _androidStoreUrlController.text =
                     config['android_store_url'] ?? '';
@@ -331,7 +344,7 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Configure minimum app versions for ${widget.projectName}',
+                                  'Configure minimum app versions and builds for ${widget.projectName}',
                                   style: AppTextStyles.bodySmall.copyWith(
                                     color: AppColors.slate,
                                   ),
@@ -347,7 +360,7 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
 
                   // Version Section
                   Text(
-                    'MINIMUM_VERSIONS',
+                    'MINIMUM_VERSIONS_AND_BUILDS',
                     style: AppTextStyles.labelMedium.copyWith(
                       color: AppColors.slate,
                       letterSpacing: 1,
@@ -370,6 +383,17 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
                           ),
                           const SizedBox(height: 16),
                           _buildTextField(
+                            controller: _minIosBuildController,
+                            label: 'MIN_IOS_BUILD',
+                            icon: Icons.numbers,
+                            hint: 'Optional, e.g., 24',
+                            keyboardType: TextInputType.number,
+                            onChanged: (_) => _onFieldChanged(),
+                            validator: _validateBuild,
+                            readOnly: !_isEditMode,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
                             controller: _minAndroidVersionController,
                             label: 'MIN_ANDROID_VERSION',
                             icon: Icons.android,
@@ -378,11 +402,31 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
                             validator: _validateVersion,
                             readOnly: !_isEditMode,
                           ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            controller: _minAndroidBuildController,
+                            label: 'MIN_ANDROID_BUILD',
+                            icon: Icons.numbers,
+                            hint: 'Optional, e.g., 24',
+                            keyboardType: TextInputType.number,
+                            onChanged: (_) => _onFieldChanged(),
+                            validator: _validateBuild,
+                            readOnly: !_isEditMode,
+                          ),
                         ],
                       ),
                     ),
                   ),
                   SizedBox(height: isMobile ? 20 : 24),
+
+                  Text(
+                    'An update is triggered below either minimum. Builds must increase '
+                    'across releases. Leave a build blank to disable its check.',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.slate,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
                   // Store URLs Section
                   Text(
@@ -557,6 +601,7 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
     required IconData icon,
     String? hint,
     int maxLines = 1,
+    TextInputType? keyboardType,
     void Function(String)? onChanged,
     String? Function(String?)? validator,
     bool readOnly = false,
@@ -564,6 +609,7 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
+      keyboardType: keyboardType,
       onChanged: onChanged,
       validator: validator,
       enabled: !readOnly,
@@ -593,6 +639,19 @@ class _VersionConfigContentState extends ConsumerState<_VersionConfigContent> {
         ),
       ),
     );
+  }
+
+  String? _validateBuild(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return null;
+    final build = int.tryParse(text);
+    if (!RegExp(r'^\d+$').hasMatch(text) ||
+        build == null ||
+        build <= 0 ||
+        build > 9007199254740991) {
+      return 'Enter a positive whole number, or leave blank';
+    }
+    return null;
   }
 
   String? _validateVersion(String? value) {

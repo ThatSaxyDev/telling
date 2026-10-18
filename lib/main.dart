@@ -49,7 +49,7 @@ void main() async {
       }
 
       await Telling.instance.init(
-        'JKkqECvjKQCstnhjkmsvp0BWqJyBlEHzYdBOetN13z0=',
+        'jHTkb94-JDjvuvODxlkZZNi36WvgUlYcWcq-Mi4ORLk=',
         enableDebugLogs: false,
       );
 

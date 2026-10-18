@@ -190,7 +190,8 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
     final spacing = isMobile ? 8.0 : 16.0;
 
     // Adjust aspect ratio for mobile to make cards taller
-    final aspectRatio = isMobile ? 1.6 : 2.0;
+    // Four-column tablet cards still need room for the icon, value and label.
+    final aspectRatio = isMobile ? 1.6 : 1.5;
 
     return GridView.count(
       crossAxisCount: crossAxisCount,
