@@ -334,6 +334,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         TextFormField(
           controller: controller,
           obscureText: isPassword && !isPasswordVisible,
+          // null disables autofill on web/Android; also stop inline suggestions
+          // so password managers cannot prefill saved credentials.
+          autofillHints: isPassword ? null : const <String>[],
+          enableSuggestions: !isPassword,
+          autocorrect: !isPassword,
           style: const TextStyle(
             fontFamily: 'Urbanist',
             color: AppColors.white,

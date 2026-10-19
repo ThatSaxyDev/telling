@@ -325,6 +325,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         TextFormField(
           controller: controller,
           obscureText: isPassword && !isPasswordVisible,
+          // null disables autofill on web/Android; also stop inline suggestions
+          // so password managers cannot prefill saved credentials.
+          autofillHints: isPassword ? null : const <String>[],
+          enableSuggestions: !isPassword,
+          autocorrect: !isPassword,
           cursorColor: AppColors.secondary,
           style: const TextStyle(
             fontFamily: 'Urbanist',

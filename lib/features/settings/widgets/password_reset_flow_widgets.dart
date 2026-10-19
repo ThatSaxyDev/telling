@@ -729,6 +729,11 @@ class _NewPasswordDialogState extends ConsumerState<NewPasswordDialog> {
         TextFormField(
           controller: controller,
           obscureText: obscureText,
+          // null disables autofill on web/Android; also stop inline suggestions
+          // so password managers cannot prefill saved credentials.
+          autofillHints: null,
+          enableSuggestions: false,
+          autocorrect: false,
           style: const TextStyle(
             fontFamily: 'Urbanist',
             color: AppColors.white,
